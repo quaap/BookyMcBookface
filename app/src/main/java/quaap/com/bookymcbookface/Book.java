@@ -34,6 +34,8 @@ public abstract class Book {
 
     public abstract File getFileForSectionID(String id);
 
+    public abstract File getFileForSection(String section);
+
     public void load(File file) {
         this.file = file;
         data = context.getSharedPreferences(file.getName(), Context.MODE_PRIVATE);

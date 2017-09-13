@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     EpubBook book;
+    List<String> sections;
+    int currectSection = 0;
 
     private WebView webView;
 
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    gotoSection(request.getUrl().toString());
                     return super.shouldOverrideUrlLoading(view, request);
                 }
             });
@@ -80,7 +83,8 @@ public class MainActivity extends AppCompatActivity {
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     Log.i("WebView", "Attempting to load URL: " + url);
 
-                    view.loadUrl(url);
+                    gotoSection(url);
+                    //view.loadUrl(url);
                     return true;
                 }
             });
@@ -107,11 +111,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void prevPage() {
-        webView.pageUp(false);
+        if(webView.canScrollVertically(-1)) {
+            webView.pageUp(false);
+        } else {
+            currectSection--;
+            gotoSectionId(sections.get(currectSection));
+        }
     }
 
     private void nextPage() {
-        webView.pageDown(false);
+
+        if(webView.canScrollVertically(1)) {
+            webView.pageDown(false);
+        } else {
+            currectSection++;
+            gotoSectionId(sections.get(currectSection));
+        }
     }
 
 
@@ -120,11 +135,24 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Main", "File " + file);
         book.load(file);
 
-        List<String> ids = book.getSectionIds();
-        Log.d("Main", "trying to load " + ids.get(0));
+        sections = book.getSectionIds();
+        gotoSectionId(sections.get(currectSection));
+
+    }
+
+    private void gotoSection(String section) {
+        Log.d("Main", "trying to load " + section);
+        String uri = book.getFileForSection(section).toURI().toString();
+
+        Log.d("Main", "trying to load " + uri);
+
+        webView.loadUrl(uri);
+    }
 
 
-        String uri = book.getFileForSectionID(ids.get(0)).toURI().toString();
+    private void gotoSectionId(String sectionid) {
+        Log.d("Main", "trying to load " + sectionid);
+        String uri = book.getFileForSectionID(sectionid).toURI().toString();
 
         Log.d("Main", "trying to load " + uri);
 

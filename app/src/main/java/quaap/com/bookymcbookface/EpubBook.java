@@ -53,7 +53,7 @@ public class EpubBook extends Book {
     protected void load() {
         subbook = "book" + getFile().getName();
         thisBookDir = new File(getDataDir(), subbook);
-        if (!getSharedPreferences().contains("ordercountc")) {
+        if (!getSharedPreferences().contains("ordercount")) {
             for (File file: Zip.unzip(getFile(), thisBookDir)) {
                 Log.d("EPUB", "unzipped + " + file);
             }
@@ -100,9 +100,18 @@ public class EpubBook extends Book {
 
     @Override
     public File getFileForSectionID(String id) {
+
         return new File(getFullBookContentDir(), docFiles.get(id));
     }
 
+    @Override
+    public File getFileForSection(String section) {
+        int pound = section.indexOf("#");
+        if (pound>-1) {
+            section = section.substring(0,pound);
+        }
+        return new File(getFullBookContentDir(), section);
+    }
 
     private File getFullBookContentDir() {
         return new File(thisBookDir,bookContentDir.getPath());
