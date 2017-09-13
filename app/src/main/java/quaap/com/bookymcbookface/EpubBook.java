@@ -47,7 +47,7 @@ public class EpubBook extends Book {
     protected void load() {
         subbook = "book" + getFile().getName();
         thisBookDir = new File(getDataDir(), subbook);
-        if (!getSharedPreferences().contains(subbook)) {
+        if (!getSharedPreferences().contains("ordercount")) {
             for (File file: Zip.unzip(getFile(), thisBookDir)) {
                 Log.d("EPUB", "unzipped + " + file);
             }
@@ -58,6 +58,7 @@ public class EpubBook extends Book {
 
         //Set<String> keys = bookdat.getAll().keySet();
 
+        bookContentDir = new File(bookdat.getString("bookContentDir",""));
         int count = bookdat.getInt("ordercount",0);
 
         for (int i=0; i<count; i++) {
@@ -76,7 +77,7 @@ public class EpubBook extends Book {
     @Override
     public Page getPage(int page) {
         Page p = new Page();
-        p.file = new File(bookContentDir, docFiles.get(docFileOrder.get(page)));
+        p.file = new File(new File(thisBookDir,bookContentDir.getPath()), docFiles.get(docFileOrder.get(page)));
         return p;
     }
 
@@ -129,16 +130,13 @@ public class EpubBook extends Book {
             try {
                 Log.d("EPB", "Rootfile: " + rootFile);
 
-
+                bookdat.putString("bookContentDir", new File(rootFile).getParent());
 
                 DocumentBuilder builder = dfactory.newDocumentBuilder();
                 File container = new File(thisBookDir,rootFile);
-                bookContentDir = container.getParentFile();
+               // bookContentDir = container.getParentFile();
 
                 Document doc = builder.parse(container);
-
-
-//                InputSource docSource= new InputSource(new FileReader();
 
                 XPath xpath = factory.newXPath();
 
@@ -238,6 +236,7 @@ public class EpubBook extends Book {
                 Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
             }
         }
+
         bookdat.apply();
 
 

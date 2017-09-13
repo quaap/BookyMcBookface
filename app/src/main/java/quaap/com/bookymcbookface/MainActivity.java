@@ -28,8 +28,21 @@ public class MainActivity extends AppCompatActivity {
 
         webView = (WebView)findViewById(R.id.page_view);
 
+        webView.setNetworkAvailable(false);
+
+
         findFile();
 
+    }
+
+    private void loadFile(File file) {
+        book = new EpubBook(MainActivity.this, getFilesDir());
+        Log.d("Main", "File " + file);
+        book.load(file);
+
+        Log.d("Main", "trying to load " + book.getPage(0).file.toURI().toString());
+
+        webView.loadUrl(book.getPage(0).file.toURI().toString());
     }
 
 
@@ -40,12 +53,7 @@ public class MainActivity extends AppCompatActivity {
         fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
             @Override
             public void selected(File selection) {
-                book = new EpubBook(MainActivity.this, getFilesDir());
-                book.load(selection);
-
-                Log.d("Main", "trying to load " + book.getPage(0).file.toURI().toString());
-
-                webView.loadUrl(book.getPage(0).file.toURI().toString());
+                loadFile(selection);
 
             }
         }, "epub", false, ".*\\.epub");
