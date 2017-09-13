@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -29,11 +31,61 @@ public class MainActivity extends AppCompatActivity {
         webView = (WebView)findViewById(R.id.page_view);
 
         webView.setNetworkAvailable(false);
+        //webView.setScrollContainer(false);
+        webView.setOnTouchListener(new View.OnTouchListener() {
+            float x,y;
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                switch (motionEvent.getAction()) {
+
+                    case MotionEvent.ACTION_UP:
+                        float diffx = motionEvent.getX() - x;
+                        float diffy = motionEvent.getY() - y;
+
+                        if (diffx>100 || diffy>100) {
+                            prevPage();
+                        } else if (diffx<-100 || diffy<-100) {
+                            nextPage();
+                        }
+
+                    case MotionEvent.ACTION_DOWN:
+                        x = motionEvent.getX();
+                        y = motionEvent.getY();
+                }
 
 
-        findFile();
+                return true;
+            }
+        });
+
+        findViewById(R.id.prev_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                prevPage();
+            }
+        });
+
+        findViewById(R.id.next_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                nextPage();
+            }
+        });
+
+        //findFile();
+        loadFile(new File("/storage/emulated/0/Download/pg1342-images.epub"));
 
     }
+
+    private void prevPage() {
+        webView.pageUp(false);
+    }
+
+    private void nextPage() {
+        webView.pageDown(false);
+    }
+
 
     private void loadFile(File file) {
         book = new EpubBook(MainActivity.this, getFilesDir());
