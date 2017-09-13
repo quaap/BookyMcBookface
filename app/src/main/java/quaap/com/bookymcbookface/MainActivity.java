@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             showFile(book.getPreviousSection());
         }
+        book.setSectionOffset(webView.getScrollY());
     }
 
     private void nextPage() {
@@ -125,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             showFile(book.getNextSection());
         }
+        book.setSectionOffset(webView.getScrollY());
+
     }
 
 
@@ -132,7 +135,16 @@ public class MainActivity extends AppCompatActivity {
         book = new EpubBook(MainActivity.this, getFilesDir());
         Log.d("Main", "File " + file);
         book.load(file);
-        showFile(book.getFirstSection());
+        showFile(book.getCurrentSection());
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.computeScroll();
+                webView.scrollTo(0, book.getSectionOffset());
+
+            }
+        }, 1000);
+
 
     }
 
@@ -155,6 +167,8 @@ public class MainActivity extends AppCompatActivity {
 
         book.gotoSectionFile(sectionURI);
         showUri(sectionURI);
+
+        book.setSectionOffset(webView.getScrollY());
     }
 
 

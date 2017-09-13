@@ -2,6 +2,7 @@ package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.io.File;
 import java.util.List;
@@ -20,7 +21,7 @@ public abstract class Book {
     private Context context;
 
     private List<String> sectionIDs;
-    private int currentSectionID = 0;
+    private int currentSectionIDPos = 0;
 
 
     public Book(Context context, File dataDir) {
@@ -45,26 +46,48 @@ public abstract class Book {
         data = context.getSharedPreferences(file.getName(), Context.MODE_PRIVATE);
         load();
         sectionIDs = getSectionIds();
+        restoreCurrentSectionID();
     }
 
     public File getFirstSection() {
-        currentSectionID = 0;
-        return getFileForSectionID(sectionIDs.get(currentSectionID));
+        currentSectionIDPos = 0;
+        saveCurrentSectionID();
+        return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+    }
+
+    public File getCurrentSection() {
+        restoreCurrentSectionID();
+        if (currentSectionIDPos > sectionIDs.size()) {
+            currentSectionIDPos = 0;
+            saveCurrentSectionID();
+        }
+
+        return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 
 
+    public void setSectionOffset(int offset) {
+        data.edit().putInt("sectionIDOffset", offset).apply();
+    }
+
+    public int getSectionOffset() {
+        return data.getInt("sectionIDOffset", 0);
+    }
+
     public File getNextSection() {
-        if (currentSectionID + 1< sectionIDs.size()) {
-            currentSectionID++;
-            return getFileForSectionID(sectionIDs.get(currentSectionID));
+        if (currentSectionIDPos + 1< sectionIDs.size()) {
+            currentSectionIDPos++;
+            saveCurrentSectionID();
+            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
 
     public File getPreviousSection() {
-        if (currentSectionID - 1 > 0) {
-            currentSectionID--;
-            return getFileForSectionID(sectionIDs.get(currentSectionID));
+        if (currentSectionIDPos - 1 > 0) {
+            currentSectionIDPos--;
+            saveCurrentSectionID();
+            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
@@ -72,8 +95,9 @@ public abstract class Book {
     public File gotoSectionID(String id) {
         int pos = sectionIDs.indexOf(id);
         if (pos>-1 && pos < sectionIDs.size()) {
-            currentSectionID = pos;
-            return getFileForSectionID(sectionIDs.get(currentSectionID));
+            currentSectionIDPos = pos;
+            saveCurrentSectionID();
+            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
@@ -87,6 +111,16 @@ public abstract class Book {
         return null;
     }
 
+
+    private void saveCurrentSectionID() {
+        Log.d("Book", "saving section " + currentSectionIDPos);
+        data.edit().putInt("sectionID", currentSectionIDPos).apply();
+    }
+
+    private void restoreCurrentSectionID() {
+        currentSectionIDPos = data.getInt("sectionID", currentSectionIDPos);
+        Log.d("Book", "Loaded section " + currentSectionIDPos);
+    }
 
 
     public String getTitle() {
