@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by tom on 9/12/17.
@@ -12,8 +15,7 @@ import java.io.File;
 public abstract class Book {
     private String title;
     private File file;
-    private int pages;
-    private int currentPage;
+
     private File dataDir;
     private SharedPreferences data;
     private Context context;
@@ -25,10 +27,12 @@ public abstract class Book {
     }
 
     protected abstract void load();
-    public abstract Page getPage(int page);
-    public abstract Page getContents();
 
+    public abstract Map<String,String> getToc();
 
+    public abstract List<String> getSectionIds();
+
+    public abstract File getFileForSectionID(String id);
 
     public void load(File file) {
         this.file = file;
@@ -36,9 +40,6 @@ public abstract class Book {
         load();
     }
 
-    public Page getCurrentPage() {
-        return getPage(currentPage);
-    }
 
 
     public String getTitle() {
@@ -57,21 +58,6 @@ public abstract class Book {
         this.file = file;
     }
 
-    public int getNumPages() {
-        return pages;
-    }
-
-    protected void setNumPages(int pages) {
-        this.pages = pages;
-    }
-
-    public int getCurrentPageNum() {
-        return currentPage;
-    }
-
-    protected void setCurrentPageNum(int currentPage) {
-        this.currentPage = currentPage;
-    }
 
     public File getDataDir() {
         return dataDir;

@@ -10,14 +10,18 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +29,10 @@ import java.util.Set;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 /**
@@ -47,7 +53,7 @@ public class EpubBook extends Book {
     protected void load() {
         subbook = "book" + getFile().getName();
         thisBookDir = new File(getDataDir(), subbook);
-        if (!getSharedPreferences().contains("ordercount")) {
+        if (!getSharedPreferences().contains("ordercountc")) {
             for (File file: Zip.unzip(getFile(), thisBookDir)) {
                 Log.d("EPUB", "unzipped + " + file);
             }
@@ -59,38 +65,55 @@ public class EpubBook extends Book {
         //Set<String> keys = bookdat.getAll().keySet();
 
         bookContentDir = new File(bookdat.getString("bookContentDir",""));
-        int count = bookdat.getInt("ordercount",0);
+        int ocount = bookdat.getInt("ordercount",0);
 
-        for (int i=0; i<count; i++) {
+        for (int i=0; i<ocount; i++) {
             String item = bookdat.getString("order." + i, "");
             String file = bookdat.getString("item." + item, "");
             docFileOrder.add(item);
             docFiles.put(item, file);
 
             Log.d("EPUB", "Item: " + item + ". File: " + file);
-
         }
 
+        int toccount = bookdat.getInt("ordercount",0);
 
+        for (int i=0; i<toccount; i++) {
+            String label = bookdat.getString("toc.label." + i, "");
+            String point = bookdat.getString("toc.content." + i, "");
+
+            tocPoints.put(point,label);
+            Log.d("EPUB", "TOC: " + label + ". File: " + point);
+
+        }
     }
 
     @Override
-    public Page getPage(int page) {
-        Page p = new Page();
-        p.file = new File(new File(thisBookDir,bookContentDir.getPath()), docFiles.get(docFileOrder.get(page)));
-        return p;
+    public Map<String,String> getToc() {
+        return Collections.unmodifiableMap(tocPoints);
     }
 
     @Override
-    public Page getContents() {
-        return null;
+    public List<String> getSectionIds() {
+        return Collections.unmodifiableList(docFileOrder);
     }
 
+    @Override
+    public File getFileForSectionID(String id) {
+        return new File(getFullBookContentDir(), docFiles.get(id));
+    }
+
+
+    private File getFullBookContentDir() {
+        return new File(thisBookDir,bookContentDir.getPath());
+    }
 
 
     Map<String,String> metadata = new HashMap<>();
-    Map<String,String> docFiles = new HashMap<>();
+    Map<String,String> docFiles = new LinkedHashMap<>();
     List<String> docFileOrder = new ArrayList<>();
+
+    Map<String,String> tocPoints = new LinkedHashMap<>();
 
 
     private void loadEpub() {
@@ -126,15 +149,18 @@ public class EpubBook extends Book {
         XPathFactory factory = XPathFactory.newInstance();
         DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
 
+        String toc = null;
+        String bookContentDir = null;
+
         for (String rootFile: rootFiles) {
             try {
                 Log.d("EPB", "Rootfile: " + rootFile);
 
-                bookdat.putString("bookContentDir", new File(rootFile).getParent());
+                bookContentDir = new File(rootFile).getParent();
+                bookdat.putString("bookContentDir", bookContentDir);
+                File container = new File(thisBookDir,rootFile);
 
                 DocumentBuilder builder = dfactory.newDocumentBuilder();
-                File container = new File(thisBookDir,rootFile);
-               // bookContentDir = container.getParentFile();
 
                 Document doc = builder.parse(container);
 
@@ -213,7 +239,14 @@ public class EpubBook extends Book {
                 {
                     XPath spinePath = factory.newXPath();
                     spinePath.setNamespaceContext(nsc);
-                    NodeList spineitems = (NodeList) spinePath.evaluate("spine/itemref", root, XPathConstants.NODESET);
+                    Node spine = (Node) spinePath.evaluate("spine", root, XPathConstants.NODE);
+                    NamedNodeMap sattrs = spine.getAttributes();
+                    toc = sattrs.getNamedItem("toc").getNodeValue();
+
+                    bookdat.putString("toc", toc);
+                    Log.d("EPB", "spine: toc=" + toc);
+
+                    NodeList spineitems = (NodeList) spinePath.evaluate("itemref", spine, XPathConstants.NODESET);
                     for (int i = 0; i < spineitems.getLength(); i++) {
                         Node node = spineitems.item(i);
                         if (node.getNodeName().equals("itemref")) {
@@ -236,11 +269,73 @@ public class EpubBook extends Book {
                 Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
             }
         }
-
         bookdat.apply();
+
+        if (toc!=null) {
+            bookdat = getSharedPreferences().edit();
+
+            File tocfile = new File(new File(thisBookDir,bookContentDir), getSharedPreferences().getString("item." + toc, ""));
+
+            DocumentBuilder builder = null;
+            try {
+                builder = dfactory.newDocumentBuilder();
+
+                Document doc = builder.parse(tocfile);
+
+                XPath tocPath = factory.newXPath();
+                tocPath.setNamespaceContext(tocnsc);
+
+//                XPath subPath = factory.newXPath();
+//                subPath.setNamespaceContext(tocnsc);
+
+                Node nav = (Node)tocPath.evaluate("/ncx/navMap", doc, XPathConstants.NODE);
+
+                int total = readNavPoint(nav, tocPath, bookdat, 0);
+                bookdat.putInt("toccount", total);
+
+            } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
+                Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
+            }
+            bookdat.apply();
+        }
+
 
 
     }
+
+    private int readNavPoint(Node nav, XPath tocPath, SharedPreferences.Editor bookdat, int total) throws XPathExpressionException {
+
+        NodeList list = (NodeList)tocPath.evaluate("navPoint", nav, XPathConstants.NODESET);
+        for (int i = 0; i < list.getLength(); i++) {
+            Node node = list.item(i);
+            String label = tocPath.evaluate("navLabel/text/text()", node);
+            String content = tocPath.evaluate("content/@src", node);
+            bookdat.putString("toc.label."+total, label);
+            bookdat.putString("toc.content."+total, content);
+            //Log.d("EPB", "toc: " + label + " " + content);
+            total++;
+            total = readNavPoint(node, tocPath, bookdat, total);
+        }
+        return total;
+    }
+
+
+    NamespaceContext tocnsc = new NamespaceContext() {
+        @Override
+        public String getNamespaceURI(String s) {
+            return "http://www.daisy.org/z3986/2005/ncx/";
+        }
+
+        @Override
+        public String getPrefix(String s) {
+            return null;
+        }
+
+        @Override
+        public Iterator getPrefixes(String s) {
+            return null;
+        }
+    };
 }
 
 

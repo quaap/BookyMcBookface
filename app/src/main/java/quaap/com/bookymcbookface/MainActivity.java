@@ -4,16 +4,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,17 +51,41 @@ public class MainActivity extends AppCompatActivity {
                             prevPage();
                         } else if (diffx<-100 || diffy<-100) {
                             nextPage();
+                        } else {
+                            return false;
                         }
+
 
                     case MotionEvent.ACTION_DOWN:
                         x = motionEvent.getX();
                         y = motionEvent.getY();
+                        return false;
                 }
 
 
                 return true;
             }
         });
+
+        if (Build.VERSION.SDK_INT>=24) {
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    return super.shouldOverrideUrlLoading(view, request);
+                }
+            });
+        } else {
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    Log.i("WebView", "Attempting to load URL: " + url);
+
+                    view.loadUrl(url);
+                    return true;
+                }
+            });
+
+        }
 
         findViewById(R.id.prev_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //findFile();
-        loadFile(new File("/storage/emulated/0/Download/pg1342-images.epub"));
+        loadFile(new File("/storage/emulated/0/Download/pg345-images.epub"));
 
     }
 
@@ -92,9 +120,15 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Main", "File " + file);
         book.load(file);
 
-        Log.d("Main", "trying to load " + book.getPage(0).file.toURI().toString());
+        List<String> ids = book.getSectionIds();
+        Log.d("Main", "trying to load " + ids.get(0));
 
-        webView.loadUrl(book.getPage(0).file.toURI().toString());
+
+        String uri = book.getFileForSectionID(ids.get(0)).toURI().toString();
+
+        Log.d("Main", "trying to load " + uri);
+
+        webView.loadUrl(uri);
     }
 
 
