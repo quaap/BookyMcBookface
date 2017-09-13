@@ -110,6 +110,10 @@ public class EpubBook extends Book {
         if (pound>-1) {
             section = section.substring(0,pound);
         }
+        if (section.startsWith(getFullBookContentDir().getPath())) {
+            return new File(section);
+        }
+
         return new File(getFullBookContentDir(), section);
     }
 

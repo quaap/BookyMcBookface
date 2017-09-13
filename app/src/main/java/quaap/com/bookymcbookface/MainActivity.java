@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -73,8 +74,12 @@ public class MainActivity extends AppCompatActivity {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    gotoSection(request.getUrl().toString());
-                    return super.shouldOverrideUrlLoading(view, request);
+                    Uri uri = request.getUrl();
+                    if (uri.getScheme().equals("file")) {
+                        gotoSection(uri.getPath());
+                        return true;
+                    }
+                    return false;
                 }
             });
         } else {
