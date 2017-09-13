@@ -1,8 +1,5 @@
 package quaap.com.bookymcbookface;
 
-import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -11,22 +8,20 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.List;
+
+import quaap.com.bookymcbookface.book.Book;
+import quaap.com.bookymcbookface.book.EpubBook;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    EpubBook book;
-    List<String> sections;
-    int currectSection = 0;
+    Book book;
 
     private WebView webView;
 
@@ -76,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     Uri uri = request.getUrl();
                     if (uri.getScheme().equals("file")) {
-                        gotoSection(uri.getPath());
+                        gotoSection(uri.toString());
                         return true;
                     }
                     return false;
@@ -119,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
         if(webView.canScrollVertically(-1)) {
             webView.pageUp(false);
         } else {
-            currectSection--;
-            gotoSectionId(sections.get(currectSection));
+            showFile(book.getPreviousSection());
         }
     }
 
@@ -129,8 +123,7 @@ public class MainActivity extends AppCompatActivity {
         if(webView.canScrollVertically(1)) {
             webView.pageDown(false);
         } else {
-            currectSection++;
-            gotoSectionId(sections.get(currectSection));
+            showFile(book.getNextSection());
         }
     }
 
@@ -139,30 +132,32 @@ public class MainActivity extends AppCompatActivity {
         book = new EpubBook(MainActivity.this, getFilesDir());
         Log.d("Main", "File " + file);
         book.load(file);
-
-        sections = book.getSectionIds();
-        gotoSectionId(sections.get(currectSection));
+        showFile(book.getFirstSection());
 
     }
 
-    private void gotoSection(String section) {
-        Log.d("Main", "trying to load " + section);
-        String uri = book.getFileForSection(section).toURI().toString();
+    private void showFile(File file) {
+        if (file !=null) {
+            Log.d("Main", "trying to load " + file);
+            webView.loadUrl(file.toURI().toString());
+        }
+    }
 
-        Log.d("Main", "trying to load " + uri);
+    private void showUri(String uri) {
+        if (uri !=null) {
+            Log.d("Main", "trying to load " + uri);
+            webView.loadUrl(uri);
+        }
+    }
 
-        webView.loadUrl(uri);
+    private void gotoSection(String sectionURI) {
+        Log.d("Main", "clicked on " + sectionURI);
+
+        book.gotoSectionFile(sectionURI);
+        showUri(sectionURI);
     }
 
 
-    private void gotoSectionId(String sectionid) {
-        Log.d("Main", "trying to load " + sectionid);
-        String uri = book.getFileForSectionID(sectionid).toURI().toString();
-
-        Log.d("Main", "trying to load " + uri);
-
-        webView.loadUrl(uri);
-    }
 
 
     private void findFile() {

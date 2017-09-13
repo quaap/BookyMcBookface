@@ -1,15 +1,15 @@
-package quaap.com.bookymcbookface;
+package quaap.com.bookymcbookface.book;
 
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -34,6 +33,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import quaap.com.bookymcbookface.Zip;
 
 /**
  * Created by tom on 9/12/17.
@@ -94,27 +95,57 @@ public class EpubBook extends Book {
     }
 
     @Override
-    public List<String> getSectionIds() {
+    protected List<String> getSectionIds() {
         return Collections.unmodifiableList(docFileOrder);
     }
 
     @Override
-    public File getFileForSectionID(String id) {
+    protected File getFileForSectionID(String id) {
 
         return new File(getFullBookContentDir(), docFiles.get(id));
     }
 
     @Override
-    public File getFileForSection(String section) {
-        int pound = section.indexOf("#");
-        if (pound>-1) {
-            section = section.substring(0,pound);
-        }
-        if (section.startsWith(getFullBookContentDir().getPath())) {
+    protected File getFileForSection(String section) {
+//        int pound = section.indexOf("#");
+//        if (pound>-1) {
+//            section = section.substring(0,pound);
+//        }
+        //if (section.startsWith(getFullBookContentDir().getPath())) {
             return new File(section);
+       // }
+
+       // return new File(getFullBookContentDir(), section);
+    }
+
+
+    protected String getSectionIDForSection(String section) {
+        Uri sectionUri = Uri.parse(section);
+        Log.d("EPB", "Section file: " + section);
+//        int pound = section.indexOf("#");
+//        if (pound>-1) {
+//            section = section.substring(0,pound);
+//        }
+//
+//        Log.d("EPB", "Section file: " + section);
+//        Log.d("EPB", "Remove: " + getFullBookContentDir().toURI().toString());
+//        section = section.replaceFirst(getFullBookContentDir().toURI().toString(), "");
+
+        String sectionPath = sectionUri.getPath();
+
+        Log.d("EPB", "Section path: " + sectionPath);
+
+        section = sectionPath.replaceFirst(getFullBookContentDir().toString(), "");
+        section = section.replaceFirst("/", "");
+
+        Log.d("EPB", "Section file: " + section);
+        for (Map.Entry<String,String> entry: docFiles.entrySet()) {
+            if (section.equals(entry.getValue())) {
+                return entry.getKey();
+            }
         }
 
-        return new File(getFullBookContentDir(), section);
+        return null;
     }
 
     private File getFullBookContentDir() {
@@ -122,11 +153,11 @@ public class EpubBook extends Book {
     }
 
 
-    Map<String,String> metadata = new HashMap<>();
-    Map<String,String> docFiles = new LinkedHashMap<>();
-    List<String> docFileOrder = new ArrayList<>();
+    private Map<String,String> metadata = new HashMap<>();
+    private Map<String,String> docFiles = new LinkedHashMap<>();
+    private List<String> docFileOrder = new ArrayList<>();
 
-    Map<String,String> tocPoints = new LinkedHashMap<>();
+    private Map<String,String> tocPoints = new LinkedHashMap<>();
 
 
     private void loadEpub() {
