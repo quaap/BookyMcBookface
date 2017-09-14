@@ -10,13 +10,17 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -51,7 +56,7 @@ public class EpubBook extends Book {
     }
 
     @Override
-    protected void load() {
+    protected void load() throws FileNotFoundException {
         subbook = "book" + getFile().getName();
         thisBookDir = new File(getDataDir(), subbook);
         if (!getSharedPreferences().contains("ordercount")) {
@@ -160,7 +165,46 @@ public class EpubBook extends Book {
     private Map<String,String> tocPoints = new LinkedHashMap<>();
 
 
-    private void loadEpub() {
+    private void loadEpub() throws FileNotFoundException {
+
+        List<String> rootFiles = getRootFilesFromContainer(new FileReader(new File(thisBookDir, "META-INF/container.xml")));
+
+        SharedPreferences.Editor bookdat = getSharedPreferences().edit();
+
+        String bookContentDir = new File(rootFiles.get(0)).getParent();
+        Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(thisBookDir,rootFiles.get(0))));
+
+        bookdat.putString("bookContentDir", bookContentDir);
+
+        for (Map.Entry<String,?> entry: dat.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                bookdat.putString(entry.getKey(), (String) value);
+            } else if (value instanceof Integer) {
+                bookdat.putInt(entry.getKey(), (Integer) value);
+            }
+        }
+
+        if (dat.get("toc")!=null) {
+            File tocfile = new File(new File(thisBookDir, bookContentDir), (String)dat.get("item." + dat.get("toc")));
+            Map<String, ?> tocDat = processToc(new FileReader(tocfile));
+
+            for (Map.Entry<String,?> entry: tocDat.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof String) {
+                    bookdat.putString(entry.getKey(), (String) value);
+                } else if (value instanceof Integer) {
+                    bookdat.putInt(entry.getKey(), (Integer) value);
+                }
+            }
+        }
+
+        bookdat.apply();
+
+    }
+
+
+    private List<String> getRootFilesFromContainer(Reader containerxml) {
 
         List<String> rootFiles = new ArrayList<>();
 
@@ -168,7 +212,7 @@ public class EpubBook extends Book {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
             XmlPullParser xpp = factory.newPullParser();
-            xpp.setInput(new FileReader(new File(thisBookDir, "META-INF/container.xml")));
+            xpp.setInput(containerxml);
 
             int eventType = xpp.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -188,174 +232,176 @@ public class EpubBook extends Book {
             Log.e("BMBF", "Error parsing xml " + e, e);
         }
 
-        SharedPreferences.Editor bookdat = getSharedPreferences().edit();
+        return rootFiles;
+
+    }
+
+
+    private Map<String,?> processBookDataFromRootFile(Reader rootReader) {
+
+        //SharedPreferences.Editor bookdat = getSharedPreferences().edit();
+
+        Map<String,Object> bookdat = new LinkedHashMap<>();
 
         XPathFactory factory = XPathFactory.newInstance();
         DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
 
         String toc = null;
-        String bookContentDir = null;
-
-        for (String rootFile: rootFiles) {
-            try {
-                Log.d("EPB", "Rootfile: " + rootFile);
-
-                bookContentDir = new File(rootFile).getParent();
-                bookdat.putString("bookContentDir", bookContentDir);
-                File container = new File(thisBookDir,rootFile);
-
-                DocumentBuilder builder = dfactory.newDocumentBuilder();
-
-                Document doc = builder.parse(container);
-
-                XPath xpath = factory.newXPath();
+        //String bookContentDir = null;
 
 
-                NamespaceContext nsc = new NamespaceContext() {
-                    @Override
-                    public String getNamespaceURI(String s) {
-                        if (s!=null && s.equals("dc")) {
-                            return "http://purl.org/dc/elements/1.1/";
-                        }
-                        return "http://www.idpf.org/2007/opf";
+        try {
 
+
+
+            DocumentBuilder builder = dfactory.newDocumentBuilder();
+
+            Document doc = builder.parse(new InputSource(rootReader));
+
+            XPath xpath = factory.newXPath();
+
+
+            NamespaceContext nsc = new NamespaceContext() {
+                @Override
+                public String getNamespaceURI(String s) {
+                    if (s!=null && s.equals("dc")) {
+                        return "http://purl.org/dc/elements/1.1/";
                     }
+                    return "http://www.idpf.org/2007/opf";
 
-                    @Override
-                    public String getPrefix(String s) {
-                        return null;
+                }
+
+                @Override
+                public String getPrefix(String s) {
+                    return null;
+                }
+
+                @Override
+                public Iterator getPrefixes(String s) {
+                    return null;
+                }
+            };
+
+            xpath.setNamespaceContext(nsc);
+
+            Node root = (Node)xpath.evaluate("/package", doc.getDocumentElement(), XPathConstants.NODE);
+            Log.d("EPUB", root.getNodeName());
+
+            {
+                XPath metaPaths = factory.newXPath();
+                metaPaths.setNamespaceContext(nsc);
+                NodeList metas = (NodeList) metaPaths.evaluate("metadata/*", root, XPathConstants.NODESET);
+                for (int i = 0; i < metas.getLength(); i++) {
+                    Node node = metas.item(i);
+                    String key;
+                    String value;
+                    if (node.getNodeName().equals("meta")) {
+                        NamedNodeMap attrs = node.getAttributes();
+                        key  = attrs.getNamedItem("name").getNodeValue();
+                        value = attrs.getNamedItem("content").getNodeValue();
+                    } else {
+                        key = node.getNodeName();
+                        value = node.getTextContent();
                     }
+                    Log.d("EPB", "metadata: " + key+"="+value);
+                    //metadata.put(key,value);
+                    bookdat.put("meta."+key,value);
+                }
+            }
 
-                    @Override
-                    public Iterator getPrefixes(String s) {
-                        return null;
-                    }
-                };
+            {
+                XPath manifestPath = factory.newXPath();
+                manifestPath.setNamespaceContext(nsc);
 
-                xpath.setNamespaceContext(nsc);
-
-                Node root = (Node)xpath.evaluate("/package", doc.getDocumentElement(), XPathConstants.NODE);
-                Log.d("EPUB", root.getNodeName());
-
-                {
-                    XPath metaPaths = factory.newXPath();
-                    metaPaths.setNamespaceContext(nsc);
-                    NodeList metas = (NodeList) metaPaths.evaluate("metadata/*", root, XPathConstants.NODESET);
-                    for (int i = 0; i < metas.getLength(); i++) {
-                        Node node = metas.item(i);
+                NodeList mani = (NodeList) manifestPath.evaluate("manifest/item", root, XPathConstants.NODESET);
+                for (int i = 0; i < mani.getLength(); i++) {
+                    Node node = mani.item(i);
+                    if (node.getNodeName().equals("item")) {
                         String key;
                         String value;
-                        if (node.getNodeName().equals("meta")) {
-                            NamedNodeMap attrs = node.getAttributes();
-                            key  = attrs.getNamedItem("name").getNodeValue();
-                            value = attrs.getNamedItem("content").getNodeValue();
-                        } else {
-                            key = node.getNodeName();
-                            value = node.getTextContent();
-                        }
-                        Log.d("EPB", "metadata: " + key+"="+value);
-                        //metadata.put(key,value);
-                        bookdat.putString("meta."+key,value);
-                    }
-                }
-
-                {
-                    XPath manifestPath = factory.newXPath();
-                    manifestPath.setNamespaceContext(nsc);
-
-                    NodeList mani = (NodeList) manifestPath.evaluate("manifest/item", root, XPathConstants.NODESET);
-                    for (int i = 0; i < mani.getLength(); i++) {
-                        Node node = mani.item(i);
-                        if (node.getNodeName().equals("item")) {
-                            String key;
-                            String value;
-                            NamedNodeMap attrs = node.getAttributes();
-                            key = attrs.getNamedItem("id").getNodeValue();
-                            value = attrs.getNamedItem("href").getNodeValue();
-                            //docFiles.put(key,value);
-                            bookdat.putString("item."+key,value);
-                            Log.d("EPB", "manifest: " + key+"="+value);
-
-                        }
-                    }
-                }
-
-                {
-                    XPath spinePath = factory.newXPath();
-                    spinePath.setNamespaceContext(nsc);
-                    Node spine = (Node) spinePath.evaluate("spine", root, XPathConstants.NODE);
-                    NamedNodeMap sattrs = spine.getAttributes();
-                    toc = sattrs.getNamedItem("toc").getNodeValue();
-
-                    bookdat.putString("toc", toc);
-                    Log.d("EPB", "spine: toc=" + toc);
-
-                    NodeList spineitems = (NodeList) spinePath.evaluate("itemref", spine, XPathConstants.NODESET);
-                    for (int i = 0; i < spineitems.getLength(); i++) {
-                        Node node = spineitems.item(i);
-                        if (node.getNodeName().equals("itemref")) {
-                            NamedNodeMap attrs = node.getAttributes();
-
-                            String item = attrs.getNamedItem("idref").getNodeValue();
-
-                            bookdat.putString("order."+i, item);
-                            Log.d("EPB", "spine: " + item);
-
-                            //docFileOrder.add(item);
-                        }
+                        NamedNodeMap attrs = node.getAttributes();
+                        key = attrs.getNamedItem("id").getNodeValue();
+                        value = attrs.getNamedItem("href").getNodeValue();
+                        //docFiles.put(key,value);
+                        bookdat.put("item."+key,value);
+                        Log.d("EPB", "manifest: " + key+"="+value);
 
                     }
-                    bookdat.putInt("ordercount", spineitems.getLength());
                 }
-
-
-            } catch (Exception e) {
-                Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
             }
-        }
-        bookdat.apply();
 
-        if (toc!=null) {
-            bookdat = getSharedPreferences().edit();
+            {
+                XPath spinePath = factory.newXPath();
+                spinePath.setNamespaceContext(nsc);
+                Node spine = (Node) spinePath.evaluate("spine", root, XPathConstants.NODE);
+                NamedNodeMap sattrs = spine.getAttributes();
+                toc = sattrs.getNamedItem("toc").getNodeValue();
 
-            File tocfile = new File(new File(thisBookDir,bookContentDir), getSharedPreferences().getString("item." + toc, ""));
+                bookdat.put("toc", toc);
+                Log.d("EPB", "spine: toc=" + toc);
 
-            DocumentBuilder builder = null;
-            try {
-                builder = dfactory.newDocumentBuilder();
+                NodeList spineitems = (NodeList) spinePath.evaluate("itemref", spine, XPathConstants.NODESET);
+                for (int i = 0; i < spineitems.getLength(); i++) {
+                    Node node = spineitems.item(i);
+                    if (node.getNodeName().equals("itemref")) {
+                        NamedNodeMap attrs = node.getAttributes();
 
-                Document doc = builder.parse(tocfile);
+                        String item = attrs.getNamedItem("idref").getNodeValue();
 
-                XPath tocPath = factory.newXPath();
-                tocPath.setNamespaceContext(tocnsc);
+                        bookdat.put("order."+i, item);
+                        Log.d("EPB", "spine: " + item);
 
-//                XPath subPath = factory.newXPath();
-//                subPath.setNamespaceContext(tocnsc);
+                        //docFileOrder.add(item);
+                    }
 
-                Node nav = (Node)tocPath.evaluate("/ncx/navMap", doc, XPathConstants.NODE);
-
-                int total = readNavPoint(nav, tocPath, bookdat, 0);
-                bookdat.putInt("toccount", total);
-
-            } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
-                Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
+                }
+                bookdat.put("ordercount", spineitems.getLength());
             }
-            bookdat.apply();
+
+
+        } catch (Exception e) {
+            Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
         }
 
-
-
+        return bookdat;
     }
 
-    private int readNavPoint(Node nav, XPath tocPath, SharedPreferences.Editor bookdat, int total) throws XPathExpressionException {
+
+    private Map<String,?> processToc(Reader tocReader) {
+        Map<String,Object> bookdat = new LinkedHashMap<>();
+
+        DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
+        XPathFactory factory = XPathFactory.newInstance();
+        DocumentBuilder builder = null;
+        try {
+            builder = dfactory.newDocumentBuilder();
+
+            Document doc = builder.parse(new InputSource(tocReader));
+
+            XPath tocPath = factory.newXPath();
+            tocPath.setNamespaceContext(tocnsc);
+
+            Node nav = (Node)tocPath.evaluate("/ncx/navMap", doc, XPathConstants.NODE);
+
+            int total = readNavPoint(nav, tocPath, bookdat, 0);
+            bookdat.put("toccount", total);
+
+        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
+            Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
+        }
+        return bookdat;
+    }
+
+
+    private int readNavPoint(Node nav, XPath tocPath, Map<String,Object> bookdat, int total) throws XPathExpressionException {
 
         NodeList list = (NodeList)tocPath.evaluate("navPoint", nav, XPathConstants.NODESET);
         for (int i = 0; i < list.getLength(); i++) {
             Node node = list.item(i);
             String label = tocPath.evaluate("navLabel/text/text()", node);
             String content = tocPath.evaluate("content/@src", node);
-            bookdat.putString("toc.label."+total, label);
-            bookdat.putString("toc.content."+total, content);
+            bookdat.put("toc.label."+total, label);
+            bookdat.put("toc.content."+total, content);
             //Log.d("EPB", "toc: " + label + " " + content);
             total++;
             total = readNavPoint(node, tocPath, bookdat, total);

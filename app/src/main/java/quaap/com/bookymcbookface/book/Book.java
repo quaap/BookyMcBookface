@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public abstract class Book {
         this.context = context;
     }
 
-    protected abstract void load();
+    protected abstract void load() throws FileNotFoundException;
 
     public abstract Map<String,String> getToc();
 
@@ -44,7 +45,11 @@ public abstract class Book {
     public void load(File file) {
         this.file = file;
         data = context.getSharedPreferences(file.getName(), Context.MODE_PRIVATE);
-        load();
+        try {
+            load();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         sectionIDs = getSectionIds();
         restoreCurrentSectionID();
     }
