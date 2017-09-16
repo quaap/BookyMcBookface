@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -47,6 +50,7 @@ import quaap.com.bookymcbookface.Zip;
 
 public class EpubBook extends Book {
 
+    public static final String META_PREFIX = "meta.";
     private String subbook;
     private File thisBookDir;
     private File bookContentDir;
@@ -204,7 +208,38 @@ public class EpubBook extends Book {
     }
 
 
-    private List<String> getRootFilesFromContainer(Reader containerxml) {
+    public static Map<String,String> getMetaData(String filename) throws IOException {
+
+
+        try (ZipFile zipReader = new ZipFile(filename)) {
+
+            ZipEntry container = zipReader.getEntry("META-INF/container.xml");
+            if (container == null) return null;
+
+            List<String> rootFiles = getRootFilesFromContainer(new InputStreamReader(zipReader.getInputStream(container)));
+            if (rootFiles.size() == 0) return null;
+
+            ZipEntry content = zipReader.getEntry(rootFiles.get(0));
+            if (content == null) return null;
+
+            Map<String, ?> data = processBookDataFromRootFile(new InputStreamReader(zipReader.getInputStream(content)));
+
+            Map<String, String> metadata = new LinkedHashMap<>();
+
+            for (String key : data.keySet()) {
+                if (key.startsWith(META_PREFIX)) {
+                    metadata.put(key.substring(META_PREFIX.length()), data.get(key).toString());
+                    Log.d("META", key.substring(META_PREFIX.length()) + "=" + data.get(key).toString());
+                }
+            }
+            return metadata;
+
+        }
+    }
+
+
+
+    private static List<String> getRootFilesFromContainer(Reader containerxml) {
 
         List<String> rootFiles = new ArrayList<>();
 
@@ -237,7 +272,7 @@ public class EpubBook extends Book {
     }
 
 
-    private Map<String,?> processBookDataFromRootFile(Reader rootReader) {
+    private static Map<String,?> processBookDataFromRootFile(Reader rootReader) {
 
         //SharedPreferences.Editor bookdat = getSharedPreferences().edit();
 
@@ -261,35 +296,14 @@ public class EpubBook extends Book {
             XPath xpath = factory.newXPath();
 
 
-            NamespaceContext nsc = new NamespaceContext() {
-                @Override
-                public String getNamespaceURI(String s) {
-                    if (s!=null && s.equals("dc")) {
-                        return "http://purl.org/dc/elements/1.1/";
-                    }
-                    return "http://www.idpf.org/2007/opf";
-
-                }
-
-                @Override
-                public String getPrefix(String s) {
-                    return null;
-                }
-
-                @Override
-                public Iterator getPrefixes(String s) {
-                    return null;
-                }
-            };
-
-            xpath.setNamespaceContext(nsc);
+            xpath.setNamespaceContext(packnsc);
 
             Node root = (Node)xpath.evaluate("/package", doc.getDocumentElement(), XPathConstants.NODE);
             Log.d("EPUB", root.getNodeName());
 
             {
                 XPath metaPaths = factory.newXPath();
-                metaPaths.setNamespaceContext(nsc);
+                metaPaths.setNamespaceContext(packnsc);
                 NodeList metas = (NodeList) metaPaths.evaluate("metadata/*", root, XPathConstants.NODESET);
                 for (int i = 0; i < metas.getLength(); i++) {
                     Node node = metas.item(i);
@@ -305,13 +319,13 @@ public class EpubBook extends Book {
                     }
                     Log.d("EPB", "metadata: " + key+"="+value);
                     //metadata.put(key,value);
-                    bookdat.put("meta."+key,value);
+                    bookdat.put(META_PREFIX +key,value);
                 }
             }
 
             {
                 XPath manifestPath = factory.newXPath();
-                manifestPath.setNamespaceContext(nsc);
+                manifestPath.setNamespaceContext(packnsc);
 
                 NodeList mani = (NodeList) manifestPath.evaluate("manifest/item", root, XPathConstants.NODESET);
                 for (int i = 0; i < mani.getLength(); i++) {
@@ -332,7 +346,7 @@ public class EpubBook extends Book {
 
             {
                 XPath spinePath = factory.newXPath();
-                spinePath.setNamespaceContext(nsc);
+                spinePath.setNamespaceContext(packnsc);
                 Node spine = (Node) spinePath.evaluate("spine", root, XPathConstants.NODE);
                 NamedNodeMap sattrs = spine.getAttributes();
                 toc = sattrs.getNamedItem("toc").getNodeValue();
@@ -367,7 +381,7 @@ public class EpubBook extends Book {
     }
 
 
-    private Map<String,?> processToc(Reader tocReader) {
+    private static Map<String,?> processToc(Reader tocReader) {
         Map<String,Object> bookdat = new LinkedHashMap<>();
 
         DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
@@ -393,7 +407,7 @@ public class EpubBook extends Book {
     }
 
 
-    private int readNavPoint(Node nav, XPath tocPath, Map<String,Object> bookdat, int total) throws XPathExpressionException {
+    private static  int readNavPoint(Node nav, XPath tocPath, Map<String,Object> bookdat, int total) throws XPathExpressionException {
 
         NodeList list = (NodeList)tocPath.evaluate("navPoint", nav, XPathConstants.NODESET);
         for (int i = 0; i < list.getLength(); i++) {
@@ -410,7 +424,7 @@ public class EpubBook extends Book {
     }
 
 
-    NamespaceContext tocnsc = new NamespaceContext() {
+    private static NamespaceContext tocnsc = new NamespaceContext() {
         @Override
         public String getNamespaceURI(String s) {
             return "http://www.daisy.org/z3986/2005/ncx/";
@@ -426,6 +440,29 @@ public class EpubBook extends Book {
             return null;
         }
     };
+
+    private static NamespaceContext packnsc = new NamespaceContext() {
+        @Override
+        public String getNamespaceURI(String s) {
+            if (s!=null && s.equals("dc")) {
+                return "http://purl.org/dc/elements/1.1/";
+            }
+            return "http://www.idpf.org/2007/opf";
+
+        }
+
+        @Override
+        public String getPrefix(String s) {
+            return null;
+        }
+
+        @Override
+        public Iterator getPrefixes(String s) {
+            return null;
+        }
+    };
+
+
 }
 
 

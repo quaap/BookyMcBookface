@@ -6,8 +6,11 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * Created by tom on 9/12/17.
@@ -155,5 +158,25 @@ public abstract class Book {
 
     protected SharedPreferences getSharedPreferences() {
         return data;
+    }
+
+    public static BookMetadata getBookMetaData(String filename) throws IOException {
+
+        if (filename.toLowerCase().endsWith(".epub")) {
+            Map<String,String> data = EpubBook.getMetaData(filename);
+
+            if (data!=null) {
+                BookMetadata mdata = new BookMetadata();
+                mdata.setFilename(filename);
+                mdata.setTitle(data.get("dc:title"));
+                mdata.setAuthor(data.get("dc:creator"));
+                mdata.setAlldata(data);
+
+                return mdata;
+            }
+        }
+
+        return null;
+
     }
 }

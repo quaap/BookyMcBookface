@@ -1,5 +1,6 @@
 package quaap.com.bookymcbookface;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -106,7 +107,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //findFile();
-        loadFile(new File("/storage/emulated/0/Download/pg345-images.epub"));
+        Intent intent = getIntent();
+        String filename = intent.getStringExtra("filename");
+        if (filename!=null) {
+            loadFile(new File(filename));
+            //loadFile(new File("/storage/emulated/0/Download/pg345-images.epub"));
+        }
 
     }
 
@@ -174,18 +180,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void findFile() {
-
-        FsTools fsTools = new FsTools(this);
-
-        fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
-            @Override
-            public void selected(File selection) {
-                loadFile(selection);
-
-            }
-        }, "epub", false, ".*\\.epub");
-    }
 
 //    private static final int FILE_SELECT_CODE = 0;
 //
