@@ -15,11 +15,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import quaap.com.bookymcbookface.book.Book;
 import quaap.com.bookymcbookface.book.BookMetadata;
@@ -31,6 +35,7 @@ public class BookListActivity extends Activity {
     private int nextid = 0;
 
     private ViewGroup listHolder;
+    private ScrollView listScroller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +43,7 @@ public class BookListActivity extends Activity {
         setContentView(R.layout.activity_book_list);
 
         listHolder = findViewById(R.id.book_list_holder);
+        listScroller = findViewById(R.id.book_list_scroller);
 
         findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,7 +52,7 @@ public class BookListActivity extends Activity {
             }
         });
 
-        checkStorageAccess(true);
+        checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
         nextid = data.getInt("nextid",0);
@@ -71,14 +77,19 @@ public class BookListActivity extends Activity {
             TextView statusView = listEntry.findViewById(R.id.book_status);
 
             titleView.setText(title);
-            //titleView.setText(filename);
             authorView.setText(author);
+            long lastread = data.getLong(bookidstr + ".lastread", Long.MIN_VALUE);
+
+            if (lastread!=Long.MIN_VALUE) {
+
+                statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
+                //statusView.setText(getString(R.string.book_viewed_on, new SimpleDateFormat("YYYY-MM-dd HH:mm", Locale.getDefault()).format(new Date(lastread))));
+            }
             listEntry.setTag(bookidstr);
             listEntry.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     readBook((String)view.getTag());
-
                 }
             });
 
@@ -90,14 +101,20 @@ public class BookListActivity extends Activity {
                 }
             });
 
-            listHolder.addView(listEntry);
+            if (data.getString("lastread", "").equals(bookidstr)) {
+                listHolder.addView(listEntry,0);
+            } else {
+                listHolder.addView(listEntry);
+            }
         }
     }
 
     private void readBook(String bookid) {
         String filename = data.getString(bookid + ".filename",null);
         if (filename!=null) {
-            Intent main = new Intent(BookListActivity.this, MainActivity.class);
+            data.edit().putLong(bookid + ".lastread", System.currentTimeMillis()).putString("lastread", bookid).apply();
+
+            Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
             main.putExtra("filename", filename);
             startActivity(main);
         }
@@ -118,8 +135,9 @@ public class BookListActivity extends Activity {
             if (metadata!=null) {
                 String bookid = "book." + nextid;
 
-                if (data.contains(bookid + ".filename")) {
+                if (data.getAll().values().contains(filename)) {
                     Toast.makeText(this,"Book already added",Toast.LENGTH_LONG).show();
+                    return;
                 }
                 data.edit()
                         .putString(bookid + ".title", metadata.getTitle())

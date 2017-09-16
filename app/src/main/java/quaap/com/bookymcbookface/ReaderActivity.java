@@ -13,14 +13,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.io.File;
-import java.util.List;
 
 import quaap.com.bookymcbookface.book.Book;
 import quaap.com.bookymcbookface.book.EpubBook;
 
-public class MainActivity extends AppCompatActivity {
+public class ReaderActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "ReaderActivity";
 
     Book book;
 
@@ -29,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_reader);
 
         webView = (WebView)findViewById(R.id.page_view);
 
@@ -138,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void loadFile(File file) {
-        book = new EpubBook(MainActivity.this, getFilesDir());
+        book = new EpubBook(ReaderActivity.this, getFilesDir());
         Log.d("Main", "File " + file);
         book.load(file);
         showFile(book.getCurrentSection());

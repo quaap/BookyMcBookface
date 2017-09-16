@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BookyMcBookface</string>
+    <string name="book_viewed_on">Viewed %s</string>
 </resources>
