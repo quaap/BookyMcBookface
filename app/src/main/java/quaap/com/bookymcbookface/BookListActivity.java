@@ -11,8 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,7 +73,7 @@ public class BookListActivity extends Activity {
             titleView.setText(title);
             //titleView.setText(filename);
             authorView.setText(author);
-            listEntry.setTag(filename);
+            listEntry.setTag(bookidstr);
             listEntry.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -80,16 +82,34 @@ public class BookListActivity extends Activity {
                 }
             });
 
+            listEntry.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    longClickBook(view);
+                    return false;
+                }
+            });
+
             listHolder.addView(listEntry);
         }
     }
 
-    private void readBook(String filename) {
-        Intent main = new Intent(BookListActivity.this, MainActivity.class);
-        main.putExtra("filename", filename);
-        startActivity(main);
+    private void readBook(String bookid) {
+        String filename = data.getString(bookid + ".filename",null);
+        if (filename!=null) {
+            Intent main = new Intent(BookListActivity.this, MainActivity.class);
+            main.putExtra("filename", filename);
+            startActivity(main);
+        }
     }
 
+    private void removeBook(String bookid) {
+        data.edit()
+                .remove(bookid + ".title")
+                .remove(bookid + ".author")
+                .remove(bookid + ".filename")
+         .apply();
+    }
 
     private void addBook(String filename) {
         try {
@@ -133,6 +153,27 @@ public class BookListActivity extends Activity {
         }, "epub", false, ".*\\.epub");
     }
 
+
+    private void longClickBook(final View view) {
+        final String bookid = (String)view.getTag();
+        PopupMenu menu = new PopupMenu(this, view);
+        menu.getMenu().add("Open book").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                readBook(bookid);
+                return false;
+            }
+        });
+        menu.getMenu().add("Remove book").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                removeBook(bookid);
+                ((ViewGroup)view.getParent()).removeView(view);
+                return false;
+            }
+        });
+        menu.show();
+    }
 
     private boolean checkStorageAccess(boolean yay) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
