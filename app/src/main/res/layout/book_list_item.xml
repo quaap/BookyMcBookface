@@ -8,10 +8,7 @@
     android:layout_marginTop="4dp"
     android:background="#ffeeeeee"
     android:orientation="vertical"
-    android:paddingBottom="3dp"
-    android:paddingEnd="6dp"
-    android:paddingStart="6dp"
-    android:paddingTop="3dp">
+    android:paddingStart="6dp">
 
     <TextView
         android:id="@+id/book_title"

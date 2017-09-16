@@ -1,9 +1,9 @@
 package quaap.com.bookymcbookface;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,7 +17,7 @@ import java.io.File;
 import quaap.com.bookymcbookface.book.Book;
 import quaap.com.bookymcbookface.book.EpubBook;
 
-public class ReaderActivity extends AppCompatActivity {
+public class ReaderActivity extends Activity {
 
     private static final String TAG = "ReaderActivity";
 
