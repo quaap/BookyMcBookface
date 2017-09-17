@@ -52,8 +52,7 @@ import quaap.com.bookymcbookface.Zip;
 public class EpubBook extends Book {
 
     public static final String META_PREFIX = "meta.";
-    private String subbook;
-    private File thisBookDir;
+
     private File bookContentDir;
 
     public EpubBook(Context context, File dataDir) {
@@ -62,10 +61,9 @@ public class EpubBook extends Book {
 
     @Override
     protected void load() throws FileNotFoundException {
-        subbook = "book" + getFile().getName();
-        thisBookDir = new File(getDataDir(), subbook);
+
         if (!getSharedPreferences().contains("ordercount")) {
-            for (File file: Zip.unzip(getFile(), thisBookDir)) {
+            for (File file: Zip.unzip(getFile(), getThisBookDir())) {
                 Log.d("EPUB", "unzipped + " + file);
             }
             loadEpub();
@@ -159,7 +157,7 @@ public class EpubBook extends Book {
     }
 
     private File getFullBookContentDir() {
-        return new File(thisBookDir,bookContentDir.getPath());
+        return new File(getThisBookDir(), bookContentDir.getPath());
     }
 
 
@@ -172,12 +170,12 @@ public class EpubBook extends Book {
 
     private void loadEpub() throws FileNotFoundException {
 
-        List<String> rootFiles = getRootFilesFromContainer(new FileReader(new File(thisBookDir, "META-INF/container.xml")));
+        List<String> rootFiles = getRootFilesFromContainer(new FileReader(new File(getThisBookDir(), "META-INF/container.xml")));
 
         SharedPreferences.Editor bookdat = getSharedPreferences().edit();
 
         String bookContentDir = new File(rootFiles.get(0)).getParent();
-        Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(thisBookDir,rootFiles.get(0))));
+        Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(getThisBookDir(),rootFiles.get(0))));
 
         bookdat.putString("bookContentDir", bookContentDir);
 
@@ -191,7 +189,7 @@ public class EpubBook extends Book {
         }
 
         if (dat.get("toc")!=null) {
-            File tocfile = new File(new File(thisBookDir, bookContentDir), (String)dat.get("item." + dat.get("toc")));
+            File tocfile = new File(new File(getThisBookDir(), bookContentDir), (String)dat.get("item." + dat.get("toc")));
             Map<String, ?> tocDat = processToc(new FileReader(tocfile));
 
             for (Map.Entry<String,?> entry: tocDat.entrySet()) {
@@ -243,15 +241,6 @@ public class EpubBook extends Book {
 
         }
     }
-
-    public boolean remove() {
-        //thisBookDir.d
-        FsTools.deleteDir(thisBookDir);
-
-        return super.remove();
-    }
-
-
 
 
     private static List<String> getRootFilesFromContainer(Reader containerxml) {
