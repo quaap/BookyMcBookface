@@ -60,7 +60,7 @@ public class EpubBook extends Book {
     }
 
     @Override
-    protected void load() throws FileNotFoundException {
+    protected void load() throws IOException {
 
         if (!getSharedPreferences().contains("ordercount")) {
             for (File file: Zip.unzip(getFile(), getThisBookDir())) {

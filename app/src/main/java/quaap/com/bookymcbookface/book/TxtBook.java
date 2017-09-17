@@ -1,12 +1,15 @@
 package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +28,43 @@ public class TxtBook extends Book {
     }
 
     @Override
-    protected void load() throws FileNotFoundException {
+    protected void load() throws IOException {
         if (!getFile().exists() || !getFile().canRead()) {
             throw new FileNotFoundException(getFile() + " doesn't exist or not readable");
         }
+        File outFile = getBookFile();
+
+        if (!outFile.exists()) {
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(getFile()))) {
+                try (Writer out = new FileWriter(outFile)) {
+                    StringBuilder para = new StringBuilder(4096);
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.matches("^\\s*$")) {
+                            para.append(System.lineSeparator());
+                            para.append(System.lineSeparator());
+                            out.write(para.toString());
+                            para.delete(0, para.length());
+                        } else {
+                            para.append(line);
+                            if (!line.matches(".*\\s+$")) {
+                                para.append(" ");
+                            }
+                            //if (line.matches("[.?!\"]\\s*$")) {
+                            //    para.append(System.lineSeparator());
+                            //}
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    @NonNull
+    private File getBookFile() {
+        return new File(getThisBookDir(), getFile().getName());
     }
 
     @Override
@@ -93,12 +129,12 @@ public class TxtBook extends Book {
 
     @Override
     protected File getFileForSectionID(String id) {
-        return getFile();
+        return getBookFile();
     }
 
     @Override
     protected File getFileForSection(String section) {
-        return getFile();
+        return getBookFile();
     }
 
     @Override

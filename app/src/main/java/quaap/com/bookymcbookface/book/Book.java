@@ -38,7 +38,7 @@ public abstract class Book {
         this.context = context;
     }
 
-    protected abstract void load() throws FileNotFoundException;
+    protected abstract void load() throws IOException;
 
     public abstract Map<String,String> getToc();
 
@@ -60,7 +60,7 @@ public abstract class Book {
         thisBookDir.mkdirs();
         try {
             load();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         sectionIDs = getSectionIds();
