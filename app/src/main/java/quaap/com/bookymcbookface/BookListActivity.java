@@ -162,13 +162,15 @@ public class BookListActivity extends Activity {
 
         FsTools fsTools = new FsTools(this);
 
-        fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
-            @Override
-            public void selected(File selection) {
-                addBook(selection.getPath());
+        if (checkStorageAccess(false)) {
+            fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
+                @Override
+                public void selected(File selection) {
+                    addBook(selection.getPath());
 
-            }
-        }, "epub", false, ".*\\.epub");
+                }
+            }, "epub", false, ".*\\.epub");
+        }
     }
 
 
