@@ -68,9 +68,9 @@ public class BookListActivity extends Activity {
         String author = data.getString(bookidstr + ".author", null);
         String filename = data.getString(bookidstr + ".filename", null);
 
-        Log.d("Book", "Filename "  + filename);
 
         if (filename!=null) {
+            Log.d("Book", "Filename "  + filename);
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
             TextView titleView = listEntry.findViewById(R.id.book_title);
             TextView authorView = listEntry.findViewById(R.id.book_author);

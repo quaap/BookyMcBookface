@@ -82,18 +82,19 @@ public class TxtBook extends Book {
             String line;
             Pattern titlerx = Pattern.compile("^\\s*(?i:title)[:= \\t]+(.+)");
             Pattern authorrx = Pattern.compile("^\\s*(?i:author|by)[:= \\t]+(.+)");
-           // Pattern titleauthorrx = Pattern.compile("^(?xi: \\s* (.+),? \\s+ (?:translated\\s+)? by \\s+ (.+) )");
+            Pattern titleauthorrx = Pattern.compile("^(?xi: \\s* (.+),? \\s+ (?:translated\\s+)? by \\s+ (.+) )");
 
             boolean foundtitle = false;
             boolean foundauthor = false;
+            String ptitle = null;
+            String pauthor = null;
+
             while( (line=reader.readLine())!=null) {
-//                Matcher tam = titleauthorrx.matcher(line);
-//                if (tam.find()) {
-//                    metadata.setTitle(tam.group(1));
-//                    metadata.setAuthor(tam.group(2));
-//                    foundtitle = true;
-//                    foundauthor = true;
-//                }
+                Matcher tam = titleauthorrx.matcher(line);
+                if (tam.find()) {
+                    ptitle = tam.group(1);
+                    pauthor = tam.group(2);
+                }
 
                 Matcher tm = titlerx.matcher(line);
                 if (!foundtitle && tm.find()) {
@@ -109,6 +110,14 @@ public class TxtBook extends Book {
                     break;
                 }
 
+            }
+
+            if (!foundtitle && ptitle!=null) {
+                metadata.setTitle(ptitle);
+                foundtitle = true;
+            }
+            if (!foundauthor && pauthor!=null) {
+                metadata.setAuthor(pauthor);
             }
 
             if (!foundtitle) {
