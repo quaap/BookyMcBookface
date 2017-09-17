@@ -66,6 +66,7 @@ public class ReaderActivity extends Activity {
             }
         });
 
+
         if (Build.VERSION.SDK_INT>=24) {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
@@ -77,6 +78,11 @@ public class ReaderActivity extends Activity {
                     }
                     return false;
                 }
+
+                public void onPageFinished(WebView view, String url) {
+                    restoreScrollOffset();
+                }
+
             });
         } else {
             webView.setWebViewClient(new WebViewClient() {
@@ -88,6 +94,13 @@ public class ReaderActivity extends Activity {
                     //view.loadUrl(url);
                     return true;
                 }
+
+                public void onPageFinished(WebView view, String url) {
+                    restoreScrollOffset();
+                }
+
+
+
             });
 
         }
@@ -111,29 +124,53 @@ public class ReaderActivity extends Activity {
         String filename = intent.getStringExtra("filename");
         if (filename!=null) {
             loadFile(new File(filename));
-            //loadFile(new File("/storage/emulated/0/Download/pg345-images.epub"));
         }
 
     }
 
+
     private void prevPage() {
         if(webView.canScrollVertically(-1)) {
-            webView.pageUp(false);
+            //webView.pageUp(false);
+            webView.scrollBy(0,-webView.getHeight()-14);
+
         } else {
             showFile(book.getPreviousSection());
         }
-        book.setSectionOffset(webView.getScrollY());
+        saveScrollOffset();
+
     }
 
     private void nextPage() {
 
         if(webView.canScrollVertically(1)) {
-            webView.pageDown(false);
+            //webView.pageDown(false);
+            webView.scrollBy(0,webView.getHeight()-14);
         } else {
             showFile(book.getNextSection());
         }
-        book.setSectionOffset(webView.getScrollY());
 
+        saveScrollOffset();
+    }
+
+    private void saveScrollOffset() {
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.computeScroll();
+                book.setSectionOffset(webView.getScrollY());
+            }
+        }, 100);
+    }
+
+    private void restoreScrollOffset() {
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.computeScroll();
+                webView.scrollTo(0, book.getSectionOffset());
+            }
+        }, 100);
     }
 
 
@@ -143,14 +180,7 @@ public class ReaderActivity extends Activity {
             Log.d("Main", "File " + file);
             book.load(file);
             showFile(book.getCurrentSection());
-            webView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    webView.computeScroll();
-                    webView.scrollTo(0, book.getSectionOffset());
-
-                }
-            }, 1000);
+            //restoreScrollOffset();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -177,8 +207,8 @@ public class ReaderActivity extends Activity {
 
         book.gotoSectionFile(sectionURI);
         showUri(sectionURI);
+        saveScrollOffset();
 
-        book.setSectionOffset(webView.getScrollY());
     }
 
 
