@@ -33,8 +33,8 @@ public abstract class Book {
     private String subbook;
     private File thisBookDir;
 
-    public Book(Context context, File dataDir) {
-        this.dataDir = dataDir;
+    public Book(Context context) {
+        this.dataDir = context.getFilesDir();
         this.context = context;
     }
 
@@ -55,8 +55,8 @@ public abstract class Book {
     public void load(File file) {
         this.file = file;
         data = getStorage(context, file);
-        subbook = "book" + makeFName(getFile());
-        thisBookDir = new File(getDataDir(), subbook);
+
+        thisBookDir = getBookDir(context, file);
         thisBookDir.mkdirs();
         try {
             load();
@@ -149,7 +149,13 @@ public abstract class Book {
         return context.getSharedPreferences(makeFName(file), Context.MODE_PRIVATE);
     }
 
+    private static File getBookDir(Context context, File file) {
+        String subbook = "book" + makeFName(file);
+        return new File(context.getFilesDir(), subbook);
+    }
+
     public static boolean remove(Context context, File file) {
+        FsTools.deleteDir(getBookDir(context, file));
         if (Build.VERSION.SDK_INT>=24) {
             return context.deleteSharedPreferences(makeFName(file));
         } else {
@@ -204,9 +210,9 @@ public abstract class Book {
     public static Book getBookHandler(Context context, String filename) throws IOException {
         Book book = null;
         if (filename.toLowerCase().endsWith(".epub")) {
-            book = new EpubBook(context, context.getFilesDir());
+            book = new EpubBook(context);
         } else if (filename.toLowerCase().endsWith(".txt")) {
-            book = new TxtBook(context, context.getFilesDir());
+            book = new TxtBook(context);
         }
 
         return book;

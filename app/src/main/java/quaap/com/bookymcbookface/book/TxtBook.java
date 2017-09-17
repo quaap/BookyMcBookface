@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
 public class TxtBook extends Book {
     List<String> l = new ArrayList<>();
 
-    public TxtBook(Context context, File dataDir) {
-        super(context, dataDir);
+    public TxtBook(Context context) {
+        super(context);
     }
 
     @Override

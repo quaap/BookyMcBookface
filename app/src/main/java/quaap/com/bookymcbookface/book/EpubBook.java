@@ -55,8 +55,8 @@ public class EpubBook extends Book {
 
     private File bookContentDir;
 
-    public EpubBook(Context context, File dataDir) {
-        super(context, dataDir);
+    public EpubBook(Context context) {
+        super(context);
     }
 
     @Override
