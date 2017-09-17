@@ -42,6 +42,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import quaap.com.bookymcbookface.FsTools;
 import quaap.com.bookymcbookface.Zip;
 
 /**
@@ -242,6 +243,14 @@ public class EpubBook extends Book {
 
         }
     }
+
+    public boolean remove() {
+        //thisBookDir.d
+        FsTools.deleteDir(thisBookDir);
+
+        return super.remove();
+    }
+
 
 
 

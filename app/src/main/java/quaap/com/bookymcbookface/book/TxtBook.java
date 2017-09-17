@@ -44,7 +44,7 @@ public class TxtBook extends Book {
         try (BufferedReader reader = new BufferedReader(new FileReader(getFile()))) {
             int c = 0;
             String line;
-            Pattern titlerx = Pattern.compile("^\\s*\\**?(?i:title|The Project Gutenberg Etext of|Project Gutenberg['’]s)[:= \\t]+(.+)\\**?");
+            Pattern titlerx = Pattern.compile("^\\s*(?i:title)[:= \\t]+(.+)");
             Pattern authorrx = Pattern.compile("^\\s*(?i:author|by)[:= \\t]+(.+)");
            // Pattern titleauthorrx = Pattern.compile("^(?xi: \\s* (.+),? \\s+ (?:translated\\s+)? by \\s+ (.+) )");
 
@@ -80,9 +80,7 @@ public class TxtBook extends Book {
             }
         }
 
-
-
-        metadata.setTitle(getFile().getName());
+        //metadata.setTitle(getFile().getName());
         return metadata;
     }
 

@@ -2,6 +2,7 @@ package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public abstract class Book {
 
     public void load(File file) {
         this.file = file;
-        data = context.getSharedPreferences(file.getName(), Context.MODE_PRIVATE);
+        data = getStorage(context, file);
         try {
             load();
         } catch (FileNotFoundException e) {
@@ -130,6 +131,27 @@ public abstract class Book {
     private void restoreCurrentSectionID() {
         currentSectionIDPos = data.getInt("sectionID", currentSectionIDPos);
         Log.d("Book", "Loaded section " + currentSectionIDPos);
+    }
+
+
+    private static String makeSPName(File file) {
+        return file.getPath().replaceAll("/|\\\\","_");
+    }
+
+    public static SharedPreferences getStorage(Context context, File file) {
+        return context.getSharedPreferences(makeSPName(file), Context.MODE_PRIVATE);
+    }
+
+    public static boolean remove(Context context, File file) {
+        if (Build.VERSION.SDK_INT>=24) {
+            return context.deleteSharedPreferences(makeSPName(file));
+        } else {
+            return getStorage(context, file).edit().clear().commit();
+        }
+    }
+
+    public boolean remove() {
+        return data.edit().clear().commit();
     }
 
 

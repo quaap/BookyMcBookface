@@ -121,6 +121,12 @@ public class BookListActivity extends Activity {
     }
 
     private void removeBook(String bookid) {
+        String file = data.getString(bookid + ".filename", null);
+
+        if (file!=null) {
+            Book.remove(this, new File(file));
+        }
+
         data.edit()
                 .remove(bookid + ".title")
                 .remove(bookid + ".author")

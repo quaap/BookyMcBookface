@@ -168,6 +168,24 @@ public class FsTools {
         void selected(File selection);
     }
 
+
+    public static boolean deleteDir(File dir) {
+
+        if (dir.exists()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDir(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+        }
+        return dir.delete();
+    }
+
     public static File copyFileToDir(File srcFile, File destDir){
         if (!destDir.isDirectory()) throw new IllegalArgumentException("Destination must be a directory");
 
