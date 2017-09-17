@@ -213,6 +213,8 @@ public abstract class Book {
             book = new EpubBook(context);
         } else if (filename.toLowerCase().endsWith(".txt")) {
             book = new TxtBook(context);
+        } else if (filename.toLowerCase().endsWith(".html") || filename.toLowerCase().endsWith(".htm")) {
+            book = new HtmlBook(context);
         }
 
         return book;
