@@ -130,7 +130,7 @@ public class BookListActivity extends Activity {
 
     private void addBook(String filename) {
         try {
-            BookMetadata metadata = Book.getBookMetaData(filename);
+            BookMetadata metadata = Book.getBookMetaData(this, filename);
 
             if (metadata!=null) {
                 String bookid = "book." + nextid;
@@ -169,7 +169,7 @@ public class BookListActivity extends Activity {
                     addBook(selection.getPath());
 
                 }
-            }, "epub", false, ".*\\.epub");
+            }, "Find book", false, Book.getFileExtensionRX());
         }
     }
 
@@ -196,7 +196,7 @@ public class BookListActivity extends Activity {
     }
 
     private boolean checkStorageAccess(boolean yay) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     yay? REQUEST_READ_EXTERNAL_STORAGE : REQUEST_READ_EXTERNAL_STORAGE_NOYAY);

@@ -37,6 +37,8 @@ public abstract class Book {
 
     public abstract Map<String,String> getToc();
 
+    protected abstract BookMetadata getMetaData() throws IOException;
+
     protected abstract List<String> getSectionIds();
 
     protected abstract File getFileForSectionID(String id);
@@ -160,20 +162,31 @@ public abstract class Book {
         return data;
     }
 
-    public static BookMetadata getBookMetaData(String filename) throws IOException {
 
+
+    public static String getFileExtensionRX() {
+        return ".*\\.(epub|txt|html?)";
+    }
+
+    public static Book getBookHandler(Context context, String filename) throws IOException {
+        Book book = null;
         if (filename.toLowerCase().endsWith(".epub")) {
-            Map<String,String> data = EpubBook.getMetaData(filename);
+            book = new EpubBook(context, context.getFilesDir());
+        } else if (filename.toLowerCase().endsWith(".txt")) {
+            book = new TxtBook(context, context.getFilesDir());
+        }
 
-            if (data!=null) {
-                BookMetadata mdata = new BookMetadata();
-                mdata.setFilename(filename);
-                mdata.setTitle(data.get("dc:title"));
-                mdata.setAuthor(data.get("dc:creator"));
-                mdata.setAlldata(data);
+        return book;
 
-                return mdata;
-            }
+    }
+
+    public static BookMetadata getBookMetaData(Context context, String filename) throws IOException {
+
+        Book book = getBookHandler(context, filename);
+        if (book!=null) {
+            book.setFile(new File(filename));
+
+            return book.getMetaData();
         }
 
         return null;

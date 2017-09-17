@@ -13,6 +13,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.io.File;
+import java.io.IOException;
 
 import quaap.com.bookymcbookface.book.Book;
 import quaap.com.bookymcbookface.book.EpubBook;
@@ -137,18 +138,22 @@ public class ReaderActivity extends Activity {
 
 
     private void loadFile(File file) {
-        book = new EpubBook(ReaderActivity.this, getFilesDir());
-        Log.d("Main", "File " + file);
-        book.load(file);
-        showFile(book.getCurrentSection());
-        webView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                webView.computeScroll();
-                webView.scrollTo(0, book.getSectionOffset());
+        try {
+            book = Book.getBookHandler(ReaderActivity.this, file.getPath());
+            Log.d("Main", "File " + file);
+            book.load(file);
+            showFile(book.getCurrentSection());
+            webView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    webView.computeScroll();
+                    webView.scrollTo(0, book.getSectionOffset());
 
-            }
-        }, 1000);
+                }
+            }, 1000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }

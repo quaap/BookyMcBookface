@@ -208,10 +208,10 @@ public class EpubBook extends Book {
     }
 
 
-    public static Map<String,String> getMetaData(String filename) throws IOException {
+    public BookMetadata getMetaData() throws IOException {
 
 
-        try (ZipFile zipReader = new ZipFile(filename)) {
+        try (ZipFile zipReader = new ZipFile(getFile())) {
 
             ZipEntry container = zipReader.getEntry("META-INF/container.xml");
             if (container == null) return null;
@@ -232,7 +232,13 @@ public class EpubBook extends Book {
                     Log.d("META", key.substring(META_PREFIX.length()) + "=" + data.get(key).toString());
                 }
             }
-            return metadata;
+
+            BookMetadata mdata = new BookMetadata();
+            mdata.setFilename(getFile().getPath());
+            mdata.setTitle(metadata.get("dc:title"));
+            mdata.setAuthor(metadata.get("dc:creator"));
+            mdata.setAlldata(metadata);
+            return mdata;
 
         }
     }
