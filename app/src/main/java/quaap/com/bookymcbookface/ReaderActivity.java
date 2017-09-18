@@ -6,17 +6,19 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.PopupMenu;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import quaap.com.bookymcbookface.book.Book;
-import quaap.com.bookymcbookface.book.EpubBook;
 
 public class ReaderActivity extends Activity {
 
@@ -73,7 +75,7 @@ public class ReaderActivity extends Activity {
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     Uri uri = request.getUrl();
                     if (uri.getScheme().equals("file")) {
-                        gotoSection(uri.toString());
+                        handleLink(uri.toString());
                         return true;
                     }
                     return false;
@@ -90,7 +92,7 @@ public class ReaderActivity extends Activity {
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     Log.i("WebView", "Attempting to load URL: " + url);
 
-                    gotoSection(url);
+                    handleLink(url);
                     return true;
                 }
 
@@ -118,6 +120,13 @@ public class ReaderActivity extends Activity {
             }
         });
 
+        findViewById(R.id.contents_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showToc();
+            }
+        });
+
         //findFile();
         Intent intent = getIntent();
         String filename = intent.getStringExtra("filename");
@@ -133,7 +142,7 @@ public class ReaderActivity extends Activity {
             //webView.scrollBy(0,-webView.getHeight()-14);
 
         } else {
-            showFile(book.getPreviousSection());
+            showUri(book.getPreviousSection());
         }
         saveScrollOffsetDelayed(1500);
 
@@ -145,7 +154,7 @@ public class ReaderActivity extends Activity {
             webView.pageDown(false);
             //webView.scrollBy(0,webView.getHeight()-14);
         } else {
-            showFile(book.getNextSection());
+            showUri(book.getNextSection());
         }
 
         saveScrollOffsetDelayed(1500);
@@ -184,7 +193,7 @@ public class ReaderActivity extends Activity {
             book = Book.getBookHandler(ReaderActivity.this, file.getPath());
             Log.d("Main", "File " + file);
             book.load(file);
-            showFile(book.getCurrentSection());
+            showUri(book.getCurrentSection());
             //restoreScrollOffset();
         } catch (IOException e) {
             e.printStackTrace();
@@ -193,10 +202,10 @@ public class ReaderActivity extends Activity {
 
     }
 
-    private void showFile(File file) {
-        if (file !=null) {
-            Log.d("Main", "trying to load " + file);
-            webView.loadUrl(file.toURI().toString());
+    private void showUri(Uri uri) {
+        if (uri !=null) {
+            Log.d("Main", "trying to load " + uri);
+            webView.loadUrl(uri.toString());
         }
     }
 
@@ -207,13 +216,12 @@ public class ReaderActivity extends Activity {
         }
     }
 
-    private void gotoSection(String sectionURI) {
-        Log.d("Main", "clicked on " + sectionURI);
+    private void handleLink(String clickedLink) {
+        Log.d("Main", "clicked on " + clickedLink);
 
-        book.gotoSectionFile(sectionURI);
-        showUri(sectionURI);
+        book.handleClickedLink(clickedLink);
+        showUri(clickedLink);
         //saveScrollOffset();
-
     }
 
 
@@ -222,4 +230,26 @@ public class ReaderActivity extends Activity {
         saveScrollOffset();
         super.onPause();
     }
+
+
+    protected void showToc() {
+        Map<String,String> tocmap = book.getToc();
+        PopupMenu tocmenu = new PopupMenu(this, findViewById(R.id.contents_button));
+        for (final String point: tocmap.keySet()) {
+            String text = tocmap.get(point);
+            MenuItem m = tocmenu.getMenu().add(text);
+            //Log.d("EPUB", "TOC2: " + text + ". File: " + point);
+            m.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    handleLink(point);
+                    return true;
+                }
+            });
+        }
+
+        tocmenu.show();
+
+    }
+
 }

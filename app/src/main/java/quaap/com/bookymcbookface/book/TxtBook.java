@@ -1,6 +1,7 @@
 package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import java.io.BufferedReader;
@@ -137,13 +138,13 @@ public class TxtBook extends Book {
     }
 
     @Override
-    protected File getFileForSectionID(String id) {
-        return getBookFile();
+    protected Uri getUriForSectionID(String id) {
+        return Uri.fromFile(getBookFile());
     }
 
     @Override
-    protected File getFileForSection(String section) {
-        return getBookFile();
+    protected Uri getUriForSection(String section) {
+        return Uri.fromFile(getBookFile());
     }
 
     @Override

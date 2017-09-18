@@ -2,6 +2,7 @@ package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -46,9 +47,9 @@ public abstract class Book {
 
     protected abstract List<String> getSectionIds();
 
-    protected abstract File getFileForSectionID(String id);
+    protected abstract Uri getUriForSectionID(String id);
 
-    protected abstract File getFileForSection(String section);
+    protected abstract Uri getUriForSection(String section);
 
     protected abstract String getSectionIDForSection(String section);
 
@@ -67,64 +68,64 @@ public abstract class Book {
         restoreCurrentSectionID();
     }
 
-    public File getFirstSection() {
+    public Uri getFirstSection() {
         currentSectionIDPos = 0;
         saveCurrentSectionID();
-        return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+        return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 
-    public File getCurrentSection() {
+    public Uri getCurrentSection() {
         restoreCurrentSectionID();
         if (currentSectionIDPos > sectionIDs.size()) {
             currentSectionIDPos = 0;
             saveCurrentSectionID();
         }
 
-        return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+        return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 
 
     public void setSectionOffset(int offset) {
-        data.edit().putInt("sectionIDOffset", offset).apply();
+        data.edit().putInt("sectionIDOffset" + currentSectionIDPos, offset).apply();
     }
 
     public int getSectionOffset() {
-        return data.getInt("sectionIDOffset", 0);
+        return data.getInt("sectionIDOffset" + currentSectionIDPos, 0);
     }
 
-    public File getNextSection() {
+    public Uri getNextSection() {
         if (currentSectionIDPos + 1< sectionIDs.size()) {
             currentSectionIDPos++;
             saveCurrentSectionID();
-            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
 
-    public File getPreviousSection() {
+    public Uri getPreviousSection() {
         if (currentSectionIDPos - 1 > 0) {
             currentSectionIDPos--;
             saveCurrentSectionID();
-            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
 
-    public File gotoSectionID(String id) {
+    public Uri gotoSectionID(String id) {
         int pos = sectionIDs.indexOf(id);
         if (pos>-1 && pos < sectionIDs.size()) {
             currentSectionIDPos = pos;
             saveCurrentSectionID();
-            return getFileForSectionID(sectionIDs.get(currentSectionIDPos));
+            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
         }
         return null;
     }
 
-    public File gotoSectionFile(String file) {
-        String sectionID = getSectionIDForSection(file);
+    public Uri handleClickedLink(String clickedLink) {
+        String sectionID = getSectionIDForSection(clickedLink);
         if (sectionID!=null) {
             gotoSectionID(sectionID);
-            return getFileForSection(file);
+            return getUriForSection(clickedLink);
         }
         return null;
     }

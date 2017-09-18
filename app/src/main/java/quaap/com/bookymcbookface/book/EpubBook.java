@@ -108,22 +108,22 @@ public class EpubBook extends Book {
     }
 
     @Override
-    protected File getFileForSectionID(String id) {
+    protected Uri getUriForSectionID(String id) {
 
-        return new File(getFullBookContentDir(), docFiles.get(id));
+        return Uri.fromFile(new File(getFullBookContentDir(), docFiles.get(id)));
     }
 
     @Override
-    protected File getFileForSection(String section) {
+    protected Uri getUriForSection(String section) {
 //        int pound = section.indexOf("#");
 //        if (pound>-1) {
 //            section = section.substring(0,pound);
 //        }
-        //if (section.startsWith(getFullBookContentDir().getPath())) {
-            return new File(section);
-       // }
+        if (section.startsWith(getFullBookContentDir().getPath())) {
+            return Uri.fromFile(new File(section));
+        }
 
-       // return new File(getFullBookContentDir(), section);
+        return Uri.fromFile(new File(getFullBookContentDir(), section));
     }
 
 
