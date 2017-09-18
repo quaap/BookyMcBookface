@@ -85,15 +85,24 @@ public class HtmlBook extends Book {
     }
 
     @Override
-    protected Uri getUriForSection(String section) {
-        return Uri.fromFile(getFile());
+    protected ReadPoint locateReadPoint(String section) {
+        ReadPoint readPoint = new ReadPoint();
+        readPoint.setId("1");
+        readPoint.setPoint(Uri.parse(section));
+        return readPoint;
     }
 
-    @Override
-    protected String getSectionIDForSection(String section) {
-        return "1";
-    }
 
+//    @Override
+//    protected Uri getUriForSection(String section) {
+//        return Uri.fromFile(getFile());
+//    }
+//
+//    @Override
+//    protected String getSectionIDForSection(String section) {
+//        return "1";
+//    }
+//
 
 
 }

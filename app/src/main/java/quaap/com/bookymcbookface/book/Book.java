@@ -49,9 +49,11 @@ public abstract class Book {
 
     protected abstract Uri getUriForSectionID(String id);
 
-    protected abstract Uri getUriForSection(String section);
+    //protected abstract Uri getUriForSection(String section);
 
-    protected abstract String getSectionIDForSection(String section);
+    //protected abstract String getSectionIDForSection(String section);
+
+    protected abstract ReadPoint locateReadPoint(String section);
 
     public void load(File file) {
         this.file = file;
@@ -90,11 +92,16 @@ public abstract class Book {
     }
 
     public int getSectionOffset() {
-        return data.getInt("sectionIDOffset" + currentSectionIDPos, 0);
+        return data.getInt("sectionIDOffset" + currentSectionIDPos, -1);
     }
 
+    public void clearSectionOffset() {
+        data.edit().remove("sectionIDOffset" + currentSectionIDPos).apply();
+    }
+
+
     public Uri getNextSection() {
-        if (currentSectionIDPos + 1< sectionIDs.size()) {
+        if (currentSectionIDPos + 1 < sectionIDs.size()) {
             currentSectionIDPos++;
             saveCurrentSectionID();
             return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
@@ -122,10 +129,12 @@ public abstract class Book {
     }
 
     public Uri handleClickedLink(String clickedLink) {
-        String sectionID = getSectionIDForSection(clickedLink);
-        if (sectionID!=null) {
-            gotoSectionID(sectionID);
-            return getUriForSection(clickedLink);
+        ReadPoint readPoint = locateReadPoint(clickedLink);
+
+        if (readPoint!=null) {
+            gotoSectionID(readPoint.getId());
+            clearSectionOffset();
+            return readPoint.getPoint();
         }
         return null;
     }
@@ -233,5 +242,26 @@ public abstract class Book {
 
         return null;
 
+    }
+
+    public class ReadPoint {
+        private String id;
+        private Uri point;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Uri getPoint() {
+            return point;
+        }
+
+        public void setPoint(Uri point) {
+            this.point = point;
+        }
     }
 }

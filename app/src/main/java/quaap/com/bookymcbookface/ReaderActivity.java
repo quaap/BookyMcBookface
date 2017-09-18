@@ -171,7 +171,11 @@ public class ReaderActivity extends Activity {
 
     private void saveScrollOffset() {
         webView.computeScroll();
-        book.setSectionOffset(webView.getScrollY());
+        saveScrollOffset(webView.getScrollY());
+    }
+
+    private void saveScrollOffset(int offset) {
+        book.setSectionOffset(offset);
     }
 
     private void restoreScrollOffsetDelayed(int delay) {
@@ -185,7 +189,10 @@ public class ReaderActivity extends Activity {
 
     private void restoreScrollOffset() {
         webView.computeScroll();
-        webView.scrollTo(0, book.getSectionOffset());
+        int spos = book.getSectionOffset();
+        if (spos>=0) {
+            webView.scrollTo(0, spos);
+        }
     }
 
     private void loadFile(File file) {
@@ -205,22 +212,22 @@ public class ReaderActivity extends Activity {
     private void showUri(Uri uri) {
         if (uri !=null) {
             Log.d("Main", "trying to load " + uri);
+
+            book.clearSectionOffset();
             webView.loadUrl(uri.toString());
         }
     }
-
-    private void showUri(String uri) {
-        if (uri !=null) {
-            Log.d("Main", "trying to load " + uri);
-            webView.loadUrl(uri);
-        }
-    }
+//
+//    private void showUri(String uri) {
+//        if (uri !=null) {
+//            Log.d("Main", "trying to load " + uri);
+//            webView.loadUrl(uri);
+//        }
+//    }
 
     private void handleLink(String clickedLink) {
         Log.d("Main", "clicked on " + clickedLink);
-
-        book.handleClickedLink(clickedLink);
-        showUri(clickedLink);
+        showUri(book.handleClickedLink(clickedLink));
         //saveScrollOffset();
     }
 
