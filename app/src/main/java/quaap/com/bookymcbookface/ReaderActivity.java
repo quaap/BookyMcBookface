@@ -80,7 +80,7 @@ public class ReaderActivity extends Activity {
                 }
 
                 public void onPageFinished(WebView view, String url) {
-                    restoreScrollOffset();
+                    restoreScrollOffsetDelayed(100);
                 }
 
             });
@@ -91,12 +91,11 @@ public class ReaderActivity extends Activity {
                     Log.i("WebView", "Attempting to load URL: " + url);
 
                     gotoSection(url);
-                    //view.loadUrl(url);
                     return true;
                 }
 
                 public void onPageFinished(WebView view, String url) {
-                    restoreScrollOffset();
+                    restoreScrollOffsetDelayed(100);
                 }
 
 
@@ -128,51 +127,57 @@ public class ReaderActivity extends Activity {
 
     }
 
-
     private void prevPage() {
         if(webView.canScrollVertically(-1)) {
-            //webView.pageUp(false);
-            webView.scrollBy(0,-webView.getHeight()-14);
+            webView.pageUp(false);
+            //webView.scrollBy(0,-webView.getHeight()-14);
 
         } else {
             showFile(book.getPreviousSection());
         }
-        saveScrollOffset();
+        saveScrollOffsetDelayed(1500);
 
     }
 
     private void nextPage() {
 
         if(webView.canScrollVertically(1)) {
-            //webView.pageDown(false);
-            webView.scrollBy(0,webView.getHeight()-14);
+            webView.pageDown(false);
+            //webView.scrollBy(0,webView.getHeight()-14);
         } else {
             showFile(book.getNextSection());
         }
 
-        saveScrollOffset();
+        saveScrollOffsetDelayed(1500);
+    }
+
+    private void saveScrollOffsetDelayed(int delay) {
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                saveScrollOffset();
+            }
+        }, delay);
     }
 
     private void saveScrollOffset() {
+        webView.computeScroll();
+        book.setSectionOffset(webView.getScrollY());
+    }
+
+    private void restoreScrollOffsetDelayed(int delay) {
         webView.postDelayed(new Runnable() {
             @Override
             public void run() {
-                webView.computeScroll();
-                book.setSectionOffset(webView.getScrollY());
+                restoreScrollOffset();
             }
-        }, 100);
+        }, delay);
     }
 
     private void restoreScrollOffset() {
-        webView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                webView.computeScroll();
-                webView.scrollTo(0, book.getSectionOffset());
-            }
-        }, 100);
+        webView.computeScroll();
+        webView.scrollTo(0, book.getSectionOffset());
     }
-
 
     private void loadFile(File file) {
         try {
@@ -207,87 +212,14 @@ public class ReaderActivity extends Activity {
 
         book.gotoSectionFile(sectionURI);
         showUri(sectionURI);
-        saveScrollOffset();
+        //saveScrollOffset();
 
     }
 
 
-
-
-
-//    private static final int FILE_SELECT_CODE = 0;
-//
-//    private void showFileChooser() {
-//        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-//        intent.setType("*/*");
-//        intent.addCategory(Intent.CATEGORY_OPENABLE);
-//
-//        try {
-//            startActivityForResult(
-//                    Intent.createChooser(intent, "Select a File to Upload"),
-//                    FILE_SELECT_CODE);
-//        } catch (android.content.ActivityNotFoundException ex) {
-//            // Potentially direct the user to the Market with a Dialog
-//            Toast.makeText(this, "Please install a File Manager.",
-//                    Toast.LENGTH_SHORT).show();
-//        }
-//    }
-//
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        switch (requestCode) {
-//            case FILE_SELECT_CODE:
-//                if (resultCode == RESULT_OK) {
-//                    // Get the Uri of the selected file
-//                    Uri uri = data.getData();
-//                    Log.d(TAG, "File Uri: " + uri.toString());
-//                    // Get the path
-//                    String path = null;
-//                    try {
-//                        path = getPath(this, uri);
-//                    } catch (URISyntaxException e) {
-//                        e.printStackTrace();
-//                    }
-//                    Log.d(TAG, "File Path: " + path);
-//
-//                    if (path!=null) {
-//                        book = new EpubBook(this, getFilesDir());
-//                        book.load(new File(path));
-//                        webView.loadUrl(book.getPage(0).file.toURI().toString());
-//                    }
-//
-//
-//                    // Get the file instance
-//                    // File file = new File(path);
-//                    // Initiate the upload
-//                }
-//                break;
-//        }
-//        super.onActivityResult(requestCode, resultCode, data);
-//    }
-//
-//    public static String getPath(Context context, Uri uri) throws URISyntaxException {
-//        if ("content".equalsIgnoreCase(uri.getScheme())) {
-//            String[] projection = { "_data" };
-//            Cursor cursor = null;
-//
-//            try {
-//                cursor = context.getContentResolver().query(uri, projection, null, null, null);
-//                int column_index = cursor.getColumnIndexOrThrow("_data");
-//                if (cursor.moveToFirst()) {
-//                    return cursor.getString(column_index);
-//                }
-//            } catch (Exception e) {
-//                Log.e(TAG, e.getMessage(), e);
-//            }
-//        }
-//        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-//            return uri.getPath();
-//        } else {
-//            Log.e(TAG, "Don't know what to do with " + uri);
-//        }
-//
-//        return null;
-//    }
+    @Override
+    protected void onPause() {
+        saveScrollOffset();
+        super.onPause();
+    }
 }

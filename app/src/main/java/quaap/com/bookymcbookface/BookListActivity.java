@@ -55,11 +55,19 @@ public class BookListActivity extends Activity {
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         nextid = data.getInt("nextid",0);
 
+        listHolder.removeAllViews();
         for (int i=0; i<nextid; i++) {
             displayBookListEntry(i);
         }
+
     }
 
     private void displayBookListEntry(int bookid) {
