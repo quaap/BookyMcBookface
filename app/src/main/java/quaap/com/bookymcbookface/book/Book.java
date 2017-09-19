@@ -71,6 +71,7 @@ public abstract class Book {
     }
 
     public Uri getFirstSection() {
+        clearSectionOffset();
         currentSectionIDPos = 0;
         saveCurrentSectionID();
         return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
@@ -88,20 +89,21 @@ public abstract class Book {
 
 
     public void setSectionOffset(int offset) {
-        data.edit().putInt("sectionIDOffset" + currentSectionIDPos, offset).apply();
+        data.edit().putInt("sectionIDOffset", offset).apply();
     }
 
     public int getSectionOffset() {
-        return data.getInt("sectionIDOffset" + currentSectionIDPos, -1);
+        return data.getInt("sectionIDOffset", -1);
     }
 
     public void clearSectionOffset() {
-        data.edit().remove("sectionIDOffset" + currentSectionIDPos).apply();
+        data.edit().remove("sectionIDOffset").apply();
     }
 
 
     public Uri getNextSection() {
         if (currentSectionIDPos + 1 < sectionIDs.size()) {
+            clearSectionOffset();
             currentSectionIDPos++;
             saveCurrentSectionID();
             return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
@@ -111,6 +113,7 @@ public abstract class Book {
 
     public Uri getPreviousSection() {
         if (currentSectionIDPos - 1 > 0) {
+            clearSectionOffset();
             currentSectionIDPos--;
             saveCurrentSectionID();
             return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
