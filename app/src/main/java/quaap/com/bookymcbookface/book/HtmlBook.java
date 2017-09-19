@@ -1,8 +1,10 @@
 package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -24,6 +27,7 @@ import java.util.regex.Pattern;
 
 public class HtmlBook extends Book {
     List<String> l = new ArrayList<>();
+    Map<String,String> toc;
 
     public HtmlBook(Context context) {
         super(context);
@@ -34,11 +38,66 @@ public class HtmlBook extends Book {
         if (!getFile().exists() || !getFile().canRead()) {
             throw new FileNotFoundException(getFile() + " doesn't exist or not readable");
         }
+
+        toc = new LinkedHashMap<>();
+
+        SharedPreferences bookdat = getSharedPreferences();
+        if (bookdat.contains("ordercount")) {
+            int toccount = bookdat.getInt("ordercount", 0);
+
+            for (int i = 0; i < toccount; i++) {
+                String label = bookdat.getString("toc.label." + i, "");
+                String point = bookdat.getString("toc.content." + i, "");
+
+                toc.put(point, label);
+                Log.d("EPUB", "TOC: " + label + ". File: " + point);
+
+            }
+
+        } else {
+            try (BufferedReader reader = new BufferedReader(new FileReader(getFile()))) {
+                int c = 0;
+                String line;
+
+                Pattern idlinkrx = Pattern.compile("<a\\s+[^>]*\\b(?i:name|id)=\"([^\"]+)\"[^>]*>(?:(.+?)</a>)?");
+                Pattern hidlinkrx = Pattern.compile("<h[1-3]\\s+[^>]*\\bid=\"([^\"]+)\"[^>]*>(.+?)</h");
+
+                SharedPreferences.Editor bookdatedit = bookdat.edit();
+
+                while ((line = reader.readLine()) != null) {
+                    String id = null;
+                    String text = null;
+                    Matcher t = idlinkrx.matcher(line);
+                    if (t.find()) {
+                        id = t.group(1);
+                        text = t.group(2);
+                    }
+                    Matcher t2 = hidlinkrx.matcher(line);
+                    if (t2.find()) {
+                        id = t2.group(1);
+                        text = t2.group(2);
+                    }
+                    if (id != null) {
+                        if (text==null) text=id;
+                        bookdatedit.putString("toc.label."+c, text);
+                        bookdatedit.putString("toc.content."+c, "#"+id);
+                        toc.put("#"+id, text);
+                        c++;
+                    }
+
+
+                }
+                bookdatedit.putInt("ordercount", c);
+
+                bookdatedit.apply();
+            }
+        }
+
     }
 
     @Override
     public Map<String, String> getToc() {
-        return null;
+        return toc;
     }
 
     @Override
@@ -88,7 +147,14 @@ public class HtmlBook extends Book {
     protected ReadPoint locateReadPoint(String section) {
         ReadPoint readPoint = new ReadPoint();
         readPoint.setId("1");
-        readPoint.setPoint(Uri.parse(section));
+
+        Uri suri = Uri.parse(section);
+
+        if (suri.isRelative()) {
+            suri = new Uri.Builder().scheme("file").path(getFile().getPath()).fragment(suri.getFragment()).build();
+        }
+
+        readPoint.setPoint(suri);
         return readPoint;
     }
 
