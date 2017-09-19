@@ -5,14 +5,6 @@
     android:layout_height="match_parent"
     tools:context="quaap.com.bookymcbookface.BookListActivity">
 
-    <Button
-        android:id="@+id/add_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="false"
-        android:text="@string/add" />
 
     <ScrollView
         android:id="@+id/book_list_scroller"
@@ -28,4 +20,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"/>
     </ScrollView>
+
+    <Button
+        android:id="@+id/add_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:text="@string/add" />
+
+    <Button
+        android:id="@+id/add_dir_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="false"
+        android:layout_toStartOf="@+id/add_button"
+        android:text="@string/add_dir" />
 </RelativeLayout>

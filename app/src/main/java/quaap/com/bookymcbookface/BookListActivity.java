@@ -61,6 +61,12 @@ public class BookListActivity extends Activity {
                 findFile();
             }
         });
+        findViewById(R.id.add_dir_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findDir();
+            }
+        });
 
         checkStorageAccess(false);
 
@@ -152,17 +158,26 @@ public class BookListActivity extends Activity {
          .apply();
     }
 
-    private void addBook(String filename) {
+    private boolean addBook(String filename) {
+        return addBook(filename, true);
+    }
+
+    private boolean addBook(String filename, boolean showAlreadyAddedWarning) {
+        if (data.getAll().values().contains(filename)) {
+
+            if (showAlreadyAddedWarning) {
+                Toast.makeText(this, getString(R.string.already_added, new File(filename).getName()), Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        }
+
         try {
+
             BookMetadata metadata = Book.getBookMetaData(this, filename);
 
             if (metadata!=null) {
                 String bookid = "book." + nextid;
 
-                if (data.getAll().values().contains(filename)) {
-                    Toast.makeText(this,"Book already added",Toast.LENGTH_LONG).show();
-                    return;
-                }
                 data.edit()
                         .putString(bookid + ".title", metadata.getTitle())
                         .putString(bookid + ".author", metadata.getAuthor())
@@ -172,14 +187,15 @@ public class BookListActivity extends Activity {
                 displayBookListEntry(nextid);
                 nextid++;
                 data.edit().putInt("nextid",nextid).apply();
+                return true;
             } else {
-                Toast.makeText(this,"Couldn't add " + filename,Toast.LENGTH_LONG).show();
-
+                Toast.makeText(this,getString(R.string.coulndt_add_book, new File(filename).getName()),Toast.LENGTH_SHORT).show();
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("BookList", e.getMessage(), e);
         }
+        return false;
     }
 
     private void findFile() {
@@ -193,7 +209,26 @@ public class BookListActivity extends Activity {
                     addBook(selection.getPath());
 
                 }
-            }, "Find book", false, Book.getFileExtensionRX());
+            }, getString(R.string.find_book), false, Book.getFileExtensionRX());
+        }
+    }
+
+    private void findDir() {
+
+        FsTools fsTools = new FsTools(this);
+
+        if (checkStorageAccess(false)) {
+            fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
+                @Override
+                public void selected(File selection) {
+                    for (File file: selection.listFiles()) {
+                        if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
+                            addBook(file.getPath(), false);
+                        }
+                    }
+
+                }
+            }, getString(R.string.find_folder), true);
         }
     }
 
@@ -201,14 +236,14 @@ public class BookListActivity extends Activity {
     private void longClickBook(final View view) {
         final String bookid = (String)view.getTag();
         PopupMenu menu = new PopupMenu(this, view);
-        menu.getMenu().add("Open book").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        menu.getMenu().add(R.string.open_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 readBook(bookid);
                 return false;
             }
         });
-        menu.getMenu().add("Remove book").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        menu.getMenu().add(R.string.remove_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 removeBook(bookid);

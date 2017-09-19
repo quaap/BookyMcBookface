@@ -151,7 +151,7 @@ public class FsTools {
             }
         });
         if (chooseDir) {
-            builder.setPositiveButton("Select current", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton(R.string.select_thisfolder, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -159,7 +159,7 @@ public class FsTools {
                 }
             });
         }
-        builder.setNegativeButton("Cancel", null);
+        builder.setNegativeButton(R.string.cancel, null);
 
         builder.show();
     }
