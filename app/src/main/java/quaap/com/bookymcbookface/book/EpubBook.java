@@ -82,7 +82,7 @@ public class EpubBook extends Book {
             docFileOrder.add(item);
             docFiles.put(item, file);
 
-            Log.d("EPUB", "Item: " + item + ". File: " + file);
+            //Log.d("EPUB", "Item: " + item + ". File: " + file);
         }
 
         int toccount = bookdat.getInt("toccount",0);
@@ -92,7 +92,7 @@ public class EpubBook extends Book {
             String point = bookdat.getString("toc.content." + i, "");
 
             tocPoints.put(point,label);
-            Log.d("EPUB", "TOC: " + label + ". File: " + point);
+           // Log.d("EPUB", "TOC: " + label + ". File: " + point);
 
         }
     }
@@ -117,9 +117,7 @@ public class EpubBook extends Book {
     protected ReadPoint locateReadPoint(String section) {
         ReadPoint point = null;
 
-        Uri suri = null;
-
-        suri = Uri.parse(section);
+        Uri suri = Uri.parse(section);
 
         if (suri.isRelative()) {
             suri = new Uri.Builder().scheme("file").path(getFullBookContentDir().getPath()).appendPath(suri.getPath()).fragment(suri.getFragment()).build();
@@ -145,48 +143,6 @@ public class EpubBook extends Book {
     }
 
 
-//    @Override
-//    protected Uri getUriForSection(String section) {
-////        int pound = section.indexOf("#");
-////        if (pound>-1) {
-////            section = section.substring(0,pound);
-////        }
-//        if (section.startsWith(getFullBookContentDir().getPath())) {
-//            return Uri.fromFile(new File(section));
-//        }
-//
-//        return Uri.fromFile(new File(getFullBookContentDir(), section));
-//    }
-
-
-//    protected String getSectionIDForSection(String section) {
-//        Uri sectionUri = Uri.parse(section);
-//        Log.d("EPB", "Section file: " + section);
-////        int pound = section.indexOf("#");
-////        if (pound>-1) {
-////            section = section.substring(0,pound);
-////        }
-////
-////        Log.d("EPB", "Section file: " + section);
-////        Log.d("EPB", "Remove: " + getFullBookContentDir().toURI().toString());
-////        section = section.replaceFirst(getFullBookContentDir().toURI().toString(), "");
-//
-//        String sectionPath = sectionUri.getPath();
-//
-//        Log.d("EPB", "Section path: " + sectionPath);
-//
-//        section = sectionPath.replaceFirst(getFullBookContentDir().toString(), "");
-//        section = section.replaceFirst("/", "");
-//
-//        Log.d("EPB", "Section file: " + section);
-//        for (Map.Entry<String,String> entry: docFiles.entrySet()) {
-//            if (section.equals(entry.getValue())) {
-//                return entry.getKey();
-//            }
-//        }
-//
-//        return null;
-//    }
 
     private File getFullBookContentDir() {
         return new File(getThisBookDir(), bookContentDir.getPath());
