@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BookyMcBookface</string>
+    <string name="app_name">Booky McBookface</string>
     <string name="book_viewed_on">Viewed %s</string>
     <string name="add">Add Book</string>
     <string name="add_dir">Add Books From Folder</string>
