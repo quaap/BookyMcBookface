@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -23,6 +24,8 @@ import java.util.regex.Pattern;
 
 public class TxtBook extends Book {
     List<String> l = new ArrayList<>();
+
+    Map<String,String> toc = new LinkedHashMap<>();
 
     public TxtBook(Context context) {
         super(context);
@@ -70,7 +73,7 @@ public class TxtBook extends Book {
 
     @Override
     public Map<String, String> getToc() {
-        return null;
+        return toc;
     }
 
     @Override
