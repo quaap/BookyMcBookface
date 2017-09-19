@@ -3,6 +3,7 @@ package quaap.com.bookymcbookface;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -231,20 +232,34 @@ public class ReaderActivity extends Activity {
         isPagingDown = false;
     }
 
-    private void loadFile(File file) {
-        try {
-            book = Book.getBookHandler(ReaderActivity.this, file.getPath());
-            Log.d("Main", "File " + file);
-            book.load(file);
-            int fontsize = book.getFontsize();
-            if (fontsize!=-1) {
-                setFontSize(fontsize);
-            }
-            showUri(book.getCurrentSection());
+    private void loadFile(final File file) {
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        webView.loadData("Loading " + file.getPath(),"text/plain", "utf-8");
+
+        new AsyncTask<Void,Void,Void>()  {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    book = Book.getBookHandler(ReaderActivity.this, file.getPath());
+                    Log.d("Main", "File " + file);
+                    book.load(file);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                int fontsize = book.getFontsize();
+                if (fontsize!=-1) {
+                    setFontSize(fontsize);
+                }
+                showUri(book.getCurrentSection());
+            }
+        }.execute();
 
 
     }

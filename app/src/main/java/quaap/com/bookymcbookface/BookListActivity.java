@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -80,9 +81,23 @@ public class BookListActivity extends Activity {
         nextid = data.getInt("nextid",0);
 
         listHolder.removeAllViews();
-        for (int i=0; i<nextid; i++) {
-            displayBookListEntry(i);
-        }
+        new AsyncTask<Void,Void,Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                for (int i=0; i<nextid; i++) {
+                    final int id = i;
+                    listScroller.post(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            displayBookListEntry(id);
+                        }
+                    });
+                }
+                return null;
+            }
+        }.execute();
 
     }
 
@@ -213,6 +228,26 @@ public class BookListActivity extends Activity {
         }
     }
 
+    private void addDir(final File dir) {
+        new AsyncTask<Void,Void,Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+
+                for(final File file:dir.listFiles()) {
+                    if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
+                        listScroller.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                addBook(file.getPath(), false);
+                            }
+                        });
+                    }
+                }
+                return null;
+            }
+        }.execute();
+    }
+
     private void findDir() {
 
         FsTools fsTools = new FsTools(this);
@@ -221,11 +256,7 @@ public class BookListActivity extends Activity {
             fsTools.selectExternalLocation(new FsTools.SelectionMadeListener() {
                 @Override
                 public void selected(File selection) {
-                    for (File file: selection.listFiles()) {
-                        if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                            addBook(file.getPath(), false);
-                        }
-                    }
+                    addDir(selection);
 
                 }
             }, getString(R.string.find_folder), true);
