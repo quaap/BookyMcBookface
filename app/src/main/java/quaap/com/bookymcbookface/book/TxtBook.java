@@ -2,7 +2,7 @@ package quaap.com.bookymcbookface.book;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -66,7 +66,7 @@ public class TxtBook extends Book {
 
     }
 
-    @NonNull
+
     private File getBookFile() {
         return new File(getThisBookDir(), getFile().getName());
     }
