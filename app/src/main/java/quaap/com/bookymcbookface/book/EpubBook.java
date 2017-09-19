@@ -85,7 +85,7 @@ public class EpubBook extends Book {
             Log.d("EPUB", "Item: " + item + ". File: " + file);
         }
 
-        int toccount = bookdat.getInt("ordercount",0);
+        int toccount = bookdat.getInt("toccount",0);
 
         for (int i=0; i<toccount; i++) {
             String label = bookdat.getString("toc.label." + i, "");
@@ -452,7 +452,7 @@ public class EpubBook extends Book {
             String content = tocPath.evaluate("content/@src", node);
             bookdat.put("toc.label."+total, label);
             bookdat.put("toc.content."+total, content);
-            //Log.d("EPB", "toc: " + label + " " + content);
+            Log.d("EPB", "toc: " + label + " " + content + " " + total);
             total++;
             total = readNavPoint(node, tocPath, bookdat, total);
         }
