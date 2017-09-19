@@ -87,6 +87,17 @@ public abstract class Book {
         return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 
+    public void setFontsize(int fontsize) {
+        data.edit().putInt("fontsize", fontsize).apply();
+    }
+
+    public int getFontsize() {
+        return data.getInt("fontsize", -1);
+    }
+
+    public void clearFontsize() {
+        data.edit().remove("fontsize").apply();
+    }
 
     public void setSectionOffset(int offset) {
         data.edit().putInt("sectionIDOffset", offset).apply();

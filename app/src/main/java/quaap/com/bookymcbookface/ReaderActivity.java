@@ -127,6 +127,13 @@ public class ReaderActivity extends Activity {
             }
         });
 
+        findViewById(R.id.zoom_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectFontSize();
+            }
+        });
+
         //findFile();
         Intent intent = getIntent();
         String filename = intent.getStringExtra("filename");
@@ -216,6 +223,10 @@ public class ReaderActivity extends Activity {
             book = Book.getBookHandler(ReaderActivity.this, file.getPath());
             Log.d("Main", "File " + file);
             book.load(file);
+            int fontsize = book.getFontsize();
+            if (fontsize!=-1) {
+                setFontSize(fontsize);
+            }
             showUri(book.getCurrentSection());
 
         } catch (IOException e) {
@@ -247,6 +258,60 @@ public class ReaderActivity extends Activity {
 
     }
 
+
+    private void fontSizeToggle() {
+
+        int defsize = webView.getSettings().getDefaultFontSize();
+        int minsize = webView.getSettings().getMinimumFontSize();
+
+        defsize += 4;
+        if (defsize>40) {
+            defsize = minsize;
+        }
+
+        setFontSize(defsize);
+
+    }
+
+    private void setFontSize(int size) {
+        book.setFontsize(size);
+        webView.getSettings().setDefaultFontSize(size);
+        webView.getSettings().setDefaultFixedFontSize(size);
+    }
+
+    private void selectFontSize() {
+        final int defsize = webView.getSettings().getDefaultFontSize();
+        int minsize = webView.getSettings().getMinimumFontSize();
+        final float scale = getResources().getDisplayMetrics().density/160f;
+
+
+        Log.d("READER", "def " + defsize + " " + scale);
+        final PopupMenu sizemenu = new PopupMenu(this, findViewById(R.id.zoom_button));
+        for (int size=minsize; size<=36; size+=2) {
+            final int s = size;
+
+            MenuItem mi = sizemenu.getMenu().add(" "+size);
+            mi.setCheckable(true);
+            mi.setChecked(size==defsize);
+
+            mi.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    Log.d("READER", "def " + (defsize-s));
+                    int scrolloffset = (int)(-webView.getScrollY()*(defsize - s)*1.3*scale*4);
+                    Log.d("READER", "scrollby " + scrolloffset);
+
+                    setFontSize(s);
+                    webView.scrollBy(0, scrolloffset);
+                    sizemenu.dismiss();
+                    return true;
+                }
+            });
+        }
+        sizemenu.show();
+
+
+    }
 
     @Override
     protected void onPause() {
