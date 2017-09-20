@@ -6,8 +6,8 @@ Features:
 * Loads epub, txt, and html books.
 * Load all books in a directory.
 * List of books.
-* Displays the book.
-* Remembers last position.
+* Sort book list by title, author, or date added.
+* Remembers last position in book.
 * Page forward by using the button, or by swiping up or to the left.
 * Page back by using the button, or by swiping down or to the right.
 * "Contents" button shows the Table Of Contents, if available.
