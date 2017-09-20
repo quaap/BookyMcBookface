@@ -10,12 +10,15 @@ Features:
 * Remembers last position.
 * Page forward by using the button, or by swiping up or to the left.
 * Page back by using the button, or by swiping down or to the right.
+* "Contents" button shows the Table Of Contents, if available.
 * Use Android back button to return to the book list.
 
 
 Known issues:
 * Lag in paging up and down.
+* Not actually using "book pages" (just scrolls a big page up and down).
 * No bookmarks.
+* No "goto page" functionality.
 * Changing the font can lose your spot.
 * Paging backward sometimes causes a weird downward scrolling, which makes you think you've lost
 your spot but you really haven't.
