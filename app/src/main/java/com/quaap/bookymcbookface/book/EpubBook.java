@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface.book;
+package com.quaap.bookymcbookface.book;
 
 
 import android.content.Context;
@@ -40,7 +40,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import quaap.com.bookymcbookface.Zip;
+import com.quaap.bookymcbookface.Zip;
 
 /**
  * Copyright (C) 2017   Tom Kliethermes

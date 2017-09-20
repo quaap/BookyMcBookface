@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface.book;
+package com.quaap.bookymcbookface.book;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface;
+package com.quaap.bookymcbookface;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import quaap.com.bookymcbookface.book.Book;
+import com.quaap.bookymcbookface.book.Book;
 
 /**
  * Copyright (C) 2017   Tom Kliethermes
@@ -47,7 +47,7 @@ public class ReaderActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reader);
 
-        webView = findViewById(R.id.page_view);
+        webView = (WebView)findViewById(R.id.page_view);
 
         webView.setNetworkAvailable(false);
         //webView.setScrollContainer(false);

@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface.book;
+package com.quaap.bookymcbookface.book;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import quaap.com.bookymcbookface.FsTools;
+import com.quaap.bookymcbookface.FsTools;
 
 
 /**

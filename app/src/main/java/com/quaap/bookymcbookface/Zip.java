@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface;
+package com.quaap.bookymcbookface;
 
 import android.util.Log;
 

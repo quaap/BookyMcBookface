@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface;
+package com.quaap.bookymcbookface;
 
 import android.Manifest;
 import android.app.Activity;
@@ -23,8 +23,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 
-import quaap.com.bookymcbookface.book.Book;
-import quaap.com.bookymcbookface.book.BookMetadata;
+import com.quaap.bookymcbookface.book.Book;
+import com.quaap.bookymcbookface.book.BookMetadata;
 
 /**
  * Copyright (C) 2017   Tom Kliethermes
@@ -53,8 +53,8 @@ public class BookListActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_list);
 
-        listHolder = findViewById(R.id.book_list_holder);
-        listScroller = findViewById(R.id.book_list_scroller);
+        listHolder = (ViewGroup)findViewById(R.id.book_list_holder);
+        listScroller = (ScrollView)findViewById(R.id.book_list_scroller);
 
         findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,9 +111,9 @@ public class BookListActivity extends Activity {
         if (filename!=null) {
             Log.d("Book", "Filename "  + filename);
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
-            TextView titleView = listEntry.findViewById(R.id.book_title);
-            TextView authorView = listEntry.findViewById(R.id.book_author);
-            TextView statusView = listEntry.findViewById(R.id.book_status);
+            TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
+            TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
+            TextView statusView = (TextView)listEntry.findViewById(R.id.book_status);
 
             titleView.setText(title);
             authorView.setText(author);

@@ -1,4 +1,4 @@
-package quaap.com.bookymcbookface;
+package com.quaap.bookymcbookface;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
