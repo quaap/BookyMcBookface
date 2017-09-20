@@ -13,7 +13,9 @@
         android:layout_above="@+id/controls_layout"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true">
+        android:layout_centerVertical="true"
+        android:layout_marginTop="8dp"
+        android:padding="8dp">
 
     </WebView>
 
