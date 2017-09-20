@@ -2,7 +2,9 @@ package com.quaap.bookymcbookface;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -11,6 +13,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -69,6 +74,12 @@ public class BookListActivity extends Activity {
             }
         });
 
+        findViewById(R.id.about_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
+            }
+        });
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
@@ -317,4 +328,28 @@ public class BookListActivity extends Activity {
         }
     }
 
+    public static void showMsg(Context context, String title, String message) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+
+        final TextView messageview = new TextView(context);
+        messageview.setPadding(16,8,16,8);
+
+        final SpannableString s = new SpannableString(message);
+        Linkify.addLinks(s, Linkify.ALL);
+        messageview.setText(s);
+        messageview.setMovementMethod(LinkMovementMethod.getInstance());
+
+        builder.setView(messageview);
+
+        builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 }

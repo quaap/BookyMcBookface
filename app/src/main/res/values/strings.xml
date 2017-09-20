@@ -14,4 +14,16 @@
     <string name="remove_book">Remove book</string>
     <string name="coulndt_add_book">Couldn\'t add \"%s\"</string>
 
+    <string name="about">About</string>
+    <string name="about_app">
+        <![CDATA[
+
+        Booky McBookface is opensource software.\n\n
+
+        Get help and see the full license and sourcecode at \n
+        https://github.com/quaap/BookyMcBookface\n\n
+
+        This program was written by Tom Kliethermes.
+        ]]>
+    </string>
 </resources>
