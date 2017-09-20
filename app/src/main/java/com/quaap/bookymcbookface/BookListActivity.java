@@ -17,6 +17,8 @@ import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +29,13 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.quaap.bookymcbookface.book.Book;
 import com.quaap.bookymcbookface.book.BookMetadata;
@@ -61,25 +70,25 @@ public class BookListActivity extends Activity {
         listHolder = (ViewGroup)findViewById(R.id.book_list_holder);
         listScroller = (ScrollView)findViewById(R.id.book_list_scroller);
 
-        findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findFile();
-            }
-        });
-        findViewById(R.id.add_dir_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findDir();
-            }
-        });
-
-        findViewById(R.id.about_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
-            }
-        });
+//        findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                findFile();
+//            }
+//        });
+//        findViewById(R.id.add_dir_button).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                findDir();
+//            }
+//        });
+//
+//        findViewById(R.id.about_button).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
+//            }
+//        });
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
@@ -89,15 +98,60 @@ public class BookListActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        populateBooks();
+
+    }
+
+    private enum SortOrder {Default, Title, Author}
+
+    private void setSortOrder(SortOrder sortOrder) {
+        data.edit().putString("sortorder",sortOrder.name()).apply();
+    }
+
+    private void populateBooks() {
+
+        SortOrder sortorder = SortOrder.valueOf(data.getString("sortorder", SortOrder.Default.name()));
         nextid = data.getInt("nextid",0);
+
+        final int [] order = new int[nextid];
+
+        for (int i = 0; i < nextid; i++) {
+            order[i] = -1;
+        }
+        if (sortorder==SortOrder.Default) {
+            for (int i = 0; i < nextid; i++) {
+                order[i] = i;
+            }
+
+        } else {
+            Set<String> list;
+            if (sortorder==SortOrder.Title) {
+                list = data.getStringSet("title_order", null);
+            } else {
+                list = data.getStringSet("author_order", null);
+            }
+            if (list!=null) {
+                int i = 0;
+                List<String> alist = new ArrayList<>(list);
+                Collections.sort(alist);
+                for(String p: alist) {
+                    Matcher m = Pattern.compile("\\.(\\d+)$").matcher(p);
+                    if (m.find()) {
+                        order[i++] = Integer.parseInt(m.group(1));
+                    }
+
+                }
+            }
+        }
+
 
         listHolder.removeAllViews();
         new AsyncTask<Void,Void,Void>() {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                for (int i=0; i<nextid; i++) {
-                    final int id = i;
+                for (int i=0; i<order.length; i++) {
+                    final int id = order[i];
                     listScroller.post(new Runnable() {
                         @Override
                         public void run() {
@@ -109,18 +163,55 @@ public class BookListActivity extends Activity {
                 return null;
             }
         }.execute();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.menu_add:
+                findFile();
+                return true;
+            case R.id.menu_add_dir:
+                findDir();
+                return true;
+            case R.id.menu_about:
+                showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
+                return true;
+            case R.id.menu_sort_default:
+                setSortOrder(SortOrder.Default);
+                populateBooks();
+                return true;
+            case R.id.menu_sort_author:
+                setSortOrder(SortOrder.Author);
+                populateBooks();
+                return true;
+            case R.id.menu_sort_title:
+                setSortOrder(SortOrder.Title);
+                populateBooks();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
 
     }
 
     private void displayBookListEntry(int bookid) {
         String bookidstr = "book." + bookid;
-        String title = data.getString(bookidstr + ".title", null);
-        String author = data.getString(bookidstr + ".author", null);
         String filename = data.getString(bookidstr + ".filename", null);
 
 
         if (filename!=null) {
             Log.d("Book", "Filename "  + filename);
+            String title = data.getString(bookidstr + ".title", null);
+            String author = data.getString(bookidstr + ".author", null);
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
             TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
             TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
@@ -172,15 +263,28 @@ public class BookListActivity extends Activity {
 
     private void removeBook(String bookid) {
         String file = data.getString(bookid + ".filename", null);
+        String title = data.getString(bookid + ".title", null);
+        String author = data.getString(bookid + ".author", null);
+        int id = data.getInt(bookid + ".int", -1);
 
         if (file!=null) {
             Book.remove(this, new File(file));
         }
 
+        Set<String> titles = new TreeSet<>(data.getStringSet("title_order", new TreeSet<String>()));
+        titles.remove(title + "." + id );
+
+        Set<String> authors = new TreeSet<>(data.getStringSet("author_order", new TreeSet<String>()));
+        authors.remove(author + "." + id);
+
+
         data.edit()
+                .remove(bookid + ".id")
                 .remove(bookid + ".title")
                 .remove(bookid + ".author")
                 .remove(bookid + ".filename")
+                .putStringSet("title_order",titles)
+                .putStringSet("author_order",authors)
          .apply();
     }
 
@@ -204,10 +308,30 @@ public class BookListActivity extends Activity {
             if (metadata!=null) {
                 String bookid = "book." + nextid;
 
+                String title = metadata.getTitle() != null ? metadata.getTitle().toLowerCase():"_" ;
+                Set<String> titles = new TreeSet<>(data.getStringSet("title_order", new TreeSet<String>()));
+                titles.add(title + "." + nextid );
+
+                String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
+
+                String [] authparts = author.split("\\s+");
+                if (authparts.length>1) {
+                    author = authparts[authparts.length-1];
+                    for (int i=0; i<authparts.length-1; i++) {
+                        author += " " + authparts[i];
+                    }
+                }
+
+                Set<String> authors = new TreeSet<>(data.getStringSet("author_order", new TreeSet<String>()));
+                authors.add(author + "." + nextid);
+
                 data.edit()
+                        .putInt(bookid + ".id", nextid)
                         .putString(bookid + ".title", metadata.getTitle())
                         .putString(bookid + ".author", metadata.getAuthor())
                         .putString(bookid + ".filename", metadata.getFilename())
+                        .putStringSet("title_order",titles)
+                        .putStringSet("author_order",authors)
                 .apply();
 
                 displayBookListEntry(nextid);
@@ -233,6 +357,7 @@ public class BookListActivity extends Activity {
                 @Override
                 public void selected(File selection) {
                     addBook(selection.getPath());
+                    populateBooks();
 
                 }
             }, getString(R.string.find_book), false, Book.getFileExtensionRX());
@@ -268,6 +393,7 @@ public class BookListActivity extends Activity {
                 @Override
                 public void selected(File selection) {
                     addDir(selection);
+                    populateBooks();
 
                 }
             }, getString(R.string.find_folder), true);

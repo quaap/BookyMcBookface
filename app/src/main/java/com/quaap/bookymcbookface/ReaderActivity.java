@@ -1,5 +1,6 @@
 package com.quaap.bookymcbookface;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -46,6 +47,10 @@ public class ReaderActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reader);
+
+        ActionBar ab = getActionBar();
+        if (ab!=null) ab.hide();
+
 
         webView = (WebView)findViewById(R.id.page_view);
 

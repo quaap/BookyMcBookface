@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_add"
+        android:title="@string/add"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_add_dir"
+        android:title="@string/add_dir" />
+    <item
+        android:id="@+id/menu_sort_default"
+        android:title="@string/sort_by_added_date" />
+    <item
+        android:id="@+id/menu_sort_title"
+        android:title="@string/sort_by_title" />
+    <item
+        android:id="@+id/menu_sort_author"
+        android:title="@string/sort_by_author" />
+    <item
+        android:id="@+id/menu_about"
+        android:title="@string/about" />
+</menu>
