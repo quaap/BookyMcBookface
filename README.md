@@ -1,8 +1,9 @@
 # Booky McBookface
 
-An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt and html ebooks.
+An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt and html ebooks. 
 
 Features:
+* Completely opensource: no ads, tracking, or malicious permissions.
 * Loads epub, txt, and html books.
 * Load all books in a directory.
 * List of books.
@@ -12,6 +13,14 @@ Features:
 * Page back by using the button, or by swiping down or to the right.
 * "Contents" button shows the Table Of Contents, if available.
 * Use Android back button to return to the book list.
+
+I've tested with many epubs from [Project Gutenberg](http://www.gutenberg.org/). If you notice 
+problems with books from any source, [file an issue](https://github.com/quaap/BookyMcBookface/issues). 
+
+You can use [Calibre](https://calibre-ebook.com/) to convert other formats like mobi and PDF to epub.
+
+I am not opposed to someone adding support for other formats like mobi, but I don't want to add
+third-party jars etc, and everything needs to be GPLv3 compatible.
 
 
 Known issues:
@@ -23,8 +32,3 @@ Known issues:
 * Paging backward sometimes causes a weird downward scrolling, which makes you think you've lost
 your spot but you really haven't.
 
-
-You can use [Calibre](https://calibre-ebook.com/) to convert other formats like mobi and PDF to epub.
-
-I am not opposed to someone adding support for other formats like mobi, but I don't want to add
-third-party jars etc, and everything needs to be GPLv3 compatible.
