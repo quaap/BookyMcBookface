@@ -17,6 +17,7 @@
             android:id="@+id/book_list_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             android:orientation="vertical" />
     </ScrollView>
 

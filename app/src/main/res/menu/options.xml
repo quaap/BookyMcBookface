@@ -4,23 +4,28 @@
 
     <item
         android:id="@+id/menu_add"
+        android:icon="@android:drawable/ic_input_add"
         android:title="@string/add"
-        app:showAsAction="always" />
+        app:showAsAction="always|withText" />
     <item
         android:id="@+id/menu_add_dir"
         android:title="@string/add_dir" />
     <item
-        android:id="@+id/menu_sort_default"
-        android:title="@string/sort_by_added_date" />
-    <item
-        android:id="@+id/menu_sort_title"
-        android:title="@string/sort_by_title" />
-    <item
-        android:id="@+id/menu_sort_author"
-        android:title="@string/sort_by_author" />
-    <item
         android:id="@+id/menu_gutenberg"
         android:title="@string/project_gutenberg" />
+    <group
+        android:id="@+id/sortgroup"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu_sort_default"
+            android:title="@string/sort_by_added_date" />
+        <item
+            android:id="@+id/menu_sort_title"
+            android:title="@string/sort_by_title" />
+        <item
+            android:id="@+id/menu_sort_author"
+            android:title="@string/sort_by_author" />
+    </group>
     <item
         android:id="@+id/menu_about"
         android:title="@string/about" />

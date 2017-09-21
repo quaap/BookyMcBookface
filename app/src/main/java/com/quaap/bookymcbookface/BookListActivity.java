@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
@@ -54,7 +55,7 @@ import com.quaap.bookymcbookface.book.BookMetadata;
  * See the GNU General Public License for more details.
  */
 
-public class BookListActivity extends Activity {
+public class BookListActivity extends AppCompatActivity {
 
     private SharedPreferences data;
 
@@ -111,7 +112,7 @@ public class BookListActivity extends Activity {
 
     private void populateBooks() {
 
-        SortOrder sortorder = SortOrder.valueOf(data.getString("sortorder", SortOrder.Default.name()));
+        SortOrder sortorder = getSortOrder();
         nextid = data.getInt("nextid",0);
 
         final int [] order = new int[nextid];
@@ -121,7 +122,7 @@ public class BookListActivity extends Activity {
         }
         if (sortorder==SortOrder.Default) {
             for (int i = 0; i < nextid; i++) {
-                order[i] = i;
+                order[i] = nextid - 1 - i;
             }
 
         } else {
@@ -166,12 +167,27 @@ public class BookListActivity extends Activity {
         }.execute();
     }
 
+    @NonNull
+    private SortOrder getSortOrder() {
+        return SortOrder.valueOf(data.getString("sortorder", SortOrder.Default.name()));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options, menu);
+
+        SortOrder sortorder = getSortOrder();
+
+        menu.findItem(R.id.menu_sort_default).setChecked(sortorder==SortOrder.Default);
+        menu.findItem(R.id.menu_sort_author).setChecked(sortorder==SortOrder.Author);
+        menu.findItem(R.id.menu_sort_title).setChecked(sortorder==SortOrder.Title);
+
+
+
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -189,14 +205,17 @@ public class BookListActivity extends Activity {
             case R.id.menu_sort_default:
                 setSortOrder(SortOrder.Default);
                 populateBooks();
+                item.setChecked(true);
                 return true;
             case R.id.menu_sort_author:
                 setSortOrder(SortOrder.Author);
                 populateBooks();
+                item.setChecked(true);
                 return true;
             case R.id.menu_sort_title:
                 setSortOrder(SortOrder.Title);
                 populateBooks();
+                item.setChecked(true);
                 return true;
             case R.id.menu_gutenberg:
                 Uri uri = Uri.parse("http://m.gutenberg.org/");
