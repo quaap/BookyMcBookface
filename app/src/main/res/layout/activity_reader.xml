@@ -30,40 +30,43 @@
         <Button
             android:id="@+id/prev_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="38dp"
             android:layout_weight="1"
-            android:text="&lt;"
-            tools:ignore="HardcodedText" />
+            android:gravity="center"
+            android:text="@string/prev_text"
+            android:textStyle="bold"/>
 
         <Button
             android:id="@+id/contents_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="38dp"
             android:layout_weight="1"
+            android:gravity="center"
             android:text="@string/contents" />
 
         <ImageButton
             android:id="@+id/find_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="38dp"
             android:src="@android:drawable/ic_menu_search"
             android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/zoom_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="38dp"
             android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_zoom"
-            android:contentDescription="@string/zoom" />
+            android:contentDescription="@string/zoom"
+            android:src="@android:drawable/ic_menu_zoom" />
 
         <Button
             android:id="@+id/next_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="38dp"
             android:layout_weight="1"
-            android:text="&gt;"
-            tools:ignore="HardcodedText" />
+            android:gravity="center"
+            android:text="@string/next_text"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </RelativeLayout>
