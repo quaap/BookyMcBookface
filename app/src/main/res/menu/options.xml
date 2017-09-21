@@ -19,6 +19,9 @@
         android:id="@+id/menu_sort_author"
         android:title="@string/sort_by_author" />
     <item
+        android:id="@+id/menu_gutenberg"
+        android:title="@string/project_gutenberg" />
+    <item
         android:id="@+id/menu_about"
         android:title="@string/about" />
 </menu>
