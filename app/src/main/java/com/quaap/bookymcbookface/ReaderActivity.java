@@ -58,18 +58,26 @@ public class ReaderActivity extends Activity {
         //webView.setScrollContainer(false);
         webView.setOnTouchListener(new View.OnTouchListener() {
             float x,y;
+            long time;
+            final long TIMEALLOWED = 400;
+            final int MINSWIPE = 150;
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
                 switch (motionEvent.getAction()) {
 
                     case MotionEvent.ACTION_UP:
+                        if (System.currentTimeMillis() - time >TIMEALLOWED) return false;
+
                         float diffx = motionEvent.getX() - x;
                         float diffy = motionEvent.getY() - y;
+                        float absdiffx = Math.abs(diffx);
+                        float absdiffy = Math.abs(diffy);
 
-                        if (diffx>100 || diffy>100) {
+
+                        if ((absdiffx>absdiffy && diffx>MINSWIPE) || (absdiffy>absdiffx && diffy>MINSWIPE)) {
                             prevPage();
-                        } else if (diffx<-100 || diffy<-100) {
+                        } else if ((absdiffx>absdiffy && diffx<-MINSWIPE) || (absdiffy>absdiffx && diffy<-MINSWIPE)) {
                             nextPage();
                         } else {
                             return false;
@@ -79,6 +87,7 @@ public class ReaderActivity extends Activity {
                     case MotionEvent.ACTION_DOWN:
                         x = motionEvent.getX();
                         y = motionEvent.getY();
+                        time = System.currentTimeMillis();
                         return false;
                 }
 
