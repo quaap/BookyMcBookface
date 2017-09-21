@@ -72,25 +72,6 @@ public class BookListActivity extends AppCompatActivity {
         listHolder = (ViewGroup)findViewById(R.id.book_list_holder);
         listScroller = (ScrollView)findViewById(R.id.book_list_scroller);
 
-//        findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                findFile();
-//            }
-//        });
-//        findViewById(R.id.add_dir_button).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                findDir();
-//            }
-//        });
-//
-//        findViewById(R.id.about_button).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
-//            }
-//        });
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);

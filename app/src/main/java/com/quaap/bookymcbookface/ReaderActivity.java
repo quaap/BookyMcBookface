@@ -286,13 +286,6 @@ public class ReaderActivity extends Activity {
             webView.loadUrl(uri.toString());
         }
     }
-//
-//    private void showUri(String uri) {
-//        if (uri !=null) {
-//            Log.d("Main", "trying to load " + uri);
-//            webView.loadUrl(uri);
-//        }
-//    }
 
     private void handleLink(String clickedLink) {
         Log.d("Main", "clicked on " + clickedLink);
