@@ -57,6 +57,18 @@ import com.quaap.bookymcbookface.book.BookMetadata;
 
 public class BookListActivity extends AppCompatActivity {
 
+    private static final String SORTORDER_KEY = "sortorder";
+    private static final String NEXTID_KEY = "nextid";
+    private static final String TITLE_ORDER_KEY = "title_order";
+    private static final String AUTHOR_ORDER_KEY = "author_order";
+    private static final String BOOK_PREFIX = "book.";
+    private static final String FILENAME_SUFF = ".filename";
+    private static final String TITLE_SUFF = ".title";
+    private static final String AUTHOR_SUFF = ".author";
+    private static final String LASTREAD_SUFF = ".lastread";
+    private static final String LASTREAD_KEY = "lastread";
+    private static final String ID_KEY = ".id";
+
     private SharedPreferences data;
 
     private int nextid = 0;
@@ -88,13 +100,13 @@ public class BookListActivity extends AppCompatActivity {
     private enum SortOrder {Default, Title, Author}
 
     private void setSortOrder(SortOrder sortOrder) {
-        data.edit().putString("sortorder",sortOrder.name()).apply();
+        data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
     }
 
     private void populateBooks() {
 
         SortOrder sortorder = getSortOrder();
-        nextid = data.getInt("nextid",0);
+        nextid = data.getInt(NEXTID_KEY,0);
 
         final int [] order = new int[nextid];
 
@@ -109,9 +121,9 @@ public class BookListActivity extends AppCompatActivity {
         } else {
             Set<String> list;
             if (sortorder==SortOrder.Title) {
-                list = data.getStringSet("title_order", null);
+                list = data.getStringSet(TITLE_ORDER_KEY, null);
             } else {
-                list = data.getStringSet("author_order", null);
+                list = data.getStringSet(AUTHOR_ORDER_KEY, null);
             }
             if (list!=null) {
                 int i = 0;
@@ -150,7 +162,7 @@ public class BookListActivity extends AppCompatActivity {
 
     @NonNull
     private SortOrder getSortOrder() {
-        return SortOrder.valueOf(data.getString("sortorder", SortOrder.Default.name()));
+        return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
     }
 
     @Override
@@ -210,14 +222,14 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void displayBookListEntry(int bookid) {
-        String bookidstr = "book." + bookid;
-        String filename = data.getString(bookidstr + ".filename", null);
+        String bookidstr = BOOK_PREFIX + bookid;
+        String filename = data.getString(bookidstr + FILENAME_SUFF, null);
 
 
         if (filename!=null) {
             Log.d("Book", "Filename "  + filename);
-            String title = data.getString(bookidstr + ".title", null);
-            String author = data.getString(bookidstr + ".author", null);
+            String title = data.getString(bookidstr + TITLE_SUFF, null);
+            String author = data.getString(bookidstr + AUTHOR_SUFF, null);
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
             TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
             TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
@@ -225,7 +237,7 @@ public class BookListActivity extends AppCompatActivity {
 
             titleView.setText(title);
             authorView.setText(author);
-            long lastread = data.getLong(bookidstr + ".lastread", Long.MIN_VALUE);
+            long lastread = data.getLong(bookidstr + LASTREAD_SUFF, Long.MIN_VALUE);
 
             if (lastread!=Long.MIN_VALUE) {
 
@@ -248,7 +260,7 @@ public class BookListActivity extends AppCompatActivity {
                 }
             });
 
-            if (data.getString("lastread", "").equals(bookidstr)) {
+            if (data.getString(LASTREAD_KEY, "").equals(bookidstr)) {
                 listHolder.addView(listEntry,0);
             } else {
                 listHolder.addView(listEntry);
@@ -257,40 +269,40 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void readBook(String bookid) {
-        String filename = data.getString(bookid + ".filename",null);
+        String filename = data.getString(bookid + FILENAME_SUFF,null);
         if (filename!=null) {
-            data.edit().putLong(bookid + ".lastread", System.currentTimeMillis()).putString("lastread", bookid).apply();
+            data.edit().putLong(bookid + LASTREAD_SUFF, System.currentTimeMillis()).putString(LASTREAD_KEY, bookid).apply();
 
             Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
-            main.putExtra("filename", filename);
+            main.putExtra(ReaderActivity.FILENAME, filename);
             startActivity(main);
         }
     }
 
     private void removeBook(String bookid) {
-        String file = data.getString(bookid + ".filename", null);
-        String title = data.getString(bookid + ".title", null);
-        String author = data.getString(bookid + ".author", null);
-        int id = data.getInt(bookid + ".int", -1);
+        String file = data.getString(bookid + FILENAME_SUFF, null);
+        String title = data.getString(bookid + TITLE_SUFF, null);
+        String author = data.getString(bookid + AUTHOR_SUFF, null);
+        int id = data.getInt(bookid + ID_KEY, -1);
 
         if (file!=null) {
             Book.remove(this, new File(file));
         }
 
-        Set<String> titles = new TreeSet<>(data.getStringSet("title_order", new TreeSet<String>()));
+        Set<String> titles = new TreeSet<>(data.getStringSet(TITLE_ORDER_KEY, new TreeSet<String>()));
         titles.remove(title + "." + id );
 
-        Set<String> authors = new TreeSet<>(data.getStringSet("author_order", new TreeSet<String>()));
+        Set<String> authors = new TreeSet<>(data.getStringSet(AUTHOR_ORDER_KEY, new TreeSet<String>()));
         authors.remove(author + "." + id);
 
 
         data.edit()
-                .remove(bookid + ".id")
-                .remove(bookid + ".title")
-                .remove(bookid + ".author")
-                .remove(bookid + ".filename")
-                .putStringSet("title_order",titles)
-                .putStringSet("author_order",authors)
+                .remove(bookid + ID_KEY)
+                .remove(bookid + TITLE_SUFF)
+                .remove(bookid + AUTHOR_SUFF)
+                .remove(bookid + FILENAME_SUFF)
+                .putStringSet(TITLE_ORDER_KEY,titles)
+                .putStringSet(AUTHOR_ORDER_KEY,authors)
          .apply();
     }
 
@@ -312,10 +324,10 @@ public class BookListActivity extends AppCompatActivity {
             BookMetadata metadata = Book.getBookMetaData(this, filename);
 
             if (metadata!=null) {
-                String bookid = "book." + nextid;
+                String bookid = BOOK_PREFIX + nextid;
 
                 String title = metadata.getTitle() != null ? metadata.getTitle().toLowerCase():"_" ;
-                Set<String> titles = new TreeSet<>(data.getStringSet("title_order", new TreeSet<String>()));
+                Set<String> titles = new TreeSet<>(data.getStringSet(TITLE_ORDER_KEY, new TreeSet<String>()));
                 titles.add(title + "." + nextid );
 
                 String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
@@ -328,21 +340,21 @@ public class BookListActivity extends AppCompatActivity {
                     }
                 }
 
-                Set<String> authors = new TreeSet<>(data.getStringSet("author_order", new TreeSet<String>()));
+                Set<String> authors = new TreeSet<>(data.getStringSet(AUTHOR_ORDER_KEY, new TreeSet<String>()));
                 authors.add(author + "." + nextid);
 
                 data.edit()
-                        .putInt(bookid + ".id", nextid)
-                        .putString(bookid + ".title", metadata.getTitle())
-                        .putString(bookid + ".author", metadata.getAuthor())
-                        .putString(bookid + ".filename", metadata.getFilename())
-                        .putStringSet("title_order",titles)
-                        .putStringSet("author_order",authors)
+                        .putInt(bookid + ID_KEY, nextid)
+                        .putString(bookid + TITLE_SUFF, metadata.getTitle())
+                        .putString(bookid + AUTHOR_SUFF, metadata.getAuthor())
+                        .putString(bookid + FILENAME_SUFF, metadata.getFilename())
+                        .putStringSet(TITLE_ORDER_KEY,titles)
+                        .putStringSet(AUTHOR_ORDER_KEY,authors)
                 .apply();
 
                 displayBookListEntry(nextid);
                 nextid++;
-                data.edit().putInt("nextid",nextid).apply();
+                data.edit().putInt(NEXTID_KEY,nextid).apply();
                 return true;
             } else {
                 Toast.makeText(this,getString(R.string.coulndt_add_book, new File(filename).getName()),Toast.LENGTH_SHORT).show();

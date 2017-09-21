@@ -43,6 +43,9 @@ public class ReaderActivity extends Activity {
 
     private WebView webView;
 
+    public static final String FILENAME = "filename";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -164,7 +167,7 @@ public class ReaderActivity extends Activity {
 
         //findFile();
         Intent intent = getIntent();
-        String filename = intent.getStringExtra("filename");
+        String filename = intent.getStringExtra(FILENAME);
         if (filename!=null) {
             loadFile(new File(filename));
         }
@@ -337,6 +340,9 @@ public class ReaderActivity extends Activity {
                     Log.d("READER", "scrollby " + scrolloffset);
 
                     setFontSize(s);
+
+                    //attempt to adjust the scroll to keep the same text position.
+                    //  needs much work
                     webView.scrollBy(0, scrolloffset);
                     sizemenu.dismiss();
                     return true;

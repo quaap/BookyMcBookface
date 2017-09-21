@@ -31,8 +31,11 @@ import java.util.regex.Pattern;
  */
 
 public class HtmlBook extends Book {
-    List<String> l = new ArrayList<>();
-    Map<String,String> toc;
+    private static final String ORDERCOUNT = "ordercount";
+    private static final String TOC_LABEL = "toc.label.";
+    private static final String TOC_CONTENT = "toc.content.";
+    private List<String> l = new ArrayList<>();
+    private Map<String,String> toc;
 
     public HtmlBook(Context context) {
         super(context);
@@ -47,12 +50,12 @@ public class HtmlBook extends Book {
         toc = new LinkedHashMap<>();
 
         SharedPreferences bookdat = getSharedPreferences();
-        if (bookdat.contains("ordercount")) {
-            int toccount = bookdat.getInt("ordercount", 0);
+        if (bookdat.contains(ORDERCOUNT)) {
+            int toccount = bookdat.getInt(ORDERCOUNT, 0);
 
             for (int i = 0; i < toccount; i++) {
-                String label = bookdat.getString("toc.label." + i, "");
-                String point = bookdat.getString("toc.content." + i, "");
+                String label = bookdat.getString(TOC_LABEL + i, "");
+                String point = bookdat.getString(TOC_CONTENT + i, "");
 
                 toc.put(point, label);
                 Log.d("EPUB", "TOC: " + label + ". File: " + point);
@@ -84,15 +87,15 @@ public class HtmlBook extends Book {
                     }
                     if (id != null) {
                         if (text==null) text=id;
-                        bookdatedit.putString("toc.label."+c, text);
-                        bookdatedit.putString("toc.content."+c, "#"+id);
+                        bookdatedit.putString(TOC_LABEL +c, text);
+                        bookdatedit.putString(TOC_CONTENT +c, "#"+id);
                         toc.put("#"+id, text);
                         c++;
                     }
 
 
                 }
-                bookdatedit.putInt("ordercount", c);
+                bookdatedit.putInt(ORDERCOUNT, c);
 
                 bookdatedit.apply();
             }

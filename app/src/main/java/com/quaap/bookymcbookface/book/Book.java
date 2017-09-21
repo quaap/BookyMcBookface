@@ -29,6 +29,9 @@ import com.quaap.bookymcbookface.FsTools;
  */
 
 public abstract class Book {
+    private static final String FONTSIZE = "fontsize";
+    private static final String SECTION_ID_OFFSET = "sectionIDOffset";
+    private static final String SECTION_ID = "sectionID";
     private String title;
     private File file;
 
@@ -96,27 +99,27 @@ public abstract class Book {
     }
 
     public void setFontsize(int fontsize) {
-        data.edit().putInt("fontsize", fontsize).apply();
+        data.edit().putInt(FONTSIZE, fontsize).apply();
     }
 
     public int getFontsize() {
-        return data.getInt("fontsize", -1);
+        return data.getInt(FONTSIZE, -1);
     }
 
     public void clearFontsize() {
-        data.edit().remove("fontsize").apply();
+        data.edit().remove(FONTSIZE).apply();
     }
 
     public void setSectionOffset(int offset) {
-        data.edit().putInt("sectionIDOffset", offset).apply();
+        data.edit().putInt(SECTION_ID_OFFSET, offset).apply();
     }
 
     public int getSectionOffset() {
-        return data.getInt("sectionIDOffset", -1);
+        return data.getInt(SECTION_ID_OFFSET, -1);
     }
 
     public void clearSectionOffset() {
-        data.edit().remove("sectionIDOffset").apply();
+        data.edit().remove(SECTION_ID_OFFSET).apply();
     }
 
 
@@ -164,11 +167,11 @@ public abstract class Book {
 
     private void saveCurrentSectionID() {
         Log.d("Book", "saving section " + currentSectionIDPos);
-        data.edit().putInt("sectionID", currentSectionIDPos).apply();
+        data.edit().putInt(SECTION_ID, currentSectionIDPos).apply();
     }
 
     private void restoreCurrentSectionID() {
-        currentSectionIDPos = data.getInt("sectionID", currentSectionIDPos);
+        currentSectionIDPos = data.getInt(SECTION_ID, currentSectionIDPos);
         Log.d("Book", "Loaded section " + currentSectionIDPos);
     }
 

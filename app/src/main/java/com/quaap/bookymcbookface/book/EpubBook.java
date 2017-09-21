@@ -57,7 +57,15 @@ import com.quaap.bookymcbookface.Zip;
 
 public class EpubBook extends Book {
 
-    public static final String META_PREFIX = "meta.";
+    private static final String META_PREFIX = "meta.";
+    private static final String ORDERCOUNT = "ordercount";
+    private static final String BOOK_CONTENT_DIR = "bookContentDir";
+    private static final String ORDER = "order.";
+    private static final String ITEM = "item.";
+    private static final String TOCCOUNT = "toccount";
+    private static final String TOC_LABEL = "toc.label.";
+    private static final String TOC_CONTENT = "toc.content.";
+    private static final String TOC = "toc";
 
     private File bookContentDir;
 
@@ -68,7 +76,7 @@ public class EpubBook extends Book {
     @Override
     protected void load() throws IOException {
 
-        if (!getSharedPreferences().contains("ordercount")) {
+        if (!getSharedPreferences().contains(ORDERCOUNT)) {
             for (File file: Zip.unzip(getFile(), getThisBookDir())) {
                 Log.d("EPUB", "unzipped + " + file);
             }
@@ -79,23 +87,23 @@ public class EpubBook extends Book {
 
         //Set<String> keys = bookdat.getAll().keySet();
 
-        bookContentDir = new File(bookdat.getString("bookContentDir",""));
-        int ocount = bookdat.getInt("ordercount",0);
+        bookContentDir = new File(bookdat.getString(BOOK_CONTENT_DIR,""));
+        int ocount = bookdat.getInt(ORDERCOUNT,0);
 
         for (int i=0; i<ocount; i++) {
-            String item = bookdat.getString("order." + i, "");
-            String file = bookdat.getString("item." + item, "");
+            String item = bookdat.getString(ORDER + i, "");
+            String file = bookdat.getString(ITEM + item, "");
             docFileOrder.add(item);
             docFiles.put(item, file);
 
             //Log.d("EPUB", "Item: " + item + ". File: " + file);
         }
 
-        int toccount = bookdat.getInt("toccount",0);
+        int toccount = bookdat.getInt(TOCCOUNT,0);
 
         for (int i=0; i<toccount; i++) {
-            String label = bookdat.getString("toc.label." + i, "");
-            String point = bookdat.getString("toc.content." + i, "");
+            String label = bookdat.getString(TOC_LABEL + i, "");
+            String point = bookdat.getString(TOC_CONTENT + i, "");
 
             tocPoints.put(point,label);
            // Log.d("EPUB", "TOC: " + label + ". File: " + point);
@@ -171,7 +179,7 @@ public class EpubBook extends Book {
         String bookContentDir = new File(rootFiles.get(0)).getParent();
         Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(getThisBookDir(),rootFiles.get(0))));
 
-        bookdat.putString("bookContentDir", bookContentDir);
+        bookdat.putString(BOOK_CONTENT_DIR, bookContentDir);
 
         for (Map.Entry<String,?> entry: dat.entrySet()) {
             Object value = entry.getValue();
@@ -182,8 +190,8 @@ public class EpubBook extends Book {
             }
         }
 
-        if (dat.get("toc")!=null) {
-            File tocfile = new File(new File(getThisBookDir(), bookContentDir), (String)dat.get("item." + dat.get("toc")));
+        if (dat.get(TOC)!=null) {
+            File tocfile = new File(new File(getThisBookDir(), bookContentDir), (String)dat.get(ITEM + dat.get(TOC)));
             Map<String, ?> tocDat = processToc(new FileReader(tocfile));
 
             for (Map.Entry<String,?> entry: tocDat.entrySet()) {
@@ -335,7 +343,7 @@ public class EpubBook extends Book {
                         key = attrs.getNamedItem("id").getNodeValue();
                         value = attrs.getNamedItem("href").getNodeValue();
                         //docFiles.put(key,value);
-                        bookdat.put("item."+key,value);
+                        bookdat.put(ITEM +key,value);
                         Log.d("EPB", "manifest: " + key+"="+value);
 
                     }
@@ -347,9 +355,9 @@ public class EpubBook extends Book {
                 spinePath.setNamespaceContext(packnsc);
                 Node spine = (Node) spinePath.evaluate("spine", root, XPathConstants.NODE);
                 NamedNodeMap sattrs = spine.getAttributes();
-                toc = sattrs.getNamedItem("toc").getNodeValue();
+                toc = sattrs.getNamedItem(TOC).getNodeValue();
 
-                bookdat.put("toc", toc);
+                bookdat.put(TOC, toc);
                 Log.d("EPB", "spine: toc=" + toc);
 
                 NodeList spineitems = (NodeList) spinePath.evaluate("itemref", spine, XPathConstants.NODESET);
@@ -360,14 +368,14 @@ public class EpubBook extends Book {
 
                         String item = attrs.getNamedItem("idref").getNodeValue();
 
-                        bookdat.put("order."+i, item);
+                        bookdat.put(ORDER +i, item);
                         Log.d("EPB", "spine: " + item);
 
                         //docFileOrder.add(item);
                     }
 
                 }
-                bookdat.put("ordercount", spineitems.getLength());
+                bookdat.put(ORDERCOUNT, spineitems.getLength());
             }
 
 
@@ -396,7 +404,7 @@ public class EpubBook extends Book {
             Node nav = (Node)tocPath.evaluate("/ncx/navMap", doc, XPathConstants.NODE);
 
             int total = readNavPoint(nav, tocPath, bookdat, 0);
-            bookdat.put("toccount", total);
+            bookdat.put(TOCCOUNT, total);
 
         } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
             Log.e("BMBF", "Error parsing xml " + e.getMessage(), e);
@@ -412,8 +420,8 @@ public class EpubBook extends Book {
             Node node = list.item(i);
             String label = tocPath.evaluate("navLabel/text/text()", node);
             String content = tocPath.evaluate("content/@src", node);
-            bookdat.put("toc.label."+total, label);
-            bookdat.put("toc.content."+total, content);
+            bookdat.put(TOC_LABEL +total, label);
+            bookdat.put(TOC_CONTENT +total, content);
             Log.d("EPB", "toc: " + label + " " + content + " " + total);
             total++;
             total = readNavPoint(node, tocPath, bookdat, total);
