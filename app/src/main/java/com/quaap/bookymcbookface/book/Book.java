@@ -134,7 +134,7 @@ public abstract class Book {
     }
 
     public Uri getPreviousSection() {
-        if (currentSectionIDPos - 1 > 0) {
+        if (currentSectionIDPos - 1 >= 0) {
             clearSectionOffset();
             currentSectionIDPos--;
             saveCurrentSectionID();
