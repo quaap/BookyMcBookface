@@ -50,6 +50,13 @@ public class ReaderActivity extends Activity {
     public static final String FILENAME = "filename";
 
 
+    private Timer timer = new Timer();
+
+    private TimerTask nowakeTask = null;
+    private TimerTask scrollTask = null;
+
+    private volatile int scrollDir;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,14 +77,21 @@ public class ReaderActivity extends Activity {
             final int MINSWIPE = 150;
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-
+                float diffx = 0;
+                float diffy = 0;
                 switch (motionEvent.getAction()) {
 
                     case MotionEvent.ACTION_UP:
+
+                        if (scrollTask!=null) {
+                            scrollTask.cancel();
+                            scrollTask = null;
+                        }
+
                         if (System.currentTimeMillis() - time >TIMEALLOWED) return false;
 
-                        float diffx = motionEvent.getX() - x;
-                        float diffy = motionEvent.getY() - y;
+                        diffx = motionEvent.getX() - x;
+                        diffy = motionEvent.getY() - y;
                         float absdiffx = Math.abs(diffx);
                         float absdiffy = Math.abs(diffy);
 
@@ -92,11 +106,42 @@ public class ReaderActivity extends Activity {
 
 
                     case MotionEvent.ACTION_DOWN:
+                        if (scrollTask!=null) {
+                            scrollTask.cancel();
+                            scrollTask = null;
+                        }
                         x = motionEvent.getX();
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
                         setAwake();
                         return false;
+
+                    case MotionEvent.ACTION_MOVE:
+                        diffy = motionEvent.getY() - y;
+                        if (Math.abs(diffy) > 100) {
+                            if (System.currentTimeMillis() - time > TIMEALLOWED) {
+                                scrollDir = (int) ((-diffy/webView.getHeight())*webView.getSettings().getDefaultFontSize()*5);
+                                if (scrollTask == null) {
+                                    scrollTask = new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            webView.scrollBy(0, scrollDir);
+                                        }
+                                    };
+                                    timer.schedule(scrollTask, 0, 100);
+                                }
+                            }
+                            return true;
+                        } else {
+                            if (scrollTask!=null) {
+                                scrollTask.cancel();
+                                scrollTask = null;
+                            }
+                            return false;
+                        }
+
+
+
                 }
 
 
@@ -386,27 +431,24 @@ public class ReaderActivity extends Activity {
 
     }
 
-    private Timer timer = new Timer();
-
-    private TimerTask nowaketask = null;
 
     //keep the screen on for a few minutes, but not forever
     private void setAwake() {
         Window w = this.getWindow();
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (nowaketask!=null) {
-            nowaketask.cancel();
+        if (nowakeTask !=null) {
+            nowakeTask.cancel();
             timer.purge();
         }
-        nowaketask = new TimerTask() {
+        nowakeTask = new TimerTask() {
             @Override
             public void run() {
                 Window w = ReaderActivity.this.getWindow();
                 w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         };
-        timer.schedule(nowaketask, 3*60*1000);
+        timer.schedule(nowakeTask, 3*60*1000);
 
     }
 }
