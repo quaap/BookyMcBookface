@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -19,6 +21,8 @@ import android.widget.PopupMenu;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.quaap.bookymcbookface.book.Book;
 
@@ -91,6 +95,7 @@ public class ReaderActivity extends Activity {
                         x = motionEvent.getX();
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
+                        setAwake();
                         return false;
                 }
 
@@ -381,4 +386,27 @@ public class ReaderActivity extends Activity {
 
     }
 
+    private Timer timer = new Timer();
+
+    private TimerTask nowaketask = null;
+
+    //keep the screen on for a few minutes, but not forever
+    private void setAwake() {
+        Window w = this.getWindow();
+        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (nowaketask!=null) {
+            nowaketask.cancel();
+            timer.purge();
+        }
+        nowaketask = new TimerTask() {
+            @Override
+            public void run() {
+                Window w = ReaderActivity.this.getWindow();
+                w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        };
+        timer.schedule(nowaketask, 3*60*1000);
+
+    }
 }
