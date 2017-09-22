@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -56,6 +57,8 @@ public class ReaderActivity extends Activity {
     private TimerTask scrollTask = null;
 
     private volatile int scrollDir;
+
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +128,12 @@ public class ReaderActivity extends Activity {
                                     scrollTask = new TimerTask() {
                                         @Override
                                         public void run() {
-                                            webView.scrollBy(0, scrollDir);
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    webView.scrollBy(0, scrollDir);
+                                                }
+                                            });
                                         }
                                     };
                                     timer.schedule(scrollTask, 0, 100);
@@ -232,7 +240,6 @@ public class ReaderActivity extends Activity {
         if(webView.canScrollVertically(-1)) {
             webView.pageUp(false);
             //webView.scrollBy(0,-webView.getHeight()-14);
-
         } else {
             isPagingUp = true;
             showUri(book.getPreviousSection());
@@ -258,7 +265,7 @@ public class ReaderActivity extends Activity {
     }
 
     private void saveScrollOffsetDelayed(int delay) {
-        webView.postDelayed(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 saveScrollOffset();
@@ -276,7 +283,7 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreScrollOffsetDelayed(int delay) {
-        webView.postDelayed(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 restoreScrollOffset();
@@ -292,6 +299,7 @@ public class ReaderActivity extends Activity {
             Log.d("READER", "restoreScrollOffset " + spos);
         } else if (isPagingUp){
             webView.pageDown(true);
+            //webView.scrollTo(0,webView.getContentHeight());
         } else if (isPagingDown){
             webView.pageUp(true);
         }
@@ -444,8 +452,13 @@ public class ReaderActivity extends Activity {
         nowakeTask = new TimerTask() {
             @Override
             public void run() {
-                Window w = ReaderActivity.this.getWindow();
-                w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Window w = ReaderActivity.this.getWindow();
+                        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    }
+                });
             }
         };
         timer.schedule(nowakeTask, 3*60*1000);
