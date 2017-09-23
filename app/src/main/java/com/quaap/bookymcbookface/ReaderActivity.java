@@ -493,22 +493,42 @@ public class ReaderActivity extends Activity {
         PopupMenu bmenu = new PopupMenu(this, findViewById(R.id.brightness_button));
         int bg = book.getBackgroundColor();
 
-        for (int i = 0; i<11; i++) {
-            int b = i*20;
+        MenuItem norm = bmenu.getMenu().add(R.string.book_default);
+
+        if (bg==Integer.MAX_VALUE) {
+            norm.setCheckable(true);
+            norm.setChecked(true);
+        }
+
+        norm.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                saveScrollOffset();
+                applyColor(Color.WHITE);
+                book.clearBackgroundColor();
+                webView.reload();
+                //restoreScrollOffsetDelayed(100);
+                return true;
+            }
+        });
+
+
+        for (int i = 0; i<7; i++) {
+            int b = i*33;
             final int color = Color.argb(255, 255-b, 255-b, 255-b);
             String strcolor;
             switch (i) {
                 case 0:
-                    strcolor = getString(R.string.bright);
+                    strcolor = (i+1) + " - " + getString(R.string.bright);
                     break;
-                case 5:
-                    strcolor = getString(R.string.bright_medium);
+                case 3:
+                    strcolor = (i+1) + " - " + getString(R.string.bright_medium);
                     break;
-                case 10:
-                    strcolor = getString(R.string.dim);
+                case 6:
+                    strcolor = (i+1) + " - " + getString(R.string.dim);
                     break;
                 default:
-                    strcolor = i + "";
+                    strcolor = (i+1) + "";
 
             }
 
@@ -533,16 +553,18 @@ public class ReaderActivity extends Activity {
 
     private void restoreBgColor() {
         int bgcolor = book.getBackgroundColor();
-        if (bgcolor!=-1) applyColor(bgcolor);
+        if (bgcolor!=Integer.MAX_VALUE) applyColor(bgcolor);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private void applyColor(int color) {
+        ReaderActivity.this.getWindow().setBackgroundDrawable(null);
         webView.setBackgroundColor(color);
         ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
         ViewGroup controls = (ViewGroup)findViewById(R.id.controls_layout);
         for (int i=0; i<controls.getChildCount(); i++) {
+            controls.getChildAt(i).setBackground(null);
             Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
             btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
             controls.getChildAt(i).setBackground(btn);

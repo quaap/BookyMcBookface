@@ -129,7 +129,11 @@ public abstract class Book {
     }
 
     public int getBackgroundColor() {
-        return data.getInt(BG_COLOR, -1);
+        return data.getInt(BG_COLOR, Integer.MAX_VALUE);
+    }
+
+    public void clearBackgroundColor() {
+        data.edit().remove(BG_COLOR).apply();
     }
 
 
