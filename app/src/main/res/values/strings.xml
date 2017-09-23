@@ -37,4 +37,5 @@
     <string name="dim">Dim</string>
     <string name="bright_medium">Medium</string>
     <string name="book_default">Book default</string>
+    <string name="no_toc_found">No table of contents found</string>
 </resources>

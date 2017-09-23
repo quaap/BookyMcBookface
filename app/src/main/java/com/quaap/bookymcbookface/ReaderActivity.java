@@ -457,6 +457,9 @@ public class ReaderActivity extends Activity {
                 }
             });
         }
+        if (tocmap.size()==0) {
+            tocmenu.getMenu().add(R.string.no_toc_found);
+        }
 
         tocmenu.show();
 
