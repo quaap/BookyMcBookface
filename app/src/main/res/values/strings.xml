@@ -33,4 +33,7 @@
     <string name="prev_text">&lt;&lt;</string>
     <string name="next_text">&gt;&gt;</string>
     <string name="books_added">%d books added</string>
+    <string name="bright">Bright</string>
+    <string name="dim">Dim</string>
+    <string name="bright_medium">Medium</string>
 </resources>

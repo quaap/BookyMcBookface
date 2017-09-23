@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/prev_text"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/contents_button"
@@ -57,6 +57,14 @@
             android:layout_weight="1"
             android:contentDescription="@string/zoom"
             android:src="@android:drawable/ic_menu_zoom" />
+
+        <ImageButton
+            android:id="@+id/brightness_button"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:contentDescription="@string/zoom"
+            android:src="@drawable/light" />
 
         <Button
             android:id="@+id/next_button"

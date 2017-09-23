@@ -1,8 +1,13 @@
 package com.quaap.bookymcbookface;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -12,8 +17,10 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -171,6 +178,7 @@ public class ReaderActivity extends Activity {
                 }
 
                 public void onPageFinished(WebView view, String url) {
+                    restoreBgColor();
                     restoreScrollOffsetDelayed(100);
                 }
 
@@ -186,6 +194,7 @@ public class ReaderActivity extends Activity {
                 }
 
                 public void onPageFinished(WebView view, String url) {
+                    restoreBgColor();
                     restoreScrollOffsetDelayed(100);
                 }
 
@@ -220,6 +229,12 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 selectFontSize();
+            }
+        });
+        findViewById(R.id.brightness_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showBrightnessControl();
             }
         });
 
@@ -463,5 +478,71 @@ public class ReaderActivity extends Activity {
         };
         timer.schedule(nowakeTask, 3*60*1000);
 
+    }
+
+
+    private void showBrightnessControl() {
+        PopupMenu bmenu = new PopupMenu(this, findViewById(R.id.brightness_button));
+        int bg = book.getBackgroundColor();
+
+        for (int i = 0; i<11; i++) {
+            int b = i*20;
+            final int color = Color.argb(255, 255-b, 255-b, 255-b);
+            String strcolor;
+            switch (i) {
+                case 0:
+                    strcolor = getString(R.string.bright);
+                    break;
+                case 5:
+                    strcolor = getString(R.string.bright_medium);
+                    break;
+                case 10:
+                    strcolor = getString(R.string.dim);
+                    break;
+                default:
+                    strcolor = i + "";
+
+            }
+
+            MenuItem m = bmenu.getMenu().add(strcolor);
+            m.setIcon(new ColorDrawable(color));
+            if (bg==color) {
+                m.setCheckable(true);
+                m.setChecked(true);
+            }
+
+            m.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    book.setBackgroundColor(color);
+                    applyColor(color);
+                    return true;
+                }
+            });
+        }
+        bmenu.show();
+    }
+
+    private void restoreBgColor() {
+        int bgcolor = book.getBackgroundColor();
+        if (bgcolor!=-1) applyColor(bgcolor);
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void applyColor(int color) {
+        webView.setBackgroundColor(color);
+        ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
+
+        Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null);
+        btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        ViewGroup controls = (ViewGroup)findViewById(R.id.controls_layout);
+        for (int i=0; i<controls.getChildCount(); i++) {
+            controls.getChildAt(i).setBackground(btn);
+        }
+
+        //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #0000EE !important } :visited, :visited * { color: #551A8B !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
+        webView.getSettings().setJavaScriptEnabled(false);
     }
 }

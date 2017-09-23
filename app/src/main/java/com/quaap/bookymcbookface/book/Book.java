@@ -32,6 +32,7 @@ public abstract class Book {
     private static final String FONTSIZE = "fontsize";
     private static final String SECTION_ID_OFFSET = "sectionIDOffset";
     private static final String SECTION_ID = "sectionID";
+    public static final String BG_COLOR = "BG_COLOR";
     private String title;
     private File file;
 
@@ -120,6 +121,15 @@ public abstract class Book {
 
     public void clearSectionOffset() {
         data.edit().remove(SECTION_ID_OFFSET).apply();
+    }
+
+
+    public void setBackgroundColor(int color) {
+        data.edit().putInt(BG_COLOR, color).apply();
+    }
+
+    public int getBackgroundColor() {
+        return data.getInt(BG_COLOR, -1);
     }
 
 
