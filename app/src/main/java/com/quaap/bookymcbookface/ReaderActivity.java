@@ -133,8 +133,6 @@ public class ReaderActivity extends Activity {
                         }
                         return true;
 
-
-
                 }
 
 
@@ -543,10 +541,10 @@ public class ReaderActivity extends Activity {
         webView.setBackgroundColor(color);
         ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
-        Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null);
-        btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
         ViewGroup controls = (ViewGroup)findViewById(R.id.controls_layout);
         for (int i=0; i<controls.getChildCount(); i++) {
+            Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
+            btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
             controls.getChildAt(i).setBackground(btn);
         }
 
