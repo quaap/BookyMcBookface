@@ -316,7 +316,7 @@ public class BookListActivity extends AppCompatActivity {
             if (showAlreadyAddedWarning) {
                 Toast.makeText(this, getString(R.string.already_added, new File(filename).getName()), Toast.LENGTH_SHORT).show();
             }
-            return true;
+            return false;
         }
 
         try {
@@ -384,6 +384,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void addDir(final File dir) {
         new AsyncTask<Void,Void,Void>() {
+            volatile int added=0;
             @Override
             protected Void doInBackground(Void... voids) {
 
@@ -392,13 +393,23 @@ public class BookListActivity extends AppCompatActivity {
                         listScroller.post(new Runnable() {
                             @Override
                             public void run() {
-                                addBook(file.getPath(), false);
+                                if (addBook(file.getPath(), false)) {
+                                    added++;
+                                }
                             }
                         });
                     }
                 }
                 return null;
             }
+
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                Toast.makeText(BookListActivity.this, getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
+            }
+
+
         }.execute();
     }
 
