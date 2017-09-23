@@ -126,6 +126,7 @@ public class ReaderActivity extends Activity {
                             if (System.currentTimeMillis() - time > TIMEALLOWED*1.5) {
                                 scrollDir = (int) ((-diffy/webView.getHeight())*webView.getSettings().getDefaultFontSize()*5);
                                 startScrollTask();
+                                webView.clearMatches();
                             }
                         } else {
                             cancelScrollTask();
