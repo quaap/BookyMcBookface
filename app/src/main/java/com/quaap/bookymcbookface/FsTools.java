@@ -109,17 +109,18 @@ public class FsTools {
             }
         });
 
-        for(File dir: dirs) {
-            allfiles.put(dir,dir.getName());
-        }
-
         if (extdir.getParent()!=null) {
             if (drives.keySet().contains(extdir)) {
-                allfiles.put(null, "..");
+                allfiles.put(null, "← ..");
             } else {
-                allfiles.put(extdir.getParentFile(), "..");
+                allfiles.put(extdir.getParentFile(), "← ..");
             }
         }
+
+        for (File dir: dirs) {
+            allfiles.put(dir, "\uD83D\uDCC1 " + dir.getName());
+        }
+
 
         if (!onlyDirs) {
             FilenameFilter filterfiles = new FilenameFilter() {
@@ -142,7 +143,7 @@ public class FsTools {
             });
 
             for(File file: files) {
-                allfiles.put(file,file.getName());
+                allfiles.put(file, "\uD83D\uDCC4 " + file.getName());
             }
         }
 
