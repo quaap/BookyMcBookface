@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,10 +56,42 @@ public class FsTools {
         mContext = context;
     }
 
-    private String [] listDirsInDir(File extdir, final String matchRE, final boolean onlyDirs) {
+    public static Map<File,String> getDrives() {
+        File r = new File("/storage");
+
+
+        Map<File,String> files = new LinkedHashMap<>();
+
+        int sd = 1;
+        for (File e: r.listFiles()) {
+            Log.d("storage", e.getPath() + " " + e.isDirectory());
+            if (e.isDirectory() && !e.getName().equals("emulated") && !e.getName().equals("self")) {
+                String name = "SD";
+                if (sd++>1) name += sd;
+                files.put(e, Environment.isExternalStorageRemovable(e) ? name : e.getName());
+            }
+        }
+
+        File ext = Environment.getExternalStorageDirectory();
+        if (Environment.isExternalStorageEmulated()) {
+            files.put(ext, "Internal");
+        } else if (Environment.isExternalStorageRemovable()) {
+            files.put(ext, "SD");
+        }
+
+        return files;
+    }
+
+    private Map<File,String> listDirsInDir(File extdir, final String matchRE, final boolean onlyDirs) {
+        Map<File,String> allfiles = new LinkedHashMap<>();
+
+        Map<File,String> drives = getDrives();
+
+        if (extdir==null ) {
+            return drives;
+        }
 
         FilenameFilter filterdirs = new FilenameFilter() {
-
             @Override
             public boolean accept(File dir, String filename) {
                 File sel = new File(dir, filename);
@@ -67,18 +100,26 @@ public class FsTools {
 
         };
 
-        List<String> dirs = new ArrayList<>(Arrays.asList(extdir.list(filterdirs)));
+        List<File> dirs = new ArrayList<>(Arrays.asList(extdir.listFiles(filterdirs)));
 
-        if (extdir.getParent()!=null && !extdir.equals(Environment.getExternalStorageDirectory())) {
-            dirs.add(0, "..");
-        }
-
-        Collections.sort(dirs, new Comparator<String>() {
+        Collections.sort(dirs, new Comparator<File>() {
             @Override
-            public int compare(String s, String t1) {
-                return s.compareToIgnoreCase(t1);
+            public int compare(File s, File t1) {
+                return s.getName().compareToIgnoreCase(t1.getName());
             }
         });
+
+        for(File dir: dirs) {
+            allfiles.put(dir,dir.getName());
+        }
+
+        if (extdir.getParent()!=null) {
+            if (drives.keySet().contains(extdir)) {
+                allfiles.put(null, "..");
+            } else {
+                allfiles.put(extdir.getParentFile(), "..");
+            }
+        }
 
         if (!onlyDirs) {
             FilenameFilter filterfiles = new FilenameFilter() {
@@ -91,25 +132,21 @@ public class FsTools {
 
             };
 
-            List<String> files = new ArrayList<>(Arrays.asList(extdir.list(filterfiles)));
+            List<File> files = new ArrayList<>(Arrays.asList(extdir.listFiles(filterfiles)));
 
-            Collections.sort(files, new Comparator<String>() {
+            Collections.sort(files, new Comparator<File>() {
                 @Override
-                public int compare(String s, String t1) {
-                    return s.compareToIgnoreCase(t1);
+                public int compare(File s, File t1) {
+                    return s.getName().compareToIgnoreCase(t1.getName());
                 }
             });
 
-            dirs.addAll(files);
+            for(File file: files) {
+                allfiles.put(file,file.getName());
+            }
         }
 
-        String [] fileslist = dirs.toArray(new String[0]);
-        for (int i=0; i<fileslist.length; i++) {
-            File sel = new File(extdir, fileslist[i]);
-            if (sel.isDirectory()) fileslist[i] = fileslist[i] + "/";
-            //Log.d("DD", fileslist[i]);
-        }
-        return fileslist;
+        return allfiles;
 
     }
 
@@ -122,27 +159,41 @@ public class FsTools {
     }
 
 
-    public void selectExternalLocation(final SelectionMadeListener listener, final String title, String startdir, final boolean chooseDir, final String matchRE) {
-        final File currentDir = startdir==null ? Environment.getExternalStorageDirectory() :  new File(startdir);
+    public void selectExternalLocation(final SelectionMadeListener listener, final String title, final String startdir, final boolean chooseDir, final String matchRE) {
 
-        final String [] items = listDirsInDir(currentDir, matchRE, chooseDir);
+        String dname = startdir==null ? "" : startdir;
+
+        Map<File,String> listDirsInDir = listDirsInDir(startdir==null?null:new File(startdir), matchRE, chooseDir);
+
+        final File [] fileItems = new File[listDirsInDir.size()];
+        final String [] showItems  = new String[listDirsInDir.size()];
+
+        int i=0;
+        for (Map.Entry<File,String> entry: listDirsInDir.entrySet()) {
+            fileItems[i] = entry.getKey();
+            showItems[i] = entry.getValue();
+
+            //Log.d("storage2", fileItems[i] + " " + showItems[i]);
+            i++;
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
-        builder.setTitle(title + "\n" +
-                currentDir.getPath().replaceFirst(Pattern.quote(Environment.getExternalStorageDirectory().getPath()) + "/?", "/"));
+        builder.setTitle(title + "\n" + dname);
 
-        builder.setItems(items, new DialogInterface.OnClickListener() {
+        builder.setItems(showItems, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
 
                 try {
-                    File selFile = new File(currentDir,items[i]).getCanonicalFile();
-                    if (selFile.isDirectory()) {
+                    File selFile = fileItems[i];
+                    if (selFile==null) {
+                        selectExternalLocation(listener, title, null, chooseDir, matchRE);
+                    } else if (selFile.isDirectory()) {
                         selectExternalLocation(listener, title, selFile.getPath(), chooseDir, matchRE);
                     } else {
-                        listener.selected(selFile);
+                        listener.selected(selFile.getCanonicalFile());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -150,18 +201,19 @@ public class FsTools {
 
             }
         });
-        if (chooseDir) {
+        if (chooseDir && startdir!=null) {
             builder.setPositiveButton(R.string.select_thisfolder, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
 
-                    listener.selected(currentDir);
+                    listener.selected(new File(startdir));
                 }
             });
         }
         builder.setNegativeButton(R.string.cancel, null);
 
         builder.show();
+        //Log.d("storage3", "Here!");
     }
 
 
