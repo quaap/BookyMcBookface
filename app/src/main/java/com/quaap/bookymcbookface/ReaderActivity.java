@@ -393,10 +393,10 @@ public class ReaderActivity extends Activity {
     private void selectFontSize() {
         final int defsize = webView.getSettings().getDefaultFontSize();
         int minsize = webView.getSettings().getMinimumFontSize();
-        final float scale = getResources().getDisplayMetrics().density/160f;
+        final float scale = getResources().getDisplayMetrics().density;
 
 
-        Log.d("READER", "def " + defsize + " " + scale);
+       // Log.d("READER", "def " + defsize + " " + scale);
         final PopupMenu sizemenu = new PopupMenu(this, findViewById(R.id.zoom_button));
         for (int size=minsize; size<=36; size+=2) {
             final int s = size;
@@ -409,7 +409,7 @@ public class ReaderActivity extends Activity {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     Log.d("READER", "def " + (defsize-s));
-                    int scrolloffset = (int)(-webView.getScrollY()*(defsize - s)*1.3*scale*4);
+                    int scrolloffset = (int)(-webView.getScrollY()*(defsize - s)/scale/2.7);
                     Log.d("READER", "scrollby " + scrolloffset);
 
                     setFontSize(s);
