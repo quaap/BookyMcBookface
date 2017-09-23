@@ -58,7 +58,7 @@ public class ReaderActivity extends Activity {
     public static final String FILENAME = "filename";
 
 
-    private Timer timer = new Timer();
+    private Timer timer;
 
     private TimerTask nowakeTask = null;
     private TimerTask scrollTask = null;
@@ -83,7 +83,7 @@ public class ReaderActivity extends Activity {
         webView.setOnTouchListener(new View.OnTouchListener() {
             float x,y;
             long time;
-            final long TIMEALLOWED = 400;
+            final long TIMEALLOWED = 300;
             final int MINSWIPE = 150;
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -93,11 +93,8 @@ public class ReaderActivity extends Activity {
 
                     case MotionEvent.ACTION_UP:
 
-                        if (scrollTask!=null) {
-                            scrollTask.cancel();
-                            scrollTask = null;
-                        }
-
+                        cancelScrollTask();
+                        //Log.d("TIME", "t " + (System.currentTimeMillis() - time));
                         if (System.currentTimeMillis() - time >TIMEALLOWED) return false;
 
                         diffx = motionEvent.getX() - x;
@@ -116,10 +113,7 @@ public class ReaderActivity extends Activity {
 
 
                     case MotionEvent.ACTION_DOWN:
-                        if (scrollTask!=null) {
-                            scrollTask.cancel();
-                            scrollTask = null;
-                        }
+                        cancelScrollTask();
                         x = motionEvent.getX();
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
@@ -128,32 +122,15 @@ public class ReaderActivity extends Activity {
 
                     case MotionEvent.ACTION_MOVE:
                         diffy = motionEvent.getY() - y;
-                        if (Math.abs(diffy) > 100) {
-                            if (System.currentTimeMillis() - time > TIMEALLOWED) {
+                        if (Math.abs(diffy) > 30) {
+                            if (System.currentTimeMillis() - time > TIMEALLOWED*1.5) {
                                 scrollDir = (int) ((-diffy/webView.getHeight())*webView.getSettings().getDefaultFontSize()*5);
-                                if (scrollTask == null) {
-                                    scrollTask = new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            handler.post(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    webView.scrollBy(0, scrollDir);
-                                                }
-                                            });
-                                        }
-                                    };
-                                    timer.schedule(scrollTask, 0, 100);
-                                }
+                                startScrollTask();
                             }
-                            return true;
                         } else {
-                            if (scrollTask!=null) {
-                                scrollTask.cancel();
-                                scrollTask = null;
-                            }
-                            return false;
+                            cancelScrollTask();
                         }
+                        return true;
 
 
 
@@ -245,6 +222,30 @@ public class ReaderActivity extends Activity {
             loadFile(new File(filename));
         }
 
+    }
+
+    private void startScrollTask() {
+        if (scrollTask == null) {
+            scrollTask = new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            webView.scrollBy(0, scrollDir);
+                        }
+                    });
+                }
+            };
+            timer.schedule(scrollTask, 0, 100);
+        }
+    }
+
+    private void cancelScrollTask() {
+        if (scrollTask!=null) {
+            scrollTask.cancel();
+            scrollTask = null;
+        }
     }
 
     boolean isPagingDown;
@@ -427,8 +428,16 @@ public class ReaderActivity extends Activity {
 
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        timer = new Timer();
+    }
+
     @Override
     protected void onPause() {
+        timer.cancel();
         saveScrollOffset();
         super.onPause();
     }
