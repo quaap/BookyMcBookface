@@ -177,6 +177,8 @@ public class EpubBook extends Book {
         SharedPreferences.Editor bookdat = getSharedPreferences().edit();
 
         String bookContentDir = new File(rootFiles.get(0)).getParent();
+        if (bookContentDir==null) bookContentDir = "";
+
         Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(getThisBookDir(),rootFiles.get(0))));
 
         bookdat.putString(BOOK_CONTENT_DIR, bookContentDir);
@@ -191,7 +193,9 @@ public class EpubBook extends Book {
         }
 
         if (dat.get(TOC)!=null) {
-            File tocfile = new File(new File(getThisBookDir(), bookContentDir), (String)dat.get(ITEM + dat.get(TOC)));
+            String fname = (String)dat.get(ITEM + dat.get(TOC));
+            Log.d("EPUB", "tocfname = " + fname + " bookContentDir =" + bookContentDir);
+            File tocfile = new File(new File(getThisBookDir(), bookContentDir), fname);
             Map<String, ?> tocDat = processToc(new FileReader(tocfile));
 
             for (Map.Entry<String,?> entry: tocDat.entrySet()) {
