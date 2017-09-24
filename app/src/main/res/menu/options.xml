@@ -8,6 +8,9 @@
         android:title="@string/add"
         app:showAsAction="always|withText" />
     <item
+        android:id="@+id/menu_add2"
+        android:title="@string/add" />
+    <item
         android:id="@+id/menu_add_dir"
         android:title="@string/add_dir" />
     <item

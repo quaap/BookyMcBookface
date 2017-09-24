@@ -187,6 +187,7 @@ public class BookListActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.menu_add:
+            case R.id.menu_add2:
                 findFile();
                 return true;
             case R.id.menu_add_dir:
@@ -263,7 +264,11 @@ public class BookListActivity extends AppCompatActivity {
             if (data.getString(LASTREAD_KEY, "").equals(bookidstr)) {
                 listHolder.addView(listEntry,0);
             } else {
-                listHolder.addView(listEntry);
+                //if (lastread!=Long.MIN_VALUE && listHolder.getChildCount()>0) {
+                //    listHolder.addView(listEntry, 1);
+               // } else {
+                    listHolder.addView(listEntry);
+                //}
             }
         }
     }
