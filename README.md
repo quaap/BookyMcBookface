@@ -2,7 +2,7 @@
 
 An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt and html ebooks. 
 
-Features:
+## Features:
 * Completely opensource: no ads, tracking, or malicious permissions.
 * Loads epub, txt, and html books.
 * Load all books in a directory.
@@ -13,7 +13,7 @@ Features:
 * Font size per book.
 
 
-Reading controls:
+## Reading controls:
 * Page forward by using the ">>" button, or by swiping up or to the left.
 * Page back by using the "<<" button, or by swiping down or to the right.
 * Sub-page scroll by dragging up or down.
@@ -23,7 +23,7 @@ Reading controls:
 * The lightbulb icon opens the page brightness menu.
 * Use Android back button to return to the book list from reader.
 
-
+## Notes:
 I've tested with many epubs from [Project Gutenberg](http://www.gutenberg.org/). If you notice 
 problems with books from any source, [file an issue](https://github.com/quaap/BookyMcBookface/issues). 
 
@@ -33,7 +33,7 @@ I am not opposed to someone adding support for other formats like mobi, but I do
 third-party jars etc, and everything needs to be GPLv3 compatible.
 
 
-Known issues:
+## Known issues:
 * Lag in paging up and down.
 * Not actually using "book pages" (just scrolls a big page up and down).
 * No bookmarks.
