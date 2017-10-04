@@ -222,6 +222,14 @@ public class BookListActivity extends AppCompatActivity {
 
     }
 
+
+    private static String maxlen(String text, int maxlen) {
+        if (text!=null && text.length() > maxlen) {
+            return text.substring(0, maxlen-3) + "...";
+        }
+        return text;
+    }
+
     private void displayBookListEntry(int bookid) {
         String bookidstr = BOOK_PREFIX + bookid;
         String filename = data.getString(bookidstr + FILENAME_SUFF, null);
@@ -236,8 +244,8 @@ public class BookListActivity extends AppCompatActivity {
             TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
             TextView statusView = (TextView)listEntry.findViewById(R.id.book_status);
 
-            titleView.setText(title);
-            authorView.setText(author);
+            titleView.setText(maxlen(title, 120));
+            authorView.setText(maxlen(author, 50));
             long lastread = data.getLong(bookidstr + LASTREAD_SUFF, Long.MIN_VALUE);
 
             if (lastread!=Long.MIN_VALUE) {
