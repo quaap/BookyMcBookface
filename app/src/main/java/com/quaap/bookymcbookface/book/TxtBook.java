@@ -94,47 +94,60 @@ public class TxtBook extends Book {
             int c = 0;
             String line;
             Pattern titlerx = Pattern.compile("^\\s*(?i:title)[:= \\t]+(.+)");
-            Pattern authorrx = Pattern.compile("^\\s*(?i:author|by)[:= \\t]+(.+)");
-            Pattern titleauthorrx = Pattern.compile("^(?xi: \\s* (.+),? \\s+ (?:translated\\s+)? by \\s+ (.+) )");
+            Pattern authorrx = Pattern.compile("^\\s*(?i:author|by)[:= \\t]+(.{3,26})\\s*$");
+            Pattern titleauthorrx =
+                    Pattern.compile("^(?xi: " +
+                                          "\\s*(?:The \\s+ Project \\s+ Gutenberg \\s+ EBook \\s+ of \\s+)? " +
+                                          "(.+),? " +
+                                                "\\s+ (?:translated\\s+|written\\s+)? by \\s+ " +
+                                          "(.{3,26}) " +
+                                    " )$");
 
             boolean foundtitle = false;
             boolean foundauthor = false;
             String ptitle = null;
             String pauthor = null;
 
-            while( (line=reader.readLine())!=null) {
+            String firstline = reader.readLine();
+
+            line = firstline;
+
+            if (line!=null) {
                 Matcher tam = titleauthorrx.matcher(line);
                 if (tam.find()) {
                     ptitle = tam.group(1);
                     pauthor = tam.group(2);
                 }
 
-                Matcher tm = titlerx.matcher(line);
-                if (!foundtitle && tm.find()) {
-                    metadata.setTitle(tm.group(1));
+                do {
+
+                    Matcher tm = titlerx.matcher(line);
+                    if (!foundtitle && tm.find()) {
+                        metadata.setTitle(tm.group(1));
+                        foundtitle = true;
+                    }
+                    Matcher am = authorrx.matcher(line);
+                    if (!foundauthor && am.find()) {
+                        metadata.setAuthor(am.group(1));
+                        foundauthor = true;
+                    }
+                    if (c++ > 50 || foundauthor && foundtitle) {
+                        break;
+                    }
+
+                } while ((line = reader.readLine()) != null);
+
+                if (!foundtitle && ptitle != null) {
+                    metadata.setTitle(ptitle);
                     foundtitle = true;
                 }
-                Matcher am = authorrx.matcher(line);
-                if (!foundauthor && am.find()) {
-                    metadata.setAuthor(am.group(1));
-                    foundauthor = true;
-                }
-                if (c++>1000 || foundauthor && foundtitle) {
-                    break;
+                if (!foundauthor && pauthor != null) {
+                    metadata.setAuthor(pauthor);
                 }
 
-            }
-
-            if (!foundtitle && ptitle!=null) {
-                metadata.setTitle(ptitle);
-                foundtitle = true;
-            }
-            if (!foundauthor && pauthor!=null) {
-                metadata.setAuthor(pauthor);
-            }
-
-            if (!foundtitle) {
-                metadata.setTitle(getFile().getName());
+                if (!foundtitle) {
+                    metadata.setTitle(getFile().getName() + " " + firstline);
+                }
             }
         }
 
