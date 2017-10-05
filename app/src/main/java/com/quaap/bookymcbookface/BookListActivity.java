@@ -103,6 +103,14 @@ public class BookListActivity extends AppCompatActivity {
         data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
     }
 
+    @NonNull
+    private SortOrder getSortOrder() {
+        if (!data.contains(SORTORDER_KEY)) {
+            setSortOrder(SortOrder.Default);
+        }
+        return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
+    }
+
     private void populateBooks() {
 
         SortOrder sortorder = getSortOrder();
@@ -160,10 +168,6 @@ public class BookListActivity extends AppCompatActivity {
         }.execute();
     }
 
-    @NonNull
-    private SortOrder getSortOrder() {
-        return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -172,9 +176,20 @@ public class BookListActivity extends AppCompatActivity {
 
         SortOrder sortorder = getSortOrder();
 
-        menu.findItem(R.id.menu_sort_default).setChecked(sortorder==SortOrder.Default);
-        menu.findItem(R.id.menu_sort_author).setChecked(sortorder==SortOrder.Author);
-        menu.findItem(R.id.menu_sort_title).setChecked(sortorder==SortOrder.Title);
+        switch (sortorder) {
+            case Default:
+                menu.findItem(R.id.menu_sort_default).setChecked(true);
+                break;
+            case Author:
+                menu.findItem(R.id.menu_sort_author).setChecked(true);
+                break;
+            case Title:
+                menu.findItem(R.id.menu_sort_title).setChecked(true);
+                break;
+        }
+//        menu.findItem(R.id.menu_sort_default).setChecked(sortorder==SortOrder.Default);
+//        menu.findItem(R.id.menu_sort_author).setChecked(sortorder==SortOrder.Author);
+//        menu.findItem(R.id.menu_sort_title).setChecked(sortorder==SortOrder.Title);
 
 
 
