@@ -19,6 +19,17 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:orientation="vertical" />
+
+
     </ScrollView>
 
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:text="TextView"
+        android:textSize="18sp"
+        android:visibility="gone" />
 </RelativeLayout>

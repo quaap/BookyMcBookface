@@ -323,10 +323,10 @@ public class BookListActivity extends AppCompatActivity {
         return addBook(filename, true);
     }
 
-    private boolean addBook(String filename, boolean showAlreadyAddedWarning) {
+    private boolean addBook(String filename, boolean showToastWarnings) {
         if (data.getAll().values().contains(filename)) {
 
-            if (showAlreadyAddedWarning) {
+            if (showToastWarnings) {
                 Toast.makeText(this, getString(R.string.already_added, new File(filename).getName()), Toast.LENGTH_SHORT).show();
             }
             return false;
@@ -365,16 +365,16 @@ public class BookListActivity extends AppCompatActivity {
                         .putStringSet(AUTHOR_ORDER_KEY,authors)
                 .apply();
 
-                displayBookListEntry(nextid);
+                //displayBookListEntry(nextid);
                 nextid++;
                 data.edit().putInt(NEXTID_KEY,nextid).apply();
                 return true;
-            } else {
+            } else if (showToastWarnings) {
                 Toast.makeText(this,getString(R.string.coulndt_add_book, new File(filename).getName()),Toast.LENGTH_SHORT).show();
             }
 
-        } catch (IOException e) {
-            Log.e("BookList", e.getMessage(), e);
+        } catch (Exception e) {
+            Log.e("BookList", "File: " + filename  + ", " + e.getMessage(), e);
         }
         return false;
     }
@@ -396,6 +396,8 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void addDir(final File dir) {
+        final TextView tv = (TextView)findViewById(R.id.progress_text);
+        tv.setVisibility(View.VISIBLE);
         new AsyncTask<Void,Void,Void>() {
             volatile int added=0;
             @Override
@@ -403,23 +405,32 @@ public class BookListActivity extends AppCompatActivity {
 
                 for(final File file:dir.listFiles()) {
                     if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                        listScroller.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (addBook(file.getPath(), false)) {
-                                    added++;
-                                }
-                            }
-                        });
+                        if (addBook(file.getPath(), false)) {
+                            added++;
+                        }
+                        publishProgress();
+//                        listScroller.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//
+//                            }
+//                        });
                     }
                 }
                 return null;
             }
 
+            @Override
+            protected void onProgressUpdate(Void... values) {
+                super.onProgressUpdate(values);
+                tv.setText("" + added);
+            }
 
             @Override
             protected void onPostExecute(Void aVoid) {
                 Toast.makeText(BookListActivity.this, getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
+                tv.setVisibility(View.GONE);
+                populateBooks();
             }
 
 
@@ -435,8 +446,6 @@ public class BookListActivity extends AppCompatActivity {
                 @Override
                 public void selected(File selection) {
                     addDir(selection);
-                    populateBooks();
-
                 }
             }, getString(R.string.find_folder), true);
         }
