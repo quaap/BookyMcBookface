@@ -15,6 +15,7 @@ import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -131,7 +132,7 @@ public class EpubBook extends Book {
     protected ReadPoint locateReadPoint(String section) {
         ReadPoint point = null;
 
-        Uri suri = Uri.parse(section);
+        Uri suri = Uri.parse(Uri.decode(section));
 
         if (suri.isRelative()) {
             suri = new Uri.Builder().scheme("file").path(getFullBookContentDir().getPath()).appendPath(suri.getPath()).fragment(suri.getFragment()).build();
@@ -172,14 +173,14 @@ public class EpubBook extends Book {
 
     private void loadEpub() throws FileNotFoundException {
 
-        List<String> rootFiles = getRootFilesFromContainer(new FileReader(new File(getThisBookDir(), "META-INF/container.xml")));
+        List<String> rootFiles = getRootFilesFromContainer(new BufferedReader(new FileReader(new File(getThisBookDir(), "META-INF/container.xml"))));
 
         SharedPreferences.Editor bookdat = getSharedPreferences().edit();
 
         String bookContentDir = new File(rootFiles.get(0)).getParent();
         if (bookContentDir==null) bookContentDir = "";
 
-        Map<String,?> dat = processBookDataFromRootFile(new FileReader(new File(getThisBookDir(),rootFiles.get(0))));
+        Map<String,?> dat = processBookDataFromRootFile(new BufferedReader(new FileReader(new File(getThisBookDir(),rootFiles.get(0)))));
 
         bookdat.putString(BOOK_CONTENT_DIR, bookContentDir);
 
@@ -196,7 +197,7 @@ public class EpubBook extends Book {
             String fname = (String)dat.get(ITEM + dat.get(TOC));
             Log.d("EPUB", "tocfname = " + fname + " bookContentDir =" + bookContentDir);
             File tocfile = new File(new File(getThisBookDir(), bookContentDir), fname);
-            Map<String, ?> tocDat = processToc(new FileReader(tocfile));
+            Map<String, ?> tocDat = processToc(new BufferedReader(new FileReader(tocfile)));
 
             for (Map.Entry<String,?> entry: tocDat.entrySet()) {
                 Object value = entry.getValue();
@@ -221,20 +222,23 @@ public class EpubBook extends Book {
             ZipEntry container = zipReader.getEntry("META-INF/container.xml");
             if (container == null) return null;
 
-            List<String> rootFiles = getRootFilesFromContainer(new InputStreamReader(zipReader.getInputStream(container)));
+            List<String> rootFiles = getRootFilesFromContainer(new BufferedReader(new InputStreamReader(zipReader.getInputStream(container))));
             if (rootFiles.size() == 0) return null;
 
             ZipEntry content = zipReader.getEntry(rootFiles.get(0));
             if (content == null) return null;
 
-            Map<String, ?> data = processBookDataFromRootFile(new InputStreamReader(zipReader.getInputStream(content)));
+            Map<String, ?> data = processBookDataFromRootFile(new BufferedReader(new InputStreamReader(zipReader.getInputStream(content))));
+            if (data.size()==0) {
+                Log.d("Epub", "No data for " + getFile());
+            }
 
             Map<String, String> metadata = new LinkedHashMap<>();
 
             for (String key : data.keySet()) {
                 if (key.startsWith(META_PREFIX)) {
                     metadata.put(key.substring(META_PREFIX.length()), data.get(key).toString());
-                    Log.d("META", key.substring(META_PREFIX.length()) + "=" + data.get(key).toString());
+                   // Log.d("META", key.substring(META_PREFIX.length()) + "=" + data.get(key).toString());
                 }
             }
 
@@ -249,11 +253,15 @@ public class EpubBook extends Book {
     }
 
 
-    private static List<String> getRootFilesFromContainer(Reader containerxml) {
+    private static List<String> getRootFilesFromContainer(BufferedReader containerxml) {
 
         List<String> rootFiles = new ArrayList<>();
 
         try {
+
+            containerxml.mark(4);
+            if ('\ufeff' != containerxml.read()) containerxml.reset(); // not the BOM marker
+
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
             XmlPullParser xpp = factory.newPullParser();
@@ -282,7 +290,7 @@ public class EpubBook extends Book {
     }
 
 
-    private static Map<String,?> processBookDataFromRootFile(Reader rootReader) {
+    private static Map<String,?> processBookDataFromRootFile(BufferedReader rootReader) {
 
         //SharedPreferences.Editor bookdat = getSharedPreferences().edit();
 
@@ -297,7 +305,8 @@ public class EpubBook extends Book {
 
         try {
 
-
+            rootReader.mark(4);
+            if ('\ufeff' != rootReader.read()) rootReader.reset(); // not the BOM marker
 
             DocumentBuilder builder = dfactory.newDocumentBuilder();
 
@@ -309,7 +318,7 @@ public class EpubBook extends Book {
             xpath.setNamespaceContext(packnsc);
 
             Node root = (Node)xpath.evaluate("/package", doc.getDocumentElement(), XPathConstants.NODE);
-            Log.d("EPUB", root.getNodeName());
+            //Log.d("EPUB", root.getNodeName());
 
             {
                 XPath metaPaths = factory.newXPath();
@@ -327,7 +336,7 @@ public class EpubBook extends Book {
                         key = node.getNodeName();
                         value = node.getTextContent();
                     }
-                    Log.d("EPB", "metadata: " + key+"="+value);
+                    //Log.d("EPB", "metadata: " + key+"="+value);
                     //metadata.put(key,value);
                     bookdat.put(META_PREFIX +key,value);
                 }
@@ -348,7 +357,7 @@ public class EpubBook extends Book {
                         value = attrs.getNamedItem("href").getNodeValue();
                         //docFiles.put(key,value);
                         bookdat.put(ITEM +key,value);
-                        Log.d("EPB", "manifest: " + key+"="+value);
+                       // Log.d("EPB", "manifest: " + key+"="+value);
 
                     }
                 }
@@ -362,7 +371,7 @@ public class EpubBook extends Book {
                 toc = sattrs.getNamedItem(TOC).getNodeValue();
 
                 bookdat.put(TOC, toc);
-                Log.d("EPB", "spine: toc=" + toc);
+                //Log.d("EPB", "spine: toc=" + toc);
 
                 NodeList spineitems = (NodeList) spinePath.evaluate("itemref", spine, XPathConstants.NODESET);
                 for (int i = 0; i < spineitems.getLength(); i++) {
@@ -373,7 +382,7 @@ public class EpubBook extends Book {
                         String item = attrs.getNamedItem("idref").getNodeValue();
 
                         bookdat.put(ORDER +i, item);
-                        Log.d("EPB", "spine: " + item);
+                        //Log.d("EPB", "spine: " + item);
 
                         //docFileOrder.add(item);
                     }
@@ -391,7 +400,7 @@ public class EpubBook extends Book {
     }
 
 
-    private static Map<String,?> processToc(Reader tocReader) {
+    private static Map<String,?> processToc(BufferedReader tocReader) {
         Map<String,Object> bookdat = new LinkedHashMap<>();
 
         DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
@@ -399,6 +408,9 @@ public class EpubBook extends Book {
         DocumentBuilder builder = null;
         try {
             builder = dfactory.newDocumentBuilder();
+
+            tocReader.mark(4);
+            if ('\ufeff' != tocReader.read()) tocReader.reset(); // not the BOM marker
 
             Document doc = builder.parse(new InputSource(tocReader));
 
@@ -426,7 +438,7 @@ public class EpubBook extends Book {
             String content = tocPath.evaluate("content/@src", node);
             bookdat.put(TOC_LABEL +total, label);
             bookdat.put(TOC_CONTENT +total, content);
-            Log.d("EPB", "toc: " + label + " " + content + " " + total);
+            //Log.d("EPB", "toc: " + label + " " + content + " " + total);
             total++;
             total = readNavPoint(node, tocPath, bookdat, total);
         }
