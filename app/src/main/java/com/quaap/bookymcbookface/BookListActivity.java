@@ -235,41 +235,51 @@ public class BookListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        boolean pop = false;
         switch (item.getItemId()) {
             case R.id.menu_add:
             case R.id.menu_add2:
                 findFile();
-                return true;
+                break;
             case R.id.menu_add_dir:
                 findDir();
-                return true;
+                break;
             case R.id.menu_about:
                 showMsg(BookListActivity.this,getString(R.string.about), getString(R.string.about_app));
-                return true;
+                break;
             case R.id.menu_sort_default:
+                item.setChecked(true);
                 setSortOrder(SortOrder.Default);
-                populateBooks();
-                item.setChecked(true);
-                return true;
+                pop = true;
+                break;
             case R.id.menu_sort_author:
+                item.setChecked(true);
                 setSortOrder(SortOrder.Author);
-                populateBooks();
-                item.setChecked(true);
-                return true;
+                pop = true;
+                break;
             case R.id.menu_sort_title:
-                setSortOrder(SortOrder.Title);
-                populateBooks();
                 item.setChecked(true);
-                return true;
+                setSortOrder(SortOrder.Title);
+                pop = true;
+                break;
             case R.id.menu_gutenberg:
                 Uri uri = Uri.parse("http://m.gutenberg.org/");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
-                return true;
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
 
+        if (pop) {
+            listHolder.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                   populateBooks();
+                }
+            }, 100);
+        }
+        return true;
     }
 
 
