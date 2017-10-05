@@ -30,6 +30,11 @@
         android:layout_alignParentBottom="true"
         android:background="#55888888"
         android:gravity="center"
-        android:textSize="18sp"
+        android:shadowColor="@android:color/white"
+        android:shadowDx="5"
+        android:shadowDy="5"
+        android:shadowRadius="5"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
         android:visibility="gone" />
 </RelativeLayout>
