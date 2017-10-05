@@ -1,7 +1,6 @@
 package com.quaap.bookymcbookface;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,6 +10,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -30,7 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +77,9 @@ public class BookListActivity extends AppCompatActivity {
     private ViewGroup listHolder;
     private ScrollView listScroller;
 
+    private Handler viewAdder;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,12 +92,21 @@ public class BookListActivity extends AppCompatActivity {
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
 
+        viewAdder = new BookListAdderHandler(this);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        populateBooks();
+        listScroller.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                populateBooks();
+            }
+        }, 100);
+
 
     }
 
@@ -110,6 +123,8 @@ public class BookListActivity extends AppCompatActivity {
         }
         return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
     }
+
+
 
     private void populateBooks() {
 
@@ -153,15 +168,16 @@ public class BookListActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... voids) {
+
+
                 for (int i=0; i<order.length; i++) {
                     final int id = order[i];
-                    listScroller.post(new Runnable() {
-                        @Override
-                        public void run() {
+                    Message msg=new Message();
+                    Bundle bundle=new Bundle();
+                    bundle.putInt("ID", id);
+                    msg.setData(bundle);
+                    viewAdder.sendMessage(msg);
 
-                            displayBookListEntry(id);
-                        }
-                    });
                 }
                 return null;
             }
@@ -356,6 +372,12 @@ public class BookListActivity extends AppCompatActivity {
 
                 String title = metadata.getTitle() != null ? metadata.getTitle().toLowerCase():"_" ;
                 Set<String> titles = new TreeSet<>(data.getStringSet(TITLE_ORDER_KEY, new TreeSet<String>()));
+
+                Matcher titlematch = Pattern.compile("^(a|an|the)\\s+(.+)$", Pattern.CASE_INSENSITIVE).matcher(title);
+                if (titlematch.find()) {
+                    title = titlematch.group(2);
+                }
+
                 titles.add(title + "." + nextid );
 
                 String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
@@ -383,6 +405,13 @@ public class BookListActivity extends AppCompatActivity {
                 .apply();
 
                 //displayBookListEntry(nextid);
+
+                Message msg=new Message();
+                Bundle bundle=new Bundle();
+                bundle.putInt("ID", nextid);
+                msg.setData(bundle);
+                viewAdder.sendMessage(msg);
+
                 nextid++;
                 data.edit().putInt(NEXTID_KEY,nextid).apply();
                 return true;
@@ -426,12 +455,7 @@ public class BookListActivity extends AppCompatActivity {
                             added++;
                         }
                         publishProgress();
-//                        listScroller.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//
-//                            }
-//                        });
+
                     }
                 }
                 return null;
@@ -450,7 +474,11 @@ public class BookListActivity extends AppCompatActivity {
                 populateBooks();
             }
 
-
+            @Override
+            protected void onCancelled(Void aVoid) {
+                super.onCancelled(aVoid);
+                tv.setVisibility(View.GONE);
+            }
         }.execute();
     }
 
@@ -546,4 +574,23 @@ public class BookListActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+
+    private static class BookListAdderHandler extends Handler {
+
+        private final WeakReference<BookListActivity> weakReference;
+
+        BookListAdderHandler(BookListActivity blInstance) {
+            weakReference = new WeakReference<>(blInstance);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            BookListActivity blInstance = weakReference.get();
+            if (blInstance != null) {
+                blInstance.displayBookListEntry(msg.getData().getInt("ID"));
+            }
+        }
+    }
+
 }
