@@ -26,10 +26,10 @@
     <TextView
         android:id="@+id/progress_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
+        android:background="#55888888"
         android:gravity="center"
-        android:text="TextView"
         android:textSize="18sp"
         android:visibility="gone" />
 </RelativeLayout>

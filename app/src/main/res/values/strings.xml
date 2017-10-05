@@ -38,4 +38,6 @@
     <string name="bright_medium">Medium</string>
     <string name="book_default">Book default</string>
     <string name="no_toc_found">No table of contents found</string>
+    <string name="added_numbooks">Added %d</string>
+    <string name="loading">Loading</string>
 </resources>

@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
@@ -78,7 +79,7 @@ public class BookListActivity extends AppCompatActivity {
     private ScrollView listScroller;
 
     private Handler viewAdder;
-
+    private TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +88,7 @@ public class BookListActivity extends AppCompatActivity {
 
         listHolder = (ViewGroup)findViewById(R.id.book_list_holder);
         listScroller = (ScrollView)findViewById(R.id.book_list_scroller);
-
+        tv = (TextView)findViewById(R.id.progress_text);
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
@@ -128,6 +129,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void populateBooks() {
 
+        showProgress(0);
         SortOrder sortorder = getSortOrder();
         nextid = data.getInt(NEXTID_KEY,0);
 
@@ -165,21 +167,38 @@ public class BookListActivity extends AppCompatActivity {
 
         listHolder.removeAllViews();
         new AsyncTask<Void,Void,Void>() {
-
+            int p = 0;
             @Override
             protected Void doInBackground(Void... voids) {
 
-
-                for (int i=0; i<order.length; i++) {
-                    final int id = order[i];
-                    Message msg=new Message();
-                    Bundle bundle=new Bundle();
-                    bundle.putInt("ID", id);
-                    msg.setData(bundle);
+                for (final int id : order) {
+                    Message msg = new Message();
+                    msg.arg1 = BookListAdderHandler.ADD_BOOK;
+                    msg.arg2 = id;
                     viewAdder.sendMessage(msg);
-
+                    if (p++%3==0) {
+                        publishProgress();
+                    }
                 }
                 return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(Void... values) {
+                showProgress(p);
+                super.onProgressUpdate(values);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                hideProgress();
+                super.onPostExecute(aVoid);
+            }
+
+            @Override
+            protected void onCancelled(Void aVoid) {
+                hideProgress();
+                super.onCancelled(aVoid);
             }
         }.execute();
     }
@@ -407,9 +426,8 @@ public class BookListActivity extends AppCompatActivity {
                 //displayBookListEntry(nextid);
 
                 Message msg=new Message();
-                Bundle bundle=new Bundle();
-                bundle.putInt("ID", nextid);
-                msg.setData(bundle);
+                msg.arg1 = BookListAdderHandler.ADD_BOOK;
+                msg.arg2 = nextid;
                 viewAdder.sendMessage(msg);
 
                 nextid++;
@@ -441,9 +459,32 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
+    private void showProgress(int added) {
+
+        if (tv.getVisibility() != View.VISIBLE) {
+            tv.setVisibility(View.VISIBLE);
+            tv.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return true;
+                }
+            });
+        }
+        if (added>0) {
+            tv.setText(getString(R.string.added_numbooks, added));
+        } else {
+            tv.setText(R.string.loading);
+        }
+    }
+
+    private void hideProgress() {
+        tv.setVisibility(View.GONE);
+    }
+
+
     private void addDir(final File dir) {
-        final TextView tv = (TextView)findViewById(R.id.progress_text);
-        tv.setVisibility(View.VISIBLE);
+
+        showProgress(0);
         new AsyncTask<Void,Void,Void>() {
             volatile int added=0;
             @Override
@@ -464,20 +505,21 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             protected void onProgressUpdate(Void... values) {
                 super.onProgressUpdate(values);
-                tv.setText("" + added);
+
+                showProgress(added);
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
+                hideProgress();
                 Toast.makeText(BookListActivity.this, getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
-                tv.setVisibility(View.GONE);
                 populateBooks();
             }
 
             @Override
             protected void onCancelled(Void aVoid) {
+                hideProgress();
                 super.onCancelled(aVoid);
-                tv.setVisibility(View.GONE);
             }
         }.execute();
     }
@@ -578,6 +620,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private static class BookListAdderHandler extends Handler {
 
+        public static int ADD_BOOK = 1001;
         private final WeakReference<BookListActivity> weakReference;
 
         BookListAdderHandler(BookListActivity blInstance) {
@@ -588,7 +631,9 @@ public class BookListActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             BookListActivity blInstance = weakReference.get();
             if (blInstance != null) {
-                blInstance.displayBookListEntry(msg.getData().getInt("ID"));
+                if (msg.arg1 == ADD_BOOK) {  //only one so far
+                    blInstance.displayBookListEntry(msg.arg2);
+                }
             }
         }
     }
