@@ -360,11 +360,13 @@ public class BookListActivity extends AppCompatActivity {
 
                 String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
 
-                String [] authparts = author.split("\\s+");
-                if (authparts.length>1) {
-                    author = authparts[authparts.length-1];
-                    for (int i=0; i<authparts.length-1; i++) {
-                        author += " " + authparts[i];
+                if (!author.contains(",")) {
+                    String[] authparts = author.split("\\s+");
+                    if (authparts.length > 1) {
+                        author = authparts[authparts.length - 1];
+                        for (int i = 0; i < authparts.length - 1; i++) {
+                            author += " " + authparts[i];
+                        }
                     }
                 }
 
