@@ -251,7 +251,7 @@ public class BookListActivity extends AppCompatActivity {
 
 
         if (filename!=null) {
-            Log.d("Book", "Filename "  + filename);
+            //Log.d("Book", "Filename "  + filename);
             String title = data.getString(bookidstr + TITLE_SUFF, null);
             String author = data.getString(bookidstr + AUTHOR_SUFF, null);
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
