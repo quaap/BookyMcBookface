@@ -5,8 +5,8 @@ An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt an
 [![Booky McBookface eReader on Google Play](https://cloud.githubusercontent.com/assets/23243656/19977341/8d6d4be6-a1f3-11e6-9f10-bf53a4e43bf1.png)](https://play.google.com/store/apps/details?id=com.quaap.bookymcbookface)
 
 ## Features:
-* Completely opensource: no ads, tracking, or malicious permissions.
-* Loads epub, txt, and html books.
+* Completely Open Source: no ads, tracking, or malicious permissions.
+* Loads epub, txt, and HTML books.
 * Load all books in a directory.
 * List of books.
 * Sort book list by title, author, or date added.
