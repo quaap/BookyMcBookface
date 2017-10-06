@@ -32,6 +32,8 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:gravity="center|start"
+            android:lines="1"
+            android:maxLines="1"
             android:textSize="18sp" />
 
         <TextView

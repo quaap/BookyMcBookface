@@ -26,6 +26,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -35,7 +36,9 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -78,7 +81,7 @@ public class BookListActivity extends AppCompatActivity {
     private ViewGroup listHolder;
     private ScrollView listScroller;
 
-    private Handler viewAdder;
+    private BookListAdderHandler viewAdder;
     private TextView tv;
 
     @Override
@@ -92,6 +95,10 @@ public class BookListActivity extends AppCompatActivity {
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
+
+        if (!data.contains(SORTORDER_KEY)) {
+            setSortOrder(SortOrder.Default);
+        }
 
         viewAdder = new BookListAdderHandler(this);
 
@@ -111,7 +118,6 @@ public class BookListActivity extends AppCompatActivity {
 
     }
 
-    private enum SortOrder {Default, Title, Author}
 
     private void setSortOrder(SortOrder sortOrder) {
         data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
@@ -119,9 +125,7 @@ public class BookListActivity extends AppCompatActivity {
 
     @NonNull
     private SortOrder getSortOrder() {
-        if (!data.contains(SORTORDER_KEY)) {
-            setSortOrder(SortOrder.Default);
-        }
+
         return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
     }
 
@@ -130,6 +134,7 @@ public class BookListActivity extends AppCompatActivity {
     private void populateBooks() {
 
         showProgress(0);
+        Thread.yield();
         SortOrder sortorder = getSortOrder();
         nextid = data.getInt(NEXTID_KEY,0);
 
@@ -167,37 +172,31 @@ public class BookListActivity extends AppCompatActivity {
 
         listHolder.removeAllViews();
         new AsyncTask<Void,Void,Void>() {
-            int p = 0;
+            //int p = 0;
             @Override
             protected Void doInBackground(Void... voids) {
 
                 for (final int id : order) {
-                    Message msg = new Message();
-                    msg.arg1 = BookListAdderHandler.ADD_BOOK;
-                    msg.arg2 = id;
-                    viewAdder.sendMessage(msg);
-                    if (p++%3==0) {
-                        publishProgress();
-                    }
+
+                    viewAdder.displayBook(id);
+
+//                    if (p++%3==0) {
+//                        viewAdder.showProgress(0);
+//                    }
                 }
+                viewAdder.hideProgress();
                 return null;
             }
 
-            @Override
-            protected void onProgressUpdate(Void... values) {
-                showProgress(p);
-                super.onProgressUpdate(values);
-            }
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                hideProgress();
                 super.onPostExecute(aVoid);
             }
 
             @Override
             protected void onCancelled(Void aVoid) {
-                hideProgress();
+                viewAdder.hideProgress();
                 super.onCancelled(aVoid);
             }
         }.execute();
@@ -313,11 +312,11 @@ public class BookListActivity extends AppCompatActivity {
                 statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
                 //statusView.setText(getString(R.string.book_viewed_on, new SimpleDateFormat("YYYY-MM-dd HH:mm", Locale.getDefault()).format(new Date(lastread))));
             }
-            listEntry.setTag(bookidstr);
+            listEntry.setTag(bookid);
             listEntry.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    readBook((String)view.getTag());
+                    readBook((int)view.getTag());
                 }
             });
 
@@ -332,19 +331,20 @@ public class BookListActivity extends AppCompatActivity {
             if (data.getString(LASTREAD_KEY, "").equals(bookidstr)) {
                 listHolder.addView(listEntry,0);
             } else {
-                //if (lastread!=Long.MIN_VALUE && listHolder.getChildCount()>0) {
-                //    listHolder.addView(listEntry, 1);
-               // } else {
+                if (lastread!=Long.MIN_VALUE && listHolder.getChildCount()>1 && getSortOrder()==SortOrder.Default) {
+                    listHolder.addView(listEntry, 1);
+                } else {
                     listHolder.addView(listEntry);
-                //}
+                }
             }
         }
     }
 
-    private void readBook(String bookid) {
-        String filename = data.getString(bookid + FILENAME_SUFF,null);
+    private void readBook(int bookid) {
+        String bookidstr = BOOK_PREFIX + bookid;
+        String filename = data.getString(bookidstr + FILENAME_SUFF,null);
         if (filename!=null) {
-            data.edit().putLong(bookid + LASTREAD_SUFF, System.currentTimeMillis()).putString(LASTREAD_KEY, bookid).apply();
+            data.edit().putLong(bookidstr + LASTREAD_SUFF, System.currentTimeMillis()).putString(LASTREAD_KEY, bookidstr).apply();
 
             Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
             main.putExtra(ReaderActivity.FILENAME, filename);
@@ -352,11 +352,12 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void removeBook(String bookid) {
-        String file = data.getString(bookid + FILENAME_SUFF, null);
-        String title = data.getString(bookid + TITLE_SUFF, null);
-        String author = data.getString(bookid + AUTHOR_SUFF, null);
-        int id = data.getInt(bookid + ID_KEY, -1);
+    private void removeBook(int bookid) {
+        String bookidstr = BOOK_PREFIX + bookid;
+        String file = data.getString(bookidstr + FILENAME_SUFF, null);
+        String title = data.getString(bookidstr + TITLE_SUFF, null);
+        String author = data.getString(bookidstr + AUTHOR_SUFF, null);
+        int id = data.getInt(bookidstr + ID_KEY, -1);
 
         if (file!=null) {
             Book.remove(this, new File(file));
@@ -370,10 +371,10 @@ public class BookListActivity extends AppCompatActivity {
 
 
         data.edit()
-                .remove(bookid + ID_KEY)
-                .remove(bookid + TITLE_SUFF)
-                .remove(bookid + AUTHOR_SUFF)
-                .remove(bookid + FILENAME_SUFF)
+                .remove(bookidstr + ID_KEY)
+                .remove(bookidstr + TITLE_SUFF)
+                .remove(bookidstr + AUTHOR_SUFF)
+                .remove(bookidstr + FILENAME_SUFF)
                 .putStringSet(TITLE_ORDER_KEY,titles)
                 .putStringSet(AUTHOR_ORDER_KEY,authors)
          .apply();
@@ -412,7 +413,7 @@ public class BookListActivity extends AppCompatActivity {
                 String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
 
                 if (!author.contains(",")) {
-                    String[] authparts = author.split("\\s+");
+                    String[] authparts = author.trim().split("\\s+");
                     if (authparts.length > 1) {
                         author = authparts[authparts.length - 1];
                         for (int i = 0; i < authparts.length - 1; i++) {
@@ -435,10 +436,7 @@ public class BookListActivity extends AppCompatActivity {
 
                 //displayBookListEntry(nextid);
 
-                Message msg=new Message();
-                msg.arg1 = BookListAdderHandler.ADD_BOOK;
-                msg.arg2 = nextid;
-                viewAdder.sendMessage(msg);
+                //viewAdder.displayBook(nextid);
 
                 nextid++;
                 data.edit().putInt(NEXTID_KEY,nextid).apply();
@@ -494,7 +492,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void addDir(final File dir) {
 
-        showProgress(0);
+        viewAdder.showProgress(0);
         new AsyncTask<Void,Void,Void>() {
             volatile int added=0;
             @Override
@@ -505,30 +503,24 @@ public class BookListActivity extends AppCompatActivity {
                         if (addBook(file.getPath(), false)) {
                             added++;
                         }
-                        publishProgress();
+                        viewAdder.showProgress(added);
 
                     }
                 }
                 return null;
             }
 
-            @Override
-            protected void onProgressUpdate(Void... values) {
-                super.onProgressUpdate(values);
-
-                showProgress(added);
-            }
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                hideProgress();
+                viewAdder.hideProgress();
                 Toast.makeText(BookListActivity.this, getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
                 populateBooks();
             }
 
             @Override
             protected void onCancelled(Void aVoid) {
-                hideProgress();
+                viewAdder.hideProgress();
                 super.onCancelled(aVoid);
             }
         }.execute();
@@ -550,7 +542,7 @@ public class BookListActivity extends AppCompatActivity {
 
 
     private void longClickBook(final View view) {
-        final String bookid = (String)view.getTag();
+        final int bookid = (int)view.getTag();
         PopupMenu menu = new PopupMenu(this, view);
         menu.getMenu().add(R.string.open_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
@@ -630,19 +622,48 @@ public class BookListActivity extends AppCompatActivity {
 
     private static class BookListAdderHandler extends Handler {
 
-        public static int ADD_BOOK = 1001;
+        private static final int ADD_BOOK = 1001;
+        private static final int SHOW_PROGRESS = 1002;
+        private static final int HIDE_PROGRESS = 1003;
         private final WeakReference<BookListActivity> weakReference;
 
         BookListAdderHandler(BookListActivity blInstance) {
             weakReference = new WeakReference<>(blInstance);
         }
 
+        void displayBook(int bookid) {
+            Message msg=new Message();
+            msg.arg1 = BookListAdderHandler.ADD_BOOK;
+            msg.arg2 = bookid;
+            sendMessage(msg);
+        }
+
+        void showProgress(int progress) {
+            Message msg=new Message();
+            msg.arg1 = BookListAdderHandler.SHOW_PROGRESS;
+            msg.arg2 = progress;
+            sendMessage(msg);
+        }
+        void hideProgress() {
+            Message msg=new Message();
+            msg.arg1 = BookListAdderHandler.HIDE_PROGRESS;
+            sendMessage(msg);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             BookListActivity blInstance = weakReference.get();
             if (blInstance != null) {
-                if (msg.arg1 == ADD_BOOK) {  //only one so far
-                    blInstance.displayBookListEntry(msg.arg2);
+                switch (msg.arg1) {
+                    case ADD_BOOK:
+                        blInstance.displayBookListEntry(msg.arg2);
+                        break;
+                    case SHOW_PROGRESS:
+                        blInstance.showProgress(msg.arg2);
+                        break;
+                    case HIDE_PROGRESS:
+                        blInstance.hideProgress();
+                        break;
                 }
             }
         }

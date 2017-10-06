@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public abstract class Book {
     public Book(Context context) {
         this.dataDir = context.getFilesDir();
         this.context = context;
+        sectionIDs = new ArrayList<>();
     }
 
     protected abstract void load() throws IOException;
