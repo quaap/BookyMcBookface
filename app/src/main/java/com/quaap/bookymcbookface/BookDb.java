@@ -14,7 +14,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by tom on 10/6/17.
+ * Copyright (C) 2017   Tom Kliethermes
+ *
+ * This file is part of BookyMcBookface and is is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
  */
 
 public class BookDb extends SQLiteOpenHelper {
@@ -61,11 +70,11 @@ public class BookDb extends SQLiteOpenHelper {
                  ")";
         db.execSQL(createbooktable);
 
-//        String [] indexcolums = {BOOK_LIB_TITLE, BOOK_LIB_AUTHOR, BOOK_FILENAME, BOOK_ADDED, BOOK_LASTREAD};
-//
-//        for (String col: indexcolums) {
-//
-//        }
+        String [] indexcolums = {BOOK_LIB_TITLE, BOOK_LIB_AUTHOR, BOOK_FILENAME, BOOK_ADDED, BOOK_LASTREAD};
+
+        for (String col: indexcolums) {
+            db.execSQL("create index ind_" + col + " on " + BOOK_TABLE + " (" + col + ")");
+        }
 
     }
 
