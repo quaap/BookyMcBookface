@@ -57,7 +57,6 @@ public class BookListActivity extends AppCompatActivity {
 
     private SharedPreferences data;
 
-    //private int nextid = 0;
 
     private ViewGroup listHolder;
     private ScrollView listScroller;
@@ -66,7 +65,7 @@ public class BookListActivity extends AppCompatActivity {
     private TextView tv;
 
     private BookDb db;
-    int recentread;
+    private int recentread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
