@@ -412,7 +412,7 @@ public class BookListActivity extends AppCompatActivity {
             statusView.setTextSize(14);
             rtime = android.text.format.DateUtils.getRelativeTimeSpanString(lastread);
         } else {
-            statusView.setTextSize(12);
+            statusView.setTextSize(10);
             rtime = android.text.format.DateUtils.getRelativeTimeSpanString(this, lastread);
         }
         statusView.setText(getString(text, rtime));
