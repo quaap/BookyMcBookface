@@ -190,7 +190,7 @@ public class BookListActivity extends AppCompatActivity {
 
         if (recentread>=0) {
             viewAdder.displayBook(recentread);
-            books.remove(recentread);
+            books.remove((Integer) recentread);
         }
 
         new AsyncTask<Void,Void,Void>() {
