@@ -32,11 +32,18 @@ public class BookDb extends SQLiteOpenHelper {
     private final static String BOOK_ADDED = "added";
     private final static String BOOK_LASTREAD = "lastread";
 
-
-
+    private Pattern authorRX;
+    private Pattern titleRX;
 
     public BookDb(Context context) {
         super(context, DBNAME, null, DBVERSION);
+
+        String namePrefixRX="sir|lady|rev(?:erend)?|doctor|dr|mr|ms|mrs|miss";
+        String nameSuffixRX="jr|sr|m\\.?d|ph\\.?d|j\\.?d|[IVX]+|1st|2nd|3rd|esq";
+        String nameInfixRX="V[ao]n|De";
+
+        authorRX = Pattern.compile("^\\s*(?:(?i:" + namePrefixRX + ")\\.?\\s+)? (.+?) \\s+ ((?:(?:" + nameInfixRX + ")\\s+)? \\S+ (?:\\s+(?i:" + nameSuffixRX + ")\\.?)?)$", Pattern.COMMENTS);
+        titleRX = Pattern.compile("^(a|an|the|la|el|le|eine?|der|die)\\s+(.+)$", Pattern.CASE_INSENSITIVE);
     }
 
     @Override
@@ -59,6 +66,7 @@ public class BookDb extends SQLiteOpenHelper {
 //        for (String col: indexcolums) {
 //
 //        }
+
     }
 
     @Override
@@ -93,26 +101,28 @@ public class BookDb extends SQLiteOpenHelper {
 
         if (filename==null || containsBook(filename)) return -1;
 
-        if (title==null) title=filename.replaceAll(".*/","");
-        if (author==null) author="Unknown";
+        if (title==null || title.trim().length()==0) title=filename.replaceAll(".*/","");
+        if (author==null || author.trim().length()==0) author="Unknown";
 
         String libtitle = title.toLowerCase();
         {
-            Matcher titlematch = Pattern.compile("^(a|an|the)\\s+(.+)$", Pattern.CASE_INSENSITIVE).matcher(libtitle);
+            Matcher titlematch = titleRX.matcher(libtitle);
             if (titlematch.find()) {
                 libtitle = titlematch.group(2) + ", " + titlematch.group(1);
             }
         }
 
-        String libauthor = author.toLowerCase();
+        String libauthor = author;
 
         if (!libauthor.contains(",")) {
 
-            Matcher authmatch = Pattern.compile("^\\s*(?:(?i:sir|lady|rev|doctor)\\s+)? (.+?) \\s+ ((?:(?:V[ao]n|De)\\s+)? \\S+ (?:\\s+(?i:jr|sr|m\\.?d|ph\\.?d|j\\.?d|[IVX]+|1st|2nd|3rd)\\.?)?)$", Pattern.COMMENTS).matcher(libauthor);
+
+            Matcher authmatch = authorRX.matcher(libauthor);
             if (authmatch.find()) {
                 libauthor = authmatch.group(2) + ", " + authmatch.group(1);
             }
         }
+        libauthor = libauthor.toLowerCase();
 
         //Log.d("AddBook", "libauthor=" + libauthor);
 
@@ -167,7 +177,8 @@ public class BookDb extends SQLiteOpenHelper {
         try (Cursor bookscursor =
                      db.rawQuery(
                            "select " + BOOK_ID + " from " + BOOK_TABLE +
-                             " where " + BOOK_LASTREAD + " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + ")", null)) {
+                             " where " + BOOK_LASTREAD +
+                                   " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + " where " + BOOK_LASTREAD + ">0)", null)) {
 
             if (bookscursor.moveToNext()) {
                 return bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID));
