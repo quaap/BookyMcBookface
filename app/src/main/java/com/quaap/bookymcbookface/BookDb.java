@@ -165,7 +165,7 @@ public class BookDb extends SQLiteOpenHelper {
 
     public BookRecord getBookRecord(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD, BOOK_ADDED}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
 
             if (bookscursor.moveToNext()) {
                 return getBookRecord(bookscursor);
@@ -208,6 +208,7 @@ public class BookDb extends SQLiteOpenHelper {
         br.title = bookscursor.getString(bookscursor.getColumnIndex(BOOK_TITLE));
         br.author = bookscursor.getString(bookscursor.getColumnIndex(BOOK_AUTHOR));
         br.lastread = bookscursor.getLong(bookscursor.getColumnIndex(BOOK_LASTREAD));
+        br.added = bookscursor.getLong(bookscursor.getColumnIndex(BOOK_ADDED));
         return br;
     }
 
@@ -222,7 +223,7 @@ public class BookDb extends SQLiteOpenHelper {
             case Author: orderby = BOOK_LIB_AUTHOR; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD},null, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD, BOOK_ADDED},null, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 BookRecord br = getBookRecord(bookscursor);
@@ -262,6 +263,7 @@ public class BookDb extends SQLiteOpenHelper {
         public String title;
         public String author;
         public long lastread;
+        public long added;
 
     }
 

@@ -223,7 +223,7 @@ public class BookListActivity extends AppCompatActivity {
                 if (id !=null) {
                     long rt = db.getLastReadTime(id);
                     if (rt>0) {
-                        updateBookStatus(child, rt);
+                        updateBookStatus(child, rt, R.string.book_viewed_on);
                     }
                 }
             }
@@ -331,7 +331,9 @@ public class BookListActivity extends AppCompatActivity {
             long lastread = book.lastread;
 
             if (lastread>0) {
-                updateBookStatus(listEntry, lastread);
+                updateBookStatus(listEntry, lastread, R.string.book_viewed_on);
+            } else {
+                updateBookStatus(listEntry, book.added, R.string.book_added_on);
             }
             listEntry.setTag(bookid);
             listEntry.setOnClickListener(new View.OnClickListener() {
@@ -380,7 +382,7 @@ public class BookListActivity extends AppCompatActivity {
                         if (child!=null) {
                             Integer id = (Integer)child.getTag();
                             if (id !=null && id == bookid) {
-                                updateBookStatus(child, now);
+                                updateBookStatus(child, now, R.string.book_viewed_on);
 
                                 listScroller.smoothScrollTo(0,0);
 
@@ -403,9 +405,17 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void updateBookStatus(View child, long lastread) {
+    private void updateBookStatus(View child, long lastread, int text) {
         TextView statusView = (TextView)child.findViewById(R.id.book_status);
-        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
+        CharSequence rtime;
+        if (text==R.string.book_viewed_on) {
+            statusView.setTextSize(14);
+            rtime = android.text.format.DateUtils.getRelativeTimeSpanString(lastread);
+        } else {
+            statusView.setTextSize(12);
+            rtime = android.text.format.DateUtils.getRelativeTimeSpanString(this, lastread);
+        }
+        statusView.setText(getString(text, rtime));
     }
 
     private void removeBook(int bookid) {
