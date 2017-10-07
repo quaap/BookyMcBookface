@@ -186,8 +186,13 @@ public class BookListActivity extends AppCompatActivity {
 
         recentread = db.getMostRecentlyRead();
 
-
         listHolder.removeAllViews();
+
+        if (recentread>=0) {
+            viewAdder.displayBook(recentread);
+            books.remove(recentread);
+        }
+
         new AsyncTask<Void,Void,Void>() {
             //int p = 0;
             @Override
