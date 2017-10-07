@@ -26,7 +26,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -34,15 +33,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.quaap.bookymcbookface.book.Book;
 import com.quaap.bookymcbookface.book.BookMetadata;
@@ -63,26 +54,19 @@ import com.quaap.bookymcbookface.book.BookMetadata;
 public class BookListActivity extends AppCompatActivity {
 
     private static final String SORTORDER_KEY = "sortorder";
-    private static final String NEXTID_KEY = "nextid";
-    private static final String TITLE_ORDER_KEY = "title_order";
-    private static final String AUTHOR_ORDER_KEY = "author_order";
-    private static final String BOOK_PREFIX = "book.";
-    private static final String FILENAME_SUFF = ".filename";
-    private static final String TITLE_SUFF = ".title";
-    private static final String AUTHOR_SUFF = ".author";
-    private static final String LASTREAD_SUFF = ".lastread";
-    private static final String LASTREAD_KEY = "lastread";
-    private static final String ID_KEY = ".id";
 
     private SharedPreferences data;
 
-    private int nextid = 0;
+    //private int nextid = 0;
 
     private ViewGroup listHolder;
     private ScrollView listScroller;
 
     private BookListAdderHandler viewAdder;
     private TextView tv;
+
+    private BookDb db;
+    int recentread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +84,14 @@ public class BookListActivity extends AppCompatActivity {
             setSortOrder(SortOrder.Default);
         }
 
+        getApplicationContext().deleteDatabase(BookDb.DBNAME);
+
+        db = new BookDb(this);
+
         viewAdder = new BookListAdderHandler(this);
+        update();
+
+        recentread = db.getMostRecentlyRead();
 
     }
 
@@ -115,9 +106,65 @@ public class BookListActivity extends AppCompatActivity {
             }
         }, 100);
 
-
     }
 
+
+    private void update() {
+        String UPDATED = "UPDATE_DONE";
+       // if (data.getBoolean(UPDATED, false)) return;
+
+        String NEXTID_KEY = "nextid";
+        String TITLE_ORDER_KEY = "title_order";
+        String AUTHOR_ORDER_KEY = "author_order";
+        String FILENAME_SUFF = ".filename";
+        String TITLE_SUFF = ".title";
+        String AUTHOR_SUFF = ".author";
+        String LASTREAD_SUFF = ".lastread";
+        String ID_KEY = ".id";
+        String BOOK_PREFIX = "book.";
+        String LASTREAD_KEY = "lastread";
+
+
+        int nextid = data.getInt(NEXTID_KEY,0);
+
+        for (int i = 0; i < nextid; i++) {
+            String bookidstr = BOOK_PREFIX + i;
+            String filename = data.getString(bookidstr + FILENAME_SUFF, null);
+
+
+            if (filename!=null) {
+                //Log.d("Book", "Filename "  + filename);
+                Log.d("Book", "Updating Filename "  + filename);
+
+                String title = data.getString(bookidstr + TITLE_SUFF, null);
+                String author = data.getString(bookidstr + AUTHOR_SUFF, null);
+
+                int id = db.addBook(filename,title,author);
+
+                if (id>-1) {
+                    long lastread = data.getLong(bookidstr + LASTREAD_SUFF, Long.MIN_VALUE);
+
+                    if (lastread > 0) {
+                        db.updateLastRead(id, lastread);
+                    }
+
+                    data.edit()
+                            .remove(bookidstr + ID_KEY)
+                            .remove(bookidstr + TITLE_SUFF)
+                            .remove(bookidstr + AUTHOR_SUFF)
+                            .remove(bookidstr + FILENAME_SUFF)
+                            .remove(bookidstr + LASTREAD_SUFF)
+                       .apply();
+
+                }
+
+            }
+        }
+
+        data.edit().remove(TITLE_ORDER_KEY).remove(AUTHOR_ORDER_KEY).apply();
+
+        data.edit().putBoolean(UPDATED, true).apply();
+    }
 
     private void setSortOrder(SortOrder sortOrder) {
         data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
@@ -130,44 +177,15 @@ public class BookListActivity extends AppCompatActivity {
     }
 
 
-
     private void populateBooks() {
 
         showProgress(0);
         Thread.yield();
         SortOrder sortorder = getSortOrder();
-        nextid = data.getInt(NEXTID_KEY,0);
 
-        final int [] order = new int[nextid];
+        final List<Integer> books = db.getBookIds(sortorder);
 
-        for (int i = 0; i < nextid; i++) {
-            order[i] = -1;
-        }
-        if (sortorder==SortOrder.Default) {
-            for (int i = 0; i < nextid; i++) {
-                order[i] = nextid - 1 - i;
-            }
-
-        } else {
-            Set<String> list;
-            if (sortorder==SortOrder.Title) {
-                list = data.getStringSet(TITLE_ORDER_KEY, null);
-            } else {
-                list = data.getStringSet(AUTHOR_ORDER_KEY, null);
-            }
-            if (list!=null) {
-                int i = 0;
-                List<String> alist = new ArrayList<>(list);
-                Collections.sort(alist);
-                for(String p: alist) {
-                    Matcher m = Pattern.compile("\\.(\\d+)$").matcher(p);
-                    if (m.find()) {
-                        order[i++] = Integer.parseInt(m.group(1));
-                    }
-
-                }
-            }
-        }
+        recentread = db.getMostRecentlyRead();
 
 
         listHolder.removeAllViews();
@@ -176,9 +194,9 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             protected Void doInBackground(Void... voids) {
 
-                for (final int id : order) {
+                for (Integer bookid : books) {
 
-                    viewAdder.displayBook(id);
+                    viewAdder.displayBook(bookid);
 
 //                    if (p++%3==0) {
 //                        viewAdder.showProgress(0);
@@ -290,24 +308,21 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void displayBookListEntry(int bookid) {
-        String bookidstr = BOOK_PREFIX + bookid;
-        String filename = data.getString(bookidstr + FILENAME_SUFF, null);
+        BookDb.BookRecord book = db.getBookRecord(bookid);
 
-
-        if (filename!=null) {
+        if (book!=null && book.filename!=null) {
             //Log.d("Book", "Filename "  + filename);
-            String title = data.getString(bookidstr + TITLE_SUFF, null);
-            String author = data.getString(bookidstr + AUTHOR_SUFF, null);
+
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
             TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
             TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
             TextView statusView = (TextView)listEntry.findViewById(R.id.book_status);
 
-            titleView.setText(maxlen(title, 120));
-            authorView.setText(maxlen(author, 50));
-            long lastread = data.getLong(bookidstr + LASTREAD_SUFF, Long.MIN_VALUE);
+            titleView.setText(maxlen(book.title, 120));
+            authorView.setText(maxlen(book.author, 50));
+            long lastread = book.lastread;
 
-            if (lastread!=Long.MIN_VALUE) {
+            if (lastread>0) {
 
                 statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
                 //statusView.setText(getString(R.string.book_viewed_on, new SimpleDateFormat("YYYY-MM-dd HH:mm", Locale.getDefault()).format(new Date(lastread))));
@@ -328,10 +343,10 @@ public class BookListActivity extends AppCompatActivity {
                 }
             });
 
-            if (data.getString(LASTREAD_KEY, "").equals(bookidstr)) {
+            if (book.id == recentread) {
                 listHolder.addView(listEntry,0);
             } else {
-                if (lastread!=Long.MIN_VALUE && listHolder.getChildCount()>1 && getSortOrder()==SortOrder.Default) {
+                if (lastread>0 && listHolder.getChildCount()>1 && getSortOrder()==SortOrder.Default) {
                     listHolder.addView(listEntry, 1);
                 } else {
                     listHolder.addView(listEntry);
@@ -341,43 +356,23 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void readBook(int bookid) {
-        String bookidstr = BOOK_PREFIX + bookid;
-        String filename = data.getString(bookidstr + FILENAME_SUFF,null);
-        if (filename!=null) {
-            data.edit().putLong(bookidstr + LASTREAD_SUFF, System.currentTimeMillis()).putString(LASTREAD_KEY, bookidstr).apply();
 
+        BookDb.BookRecord book = db.getBookRecord(bookid);
+
+        if (book!=null && book.filename!=null) {
+            //data.edit().putString(LASTREAD_KEY, BOOK_PREFIX + book.id).apply();
+
+            db.updateLastRead(bookid,System.currentTimeMillis());
+            recentread = bookid;
             Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
-            main.putExtra(ReaderActivity.FILENAME, filename);
+            main.putExtra(ReaderActivity.FILENAME, book.filename);
             startActivity(main);
         }
     }
 
     private void removeBook(int bookid) {
-        String bookidstr = BOOK_PREFIX + bookid;
-        String file = data.getString(bookidstr + FILENAME_SUFF, null);
-        String title = data.getString(bookidstr + TITLE_SUFF, null);
-        String author = data.getString(bookidstr + AUTHOR_SUFF, null);
-        int id = data.getInt(bookidstr + ID_KEY, -1);
-
-        if (file!=null) {
-            Book.remove(this, new File(file));
-        }
-
-        Set<String> titles = new TreeSet<>(data.getStringSet(TITLE_ORDER_KEY, new TreeSet<String>()));
-        titles.remove(title + "." + id );
-
-        Set<String> authors = new TreeSet<>(data.getStringSet(AUTHOR_ORDER_KEY, new TreeSet<String>()));
-        authors.remove(author + "." + id);
-
-
-        data.edit()
-                .remove(bookidstr + ID_KEY)
-                .remove(bookidstr + TITLE_SUFF)
-                .remove(bookidstr + AUTHOR_SUFF)
-                .remove(bookidstr + FILENAME_SUFF)
-                .putStringSet(TITLE_ORDER_KEY,titles)
-                .putStringSet(AUTHOR_ORDER_KEY,authors)
-         .apply();
+        db.removeBook(bookid);
+        recentread = db.getMostRecentlyRead();
     }
 
     private boolean addBook(String filename) {
@@ -385,62 +380,22 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private boolean addBook(String filename, boolean showToastWarnings) {
-        if (data.getAll().values().contains(filename)) {
-
-            if (showToastWarnings) {
-                Toast.makeText(this, getString(R.string.already_added, new File(filename).getName()), Toast.LENGTH_SHORT).show();
-            }
-            return false;
-        }
 
         try {
+            if (db.containsBook(filename)) {
+
+                if (showToastWarnings) {
+                    Toast.makeText(this, getString(R.string.already_added, new File(filename).getName()), Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
 
             BookMetadata metadata = Book.getBookMetaData(this, filename);
 
             if (metadata!=null) {
-                String bookid = BOOK_PREFIX + nextid;
 
-                String title = metadata.getTitle() != null ? metadata.getTitle().toLowerCase():"_" ;
-                Set<String> titles = new TreeSet<>(data.getStringSet(TITLE_ORDER_KEY, new TreeSet<String>()));
+                return db.addBook(filename, metadata.getTitle(), metadata.getAuthor()) > -1;
 
-                Matcher titlematch = Pattern.compile("^(a|an|the)\\s+(.+)$", Pattern.CASE_INSENSITIVE).matcher(title);
-                if (titlematch.find()) {
-                    title = titlematch.group(2);
-                }
-
-                titles.add(title + "." + nextid );
-
-                String author = metadata.getAuthor() != null ? metadata.getAuthor().toLowerCase():"_" ;
-
-                if (!author.contains(",")) {
-                    String[] authparts = author.trim().split("\\s+");
-                    if (authparts.length > 1) {
-                        author = authparts[authparts.length - 1];
-                        for (int i = 0; i < authparts.length - 1; i++) {
-                            author += " " + authparts[i];
-                        }
-                    }
-                }
-
-                Set<String> authors = new TreeSet<>(data.getStringSet(AUTHOR_ORDER_KEY, new TreeSet<String>()));
-                authors.add(author + "." + nextid);
-
-                data.edit()
-                        .putInt(bookid + ID_KEY, nextid)
-                        .putString(bookid + TITLE_SUFF, metadata.getTitle())
-                        .putString(bookid + AUTHOR_SUFF, metadata.getAuthor())
-                        .putString(bookid + FILENAME_SUFF, metadata.getFilename())
-                        .putStringSet(TITLE_ORDER_KEY,titles)
-                        .putStringSet(AUTHOR_ORDER_KEY,authors)
-                .apply();
-
-                //displayBookListEntry(nextid);
-
-                //viewAdder.displayBook(nextid);
-
-                nextid++;
-                data.edit().putInt(NEXTID_KEY,nextid).apply();
-                return true;
             } else if (showToastWarnings) {
                 Toast.makeText(this,getString(R.string.coulndt_add_book, new File(filename).getName()),Toast.LENGTH_SHORT).show();
             }
