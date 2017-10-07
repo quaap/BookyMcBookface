@@ -206,12 +206,17 @@ public abstract class Book {
     }
 
     public static boolean remove(Context context, File file) {
-        FsTools.deleteDir(getBookDir(context, file));
-        if (Build.VERSION.SDK_INT>=24) {
-            return context.deleteSharedPreferences(makeFName(file));
-        } else {
-            return getStorage(context, file).edit().clear().commit();
+        try {
+            FsTools.deleteDir(getBookDir(context, file));
+            if (Build.VERSION.SDK_INT >= 24) {
+                return context.deleteSharedPreferences(makeFName(file));
+            } else {
+                return getStorage(context, file).edit().clear().commit();
+            }
+        } catch (Exception e) {
+            Log.e("Book", e.getMessage(),e);
         }
+        return false;
     }
 
     public boolean remove() {

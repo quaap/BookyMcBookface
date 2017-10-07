@@ -303,7 +303,7 @@ public class BookListActivity extends AppCompatActivity {
                 public void run() {
                    populateBooks();
                 }
-            }, 100);
+            }, 120);
         }
         return true;
     }
@@ -392,12 +392,16 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void updateBookStatus(View child, long now) {
+    private void updateBookStatus(View child, long lastread) {
         TextView statusView = (TextView)child.findViewById(R.id.book_status);
-        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(now)));
+        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
     }
 
     private void removeBook(int bookid) {
+        BookDb.BookRecord book = db.getBookRecord(bookid);
+        if (book.filename!=null && book.filename.length()>0) {
+            Book.remove(this, new File(book.filename));
+        }
         db.removeBook(bookid);
         recentread = db.getMostRecentlyRead();
     }
