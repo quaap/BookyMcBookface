@@ -223,8 +223,7 @@ public class BookListActivity extends AppCompatActivity {
                 if (id !=null) {
                     long rt = db.getLastReadTime(id);
                     if (rt>0) {
-                        TextView statusView = (TextView) child.findViewById(R.id.book_status);
-                        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(rt)));
+                        updateBookStatus(child, rt);
                     }
                 }
             }
@@ -326,16 +325,13 @@ public class BookListActivity extends AppCompatActivity {
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
             TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
             TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
-            TextView statusView = (TextView)listEntry.findViewById(R.id.book_status);
 
             titleView.setText(maxlen(book.title, 120));
             authorView.setText(maxlen(book.author, 50));
             long lastread = book.lastread;
 
             if (lastread>0) {
-
-                statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(lastread)));
-                //statusView.setText(getString(R.string.book_viewed_on, new SimpleDateFormat("YYYY-MM-dd HH:mm", Locale.getDefault()).format(new Date(lastread))));
+                updateBookStatus(listEntry, lastread);
             }
             listEntry.setTag(bookid);
             listEntry.setOnClickListener(new View.OnClickListener() {
@@ -356,7 +352,7 @@ public class BookListActivity extends AppCompatActivity {
             if (book.id == recentread) {
                 listHolder.addView(listEntry,0);
             } else {
-                if (lastread>0 && listHolder.getChildCount()>1 && getSortOrder()==SortOrder.Default) {
+                if (lastread>0 && listHolder.getChildCount()>0 && getSortOrder()==SortOrder.Default) {
                     listHolder.addView(listEntry, 1);
                 } else {
                     listHolder.addView(listEntry);
@@ -383,8 +379,8 @@ public class BookListActivity extends AppCompatActivity {
                     if (id !=null && id == bookid) {
                         listHolder.removeView(child);
                         listHolder.addView(child, 0);
-                        TextView statusView = (TextView)child.findViewById(R.id.book_status);
-                        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(now)));
+                        updateBookStatus(child, now);
+                        listScroller.fullScroll(View.FOCUS_UP);
                         break;
                     }
                 }
@@ -394,6 +390,11 @@ public class BookListActivity extends AppCompatActivity {
             main.putExtra(ReaderActivity.FILENAME, book.filename);
             startActivity(main);
         }
+    }
+
+    private void updateBookStatus(View child, long now) {
+        TextView statusView = (TextView)child.findViewById(R.id.book_status);
+        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(now)));
     }
 
     private void removeBook(int bookid) {
