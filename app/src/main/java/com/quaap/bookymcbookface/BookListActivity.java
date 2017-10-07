@@ -84,7 +84,7 @@ public class BookListActivity extends AppCompatActivity {
             setSortOrder(SortOrder.Default);
         }
 
-        getApplicationContext().deleteDatabase(BookDb.DBNAME);
+        //getApplicationContext().deleteDatabase(BookDb.DBNAME);
 
         db = new BookDb(this);
 
@@ -111,7 +111,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void update() {
         String UPDATED = "UPDATE_DONE";
-       // if (data.getBoolean(UPDATED, false)) return;
+        if (data.getBoolean(UPDATED, false)) return;
 
         String NEXTID_KEY = "nextid";
         String TITLE_ORDER_KEY = "title_order";
