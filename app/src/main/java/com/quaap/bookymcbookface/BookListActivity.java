@@ -361,34 +361,45 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void readBook(int bookid) {
+    private void readBook(final int bookid) {
 
-        BookDb.BookRecord book = db.getBookRecord(bookid);
+        final BookDb.BookRecord book = db.getBookRecord(bookid);
 
         if (book!=null && book.filename!=null) {
             //data.edit().putString(LASTREAD_KEY, BOOK_PREFIX + book.id).apply();
 
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
             db.updateLastRead(bookid, now);
             recentread = bookid;
 
-            for (int i=0; i<listHolder.getChildCount(); i++) {
-                View child = listHolder.getChildAt(i);
-                if (child!=null) {
-                    Integer id = (Integer)child.getTag();
-                    if (id !=null && id == bookid) {
-                        listHolder.removeView(child);
-                        listHolder.addView(child, 0);
-                        updateBookStatus(child, now);
-                        listScroller.fullScroll(View.FOCUS_UP);
-                        break;
-                    }
-                }
-            }
+            listHolder.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i=0; i<listHolder.getChildCount(); i++) {
+                        View child = listHolder.getChildAt(i);
+                        if (child!=null) {
+                            Integer id = (Integer)child.getTag();
+                            if (id !=null && id == bookid) {
+                                updateBookStatus(child, now);
 
-            Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
-            main.putExtra(ReaderActivity.FILENAME, book.filename);
-            startActivity(main);
+                                listScroller.smoothScrollTo(0,0);
+
+                                listHolder.removeView(child);
+                                listHolder.addView(child, 0);
+
+                                listScroller.smoothScrollTo(0,0);
+
+                                break;
+                            }
+                        }
+                    }
+
+                    Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
+                    main.putExtra(ReaderActivity.FILENAME, book.filename);
+                    startActivity(main);
+
+                }
+            }, 300);
         }
     }
 
