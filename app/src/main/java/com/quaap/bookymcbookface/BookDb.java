@@ -107,6 +107,10 @@ public class BookDb extends SQLiteOpenHelper {
     }
 
     public int addBook(String filename, String title, String author) {
+        return addBook(filename, title, author, System.currentTimeMillis());
+    }
+
+    public int addBook(String filename, String title, String author, long dateadded) {
 
         if (filename==null || containsBook(filename)) return -1;
 
@@ -143,7 +147,7 @@ public class BookDb extends SQLiteOpenHelper {
         data.put(BOOK_AUTHOR, author);
         data.put(BOOK_LIB_AUTHOR, libauthor);
         data.put(BOOK_FILENAME, filename);
-        data.put(BOOK_ADDED, System.currentTimeMillis());
+        data.put(BOOK_ADDED, dateadded);
         data.put(BOOK_LASTREAD, -1);
 
         return (int)db.insert(BOOK_TABLE,null, data);
@@ -234,13 +238,13 @@ public class BookDb extends SQLiteOpenHelper {
 
         List<Integer> books = new ArrayList<>();
 
-        String orderby = BOOK_ADDED;
+        String orderby = "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
             case Title: orderby = BOOK_LIB_TITLE; break;
-            case Author: orderby = BOOK_LIB_AUTHOR; break;
+            case Author: orderby = BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID},null, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/120000"},null, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));

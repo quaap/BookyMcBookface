@@ -418,10 +418,10 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private boolean addBook(String filename) {
-        return addBook(filename, true);
+        return addBook(filename, true, System.currentTimeMillis());
     }
 
-    private boolean addBook(String filename, boolean showToastWarnings) {
+    private boolean addBook(String filename, boolean showToastWarnings, long dateadded) {
 
         try {
             if (db.containsBook(filename)) {
@@ -436,7 +436,7 @@ public class BookListActivity extends AppCompatActivity {
 
             if (metadata!=null) {
 
-                return db.addBook(filename, metadata.getTitle(), metadata.getAuthor()) > -1;
+                return db.addBook(filename, metadata.getTitle(), metadata.getAuthor(), dateadded) > -1;
 
             } else if (showToastWarnings) {
                 Toast.makeText(this,getString(R.string.coulndt_add_book, new File(filename).getName()),Toast.LENGTH_SHORT).show();
@@ -494,10 +494,10 @@ public class BookListActivity extends AppCompatActivity {
             volatile int added=0;
             @Override
             protected Void doInBackground(Void... voids) {
-
+                long time = System.currentTimeMillis();
                 for(final File file:dir.listFiles()) {
                     if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                        if (addBook(file.getPath(), false)) {
+                        if (addBook(file.getPath(), false, time)) {
                             added++;
                         }
                         viewAdder.showProgress(added);

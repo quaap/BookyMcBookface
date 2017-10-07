@@ -26,7 +26,7 @@
         This program was written by Tom Kliethermes.
         ]]>
     </string>
-    <string name="sort_by_added_date">Sort by added date</string>
+    <string name="sort_by_added_date">Default sort</string>
     <string name="sort_by_title">Sort by title</string>
     <string name="sort_by_author">Sort by author</string>
     <string name="project_gutenberg">Project Gutenberg</string>
