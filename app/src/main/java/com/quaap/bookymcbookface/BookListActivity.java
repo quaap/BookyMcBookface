@@ -92,11 +92,6 @@ public class BookListActivity extends AppCompatActivity {
 
         recentread = db.getMostRecentlyRead();
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         listScroller.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -104,9 +99,14 @@ public class BookListActivity extends AppCompatActivity {
                 populateBooks();
             }
         }, 100);
-
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateViewTimes();
+    }
 
     private void update() {
         String UPDATED = "UPDATE_DONE";
@@ -121,7 +121,7 @@ public class BookListActivity extends AppCompatActivity {
         String LASTREAD_SUFF = ".lastread";
         String ID_KEY = ".id";
         String BOOK_PREFIX = "book.";
-        String LASTREAD_KEY = "lastread";
+        //String LASTREAD_KEY = "lastread";
 
 
         int nextid = data.getInt(NEXTID_KEY,0);
@@ -207,11 +207,6 @@ public class BookListActivity extends AppCompatActivity {
 
 
             @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-            }
-
-            @Override
             protected void onCancelled(Void aVoid) {
                 viewAdder.hideProgress();
                 super.onCancelled(aVoid);
@@ -219,6 +214,22 @@ public class BookListActivity extends AppCompatActivity {
         }.execute();
     }
 
+
+    private void updateViewTimes() {
+        for (int i=0; i<listHolder.getChildCount(); i++) {
+            View child = listHolder.getChildAt(i);
+            if (child!=null) {
+                Integer id = (Integer)child.getTag();
+                if (id !=null) {
+                    long rt = db.getLastReadTime(id);
+                    if (rt>0) {
+                        TextView statusView = (TextView) child.findViewById(R.id.book_status);
+                        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(rt)));
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -361,8 +372,24 @@ public class BookListActivity extends AppCompatActivity {
         if (book!=null && book.filename!=null) {
             //data.edit().putString(LASTREAD_KEY, BOOK_PREFIX + book.id).apply();
 
-            db.updateLastRead(bookid,System.currentTimeMillis());
+            long now = System.currentTimeMillis();
+            db.updateLastRead(bookid, now);
             recentread = bookid;
+
+            for (int i=0; i<listHolder.getChildCount(); i++) {
+                View child = listHolder.getChildAt(i);
+                if (child!=null) {
+                    Integer id = (Integer)child.getTag();
+                    if (id !=null && id == bookid) {
+                        listHolder.removeView(child);
+                        listHolder.addView(child, 0);
+                        TextView statusView = (TextView)child.findViewById(R.id.book_status);
+                        statusView.setText(getString(R.string.book_viewed_on, android.text.format.DateUtils.getRelativeTimeSpanString(now)));
+                        break;
+                    }
+                }
+            }
+
             Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
             main.putExtra(ReaderActivity.FILENAME, book.filename);
             startActivity(main);
