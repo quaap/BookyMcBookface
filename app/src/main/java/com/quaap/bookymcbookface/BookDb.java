@@ -9,7 +9,9 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,11 +43,19 @@ public class BookDb extends SQLiteOpenHelper {
     private final static String BOOK_ADDED = "added";
     private final static String BOOK_LASTREAD = "lastread";
 
+
+    private final static String WEBS_TABLE = "webs";
+    private final static String WEBS_NAME = "name";
+    private final static String WEBS_URL = "url";
+
+    private Context context;
+
     private Pattern authorRX;
     private Pattern titleRX;
 
     public BookDb(Context context) {
         super(context, DBNAME, null, DBVERSION);
+        this.context = context;
 
         String namePrefixRX="sir|lady|rev(?:erend)?|doctor|dr|mr|ms|mrs|miss";
         String nameSuffixRX="jr|sr|\\S{1,5}\\.d|[jm]\\.?d|[IVX]+|1st|2nd|3rd|esq";
@@ -75,6 +85,21 @@ public class BookDb extends SQLiteOpenHelper {
         for (String col: indexcolums) {
             db.execSQL("create index ind_" + col + " on " + BOOK_TABLE + " (" + col + ")");
         }
+
+        String createwebstable =
+                "create table " + WEBS_TABLE + "( " +
+                        WEBS_URL + " TEXT PRIMARY KEY," +
+                        WEBS_NAME + " TEXT" +
+                    ")";
+        db.execSQL(createwebstable);
+
+        String [] wnames = context.getResources().getStringArray(R.array.getbook_names);
+        String [] wurls = context.getResources().getStringArray(R.array.getbook_urls);
+
+        for (int i=0; i<wnames.length; i++) {
+            addWebsite(db, wnames[i], wurls[i]);
+        }
+
 
     }
 
@@ -268,6 +293,48 @@ public class BookDb extends SQLiteOpenHelper {
     }
 
 
+//    String createwebstable =
+//            "create table " + WEBS_TABLE + "( " +
+//                    WEBS_URL + " TEXT PRIMARY KEY," +
+//                    WEBS_NAME + " TEXT" +
+//                    ")";
 
 
+    public int addWebsite(String name, String url) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return addWebsite(db, name, url);
+    }
+
+    public int addWebsite(SQLiteDatabase db, String name, String url) {
+
+
+        ContentValues data = new ContentValues();
+        data.put(WEBS_NAME, name);
+        data.put(WEBS_URL, url);
+
+        return (int)db.insert(WEBS_TABLE,null, data);
+
+    }
+
+    public Map<String,String> getWebSites() {
+
+        Map<String,String> webs = new LinkedHashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        try (Cursor cursor = db.query(WEBS_TABLE,new String[] {WEBS_URL, WEBS_NAME},null, null, null, null, WEBS_NAME)) {
+
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(cursor.getColumnIndex(WEBS_NAME));
+                String url = cursor.getString(cursor.getColumnIndex(WEBS_URL));
+                webs.put(url, name);
+            }
+        }
+        return webs;
+    }
+
+    public boolean deleteWebSite(String url) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        return db.delete(WEBS_TABLE, WEBS_URL + "=?", new String[] {url})>0;
+    }
 }

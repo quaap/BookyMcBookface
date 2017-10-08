@@ -85,7 +85,7 @@ public class BookListActivity extends AppCompatActivity {
 
         //getApplicationContext().deleteDatabase(BookDb.DBNAME);
 
-        db = new BookDb(this);
+        db = BookyApp.getDB(this);
 
         viewAdder = new BookListAdderHandler(this);
         update();
@@ -293,11 +293,15 @@ public class BookListActivity extends AppCompatActivity {
                 setSortOrder(SortOrder.Title);
                 pop = true;
                 break;
-            case R.id.menu_gutenberg:
-                Uri uri = Uri.parse("http://m.gutenberg.org/");
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            case R.id.menu_get_books:
+                Intent intent = new Intent(this, GetBooksActivity.class);
                 startActivity(intent);
                 break;
+//            case R.id.menu_gutenberg:
+//                Uri uri = Uri.parse("http://m.gutenberg.org/");
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
+//                break;
             default:
                 return super.onOptionsItemSelected(item);
         }

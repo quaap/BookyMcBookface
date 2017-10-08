@@ -41,4 +41,18 @@
     <string name="no_toc_found">No table of contents found</string>
     <string name="added_numbooks">Added %d</string>
     <string name="loading">Loading</string>
+    <string name="find_books_online">Find Books Online</string>
+    <string name="source_name">Source Name</string>
+    <string name="web_url">URL</string>
+    <string name="web_add">Add</string>
+
+    <string-array name="getbook_names">
+        <item>Project Gutenberg</item>
+        <item>Archive.org</item>
+    </string-array>
+    <string-array name="getbook_urls">
+        <item>http://m.gutenberg.org/</item>
+        <item>https://archive.org/details/texts</item>
+    </string-array>
+
 </resources>
