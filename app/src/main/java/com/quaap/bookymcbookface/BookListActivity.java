@@ -252,11 +252,6 @@ public class BookListActivity extends AppCompatActivity {
                 menu.findItem(R.id.menu_sort_title).setChecked(true);
                 break;
         }
-//        menu.findItem(R.id.menu_sort_default).setChecked(sortorder==SortOrder.Default);
-//        menu.findItem(R.id.menu_sort_author).setChecked(sortorder==SortOrder.Author);
-//        menu.findItem(R.id.menu_sort_title).setChecked(sortorder==SortOrder.Title);
-
-
 
         return true;
     }
@@ -296,11 +291,6 @@ public class BookListActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, GetBooksActivity.class);
                 startActivity(intent);
                 break;
-//            case R.id.menu_gutenberg:
-//                Uri uri = Uri.parse("http://m.gutenberg.org/");
-//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                startActivity(intent);
-//                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
