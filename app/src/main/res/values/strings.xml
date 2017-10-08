@@ -45,6 +45,9 @@
     <string name="source_name">Source Name</string>
     <string name="web_url">URL</string>
     <string name="web_add">Add</string>
+    <string name="getbooks_desc">The links below will open in your web browser. Downloaded books will be placed in the web browser\'s default download location.</string>
+    <string name="new_websrc">New</string>
+    <string name="web_url_hint">http://www.</string>
 
     <string-array name="getbook_names">
         <item>Project Gutenberg</item>

@@ -12,7 +12,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_margin="6dp"
-        android:text="The links below will open in your web browser. Downloaded books will be placed in the web browser's default download location."
+        android:text="@string/getbooks_desc"
         android:textSize="18sp" />
 
     <ScrollView
@@ -76,7 +76,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:ems="10"
-                android:hint="http://www."
+                android:hint="@string/web_url_hint"
                 android:inputType="textUri" />
         </LinearLayout>
 
@@ -102,6 +102,6 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_centerHorizontal="false"
-        android:text="New" />
+        android:text="@string/new_websrc" />
 
 </RelativeLayout>
