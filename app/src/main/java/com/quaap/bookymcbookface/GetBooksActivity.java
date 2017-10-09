@@ -1,21 +1,25 @@
 package com.quaap.bookymcbookface;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Map;
 
-public class GetBooksActivity extends Activity implements View.OnClickListener{
+public class GetBooksActivity extends Activity implements View.OnClickListener, View.OnLongClickListener{
 
     EditText nameBox;
     EditText urlBox;
@@ -35,9 +39,13 @@ public class GetBooksActivity extends Activity implements View.OnClickListener{
 
         nameBox = (EditText)findViewById(R.id.web_name);
         urlBox = (EditText)findViewById(R.id.web_url);
-        Button add = (Button)findViewById(R.id.web_add);
+        Button wadd = (Button)findViewById(R.id.web_add);
 
-        add.setOnClickListener(new View.OnClickListener() {
+        final Button wnew = (Button)findViewById(R.id.web_new);
+        final LinearLayout add_layout= (LinearLayout) findViewById(R.id.web_add_layout);
+
+
+        wadd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (urlBox.getText().length()>0) {
@@ -48,15 +56,19 @@ public class GetBooksActivity extends Activity implements View.OnClickListener{
                     }
                     db.addWebsite(name, url);
                     displayWeb(name, url, true);
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    add_layout.setVisibility(View.GONE);
+                    wnew.setVisibility(View.VISIBLE);
                 }
             }
         });
 
-        findViewById(R.id.web_new).setOnClickListener(new View.OnClickListener() {
+        wnew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                GetBooksActivity.this.findViewById(R.id.web_add_layout).setVisibility(View.VISIBLE);
-                v.setVisibility(View.GONE);
+                add_layout.setVisibility(View.VISIBLE);
+                wnew.setVisibility(View.GONE);
             }
         });
 
@@ -82,6 +94,7 @@ public class GetBooksActivity extends Activity implements View.OnClickListener{
         v.setText(name);
         v.setTag(url);
         v.setOnClickListener(this);
+        v.setOnLongClickListener(this);
         if (first) {
             list.addView(v, 0);
         } else {
@@ -103,5 +116,23 @@ public class GetBooksActivity extends Activity implements View.OnClickListener{
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             Log.e("Webs", e.getMessage(), e);
         }
+    }
+
+    @Override
+    public boolean onLongClick(final View v) {
+
+        PopupMenu p = new PopupMenu(this, v);
+        MenuItem m = p.getMenu().add("Delete");
+
+        m.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                list.removeView(v);
+                db.deleteWebSite((String)v.getTag());
+                return true;
+            }
+        });
+        p.show();
+        return true;
     }
 }
