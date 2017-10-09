@@ -50,6 +50,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:labelFor="@id/web_name"
                 android:text="@string/source_name" />
 
             <EditText
@@ -69,6 +70,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:labelFor="@id/web_url"
                 android:text="@string/web_url" />
 
             <EditText

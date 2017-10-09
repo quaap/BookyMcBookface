@@ -29,7 +29,9 @@
         <activity
             android:name=".ReaderActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".GetBooksActivity"></activity>
+        <activity
+            android:name=".GetBooksActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

@@ -43,12 +43,6 @@
             android:gravity="center"
             android:text="@string/contents" />
 
-        <ImageButton
-            android:id="@+id/find_button"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:src="@android:drawable/ic_menu_search"
-            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/zoom_button"
