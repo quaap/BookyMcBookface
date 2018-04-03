@@ -495,21 +495,25 @@ public class BookListActivity extends AppCompatActivity {
     }
 
 
-    private void addDir(final File dir) {
+    private void addDir( File dir) {
 
         viewAdder.showProgress(0);
-        new AsyncTask<Void,Void,Void>() {
+        new AsyncTask<File,Void,Void>() {
             volatile int added=0;
             @Override
-            protected Void doInBackground(Void... voids) {
+            protected Void doInBackground(File... dirs) {
                 long time = System.currentTimeMillis();
-                for(final File file:dir.listFiles()) {
-                    if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                        if (addBook(file.getPath(), false, time)) {
-                            added++;
-                        }
-                        viewAdder.showProgress(added);
+                for (File d: dirs) {
+                    for (final File file : d.listFiles()) {
+                        if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
+                            if (addBook(file.getPath(), false, time)) {
+                                added++;
+                            }
+                            viewAdder.showProgress(added);
 
+                        } else if (file.isDirectory()) {
+                            doInBackground(file);
+                        }
                     }
                 }
                 return null;
@@ -528,7 +532,7 @@ public class BookListActivity extends AppCompatActivity {
                 viewAdder.hideProgress();
                 super.onCancelled(aVoid);
             }
-        }.execute();
+        }.execute(dir);
     }
 
     private void findDir() {
