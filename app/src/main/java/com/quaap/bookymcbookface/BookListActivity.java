@@ -192,30 +192,47 @@ public class BookListActivity extends AppCompatActivity {
             books.remove((Integer) recentread);
         }
 
-        new AsyncTask<Void,Void,Void>() {
-            //int p = 0;
-            @Override
-            protected Void doInBackground(Void... voids) {
+        new DisplayBooksTask(this, books).execute();
+    }
 
+    private static class DisplayBooksTask extends  AsyncTask<Void,Void,Void> {
+
+        private WeakReference<BookListActivity> blactref;
+        private List<Integer> books;
+
+        DisplayBooksTask(BookListActivity blact, List<Integer> books) {
+            blactref = new WeakReference<>(blact);
+            this.books = books;
+        }
+
+        //int p = 0;
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            BookListActivity blact = blactref.get();
+            if (blact!=null) {
                 for (Integer bookid : books) {
 
-                    viewAdder.displayBook(bookid);
+                    blact.viewAdder.displayBook(bookid);
 
 //                    if (p++%3==0) {
 //                        viewAdder.showProgress(0);
 //                    }
                 }
-                viewAdder.hideProgress();
-                return null;
+                blact.viewAdder.hideProgress();
             }
+            return null;
+        }
 
 
-            @Override
-            protected void onCancelled(Void aVoid) {
-                viewAdder.hideProgress();
-                super.onCancelled(aVoid);
+        @Override
+        protected void onCancelled(Void aVoid) {
+            BookListActivity blact = blactref.get();
+            if (blact!=null) {
+                blact.viewAdder.hideProgress();
             }
-        }.execute();
+            super.onCancelled(aVoid);
+        }
     }
 
 
