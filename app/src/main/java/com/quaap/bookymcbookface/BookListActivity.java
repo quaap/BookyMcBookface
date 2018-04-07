@@ -515,41 +515,62 @@ public class BookListActivity extends AppCompatActivity {
     private void addDir( File dir) {
 
         viewAdder.showProgress(0);
-        new AsyncTask<File,Void,Void>() {
-            volatile int added=0;
-            @Override
-            protected Void doInBackground(File... dirs) {
+        new AddDirTask(this, dir).execute(dir);
+    }
+
+    private static class AddDirTask extends  AsyncTask<File,Void,Void> {
+
+        int added=0;
+        private WeakReference<BookListActivity> blactref;
+        private File dir;
+
+
+        AddDirTask(BookListActivity blact,  File dir) {
+            blactref = new WeakReference<>(blact);
+            this.dir = dir;
+        }
+
+        @Override
+        protected Void doInBackground(File... dirs) {
+            BookListActivity blact = blactref.get();
+            if (blact!=null) {
                 long time = System.currentTimeMillis();
-                for (File d: dirs) {
+                for (File d : dirs) {
                     for (final File file : d.listFiles()) {
                         if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                            if (addBook(file.getPath(), false, time)) {
+                            if (blact.addBook(file.getPath(), false, time)) {
                                 added++;
                             }
-                            viewAdder.showProgress(added);
+                            blact.viewAdder.showProgress(added);
 
                         } else if (file.isDirectory()) {
                             doInBackground(file);
                         }
                     }
                 }
-                return null;
             }
+            return null;
+        }
 
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                viewAdder.hideProgress();
-                Toast.makeText(BookListActivity.this, getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
-                populateBooks();
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            BookListActivity blact = blactref.get();
+            if (blact!=null) {
+                blact.viewAdder.hideProgress();
+                Toast.makeText(blact, blact.getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
+                blact.populateBooks();
             }
+        }
 
-            @Override
-            protected void onCancelled(Void aVoid) {
-                viewAdder.hideProgress();
-                super.onCancelled(aVoid);
+        @Override
+        protected void onCancelled(Void aVoid) {
+            BookListActivity blact = blactref.get();
+            if (blact!=null) {
+                blact.viewAdder.hideProgress();
             }
-        }.execute(dir);
+            super.onCancelled(aVoid);
+        }
     }
 
     private void findDir() {
