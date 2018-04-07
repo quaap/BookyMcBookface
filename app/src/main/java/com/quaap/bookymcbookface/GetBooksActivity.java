@@ -70,7 +70,7 @@ public class GetBooksActivity extends Activity implements View.OnClickListener, 
                     db.addWebsite(name, url);
                     displayWeb(name, url, true);
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    if (imm!=null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                     add_layout.setVisibility(View.GONE);
                     wnew.setVisibility(View.VISIBLE);
                 }
