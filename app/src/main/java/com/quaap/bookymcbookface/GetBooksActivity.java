@@ -48,14 +48,14 @@ public class GetBooksActivity extends Activity implements View.OnClickListener, 
 
         db = BookyApp.getDB(this);
 
-        list = (LinearLayout)findViewById(R.id.webs_list);
+        list = findViewById(R.id.webs_list);
 
-        nameBox = (EditText)findViewById(R.id.web_name);
-        urlBox = (EditText)findViewById(R.id.web_url);
-        Button wadd = (Button)findViewById(R.id.web_add);
+        nameBox = findViewById(R.id.web_name);
+        urlBox = findViewById(R.id.web_url);
+        Button wadd = findViewById(R.id.web_add);
 
-        final Button wnew = (Button)findViewById(R.id.web_new);
-        final LinearLayout add_layout= (LinearLayout) findViewById(R.id.web_add_layout);
+        final Button wnew = findViewById(R.id.web_new);
+        final LinearLayout add_layout= findViewById(R.id.web_add_layout);
 
 
         wadd.setOnClickListener(new View.OnClickListener() {

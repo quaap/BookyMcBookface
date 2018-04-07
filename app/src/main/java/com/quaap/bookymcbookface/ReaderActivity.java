@@ -76,7 +76,7 @@ public class ReaderActivity extends Activity {
         if (ab!=null) ab.hide();
 
 
-        webView = (WebView)findViewById(R.id.page_view);
+        webView = findViewById(R.id.page_view);
 
         webView.getSettings().setDefaultFontSize(18);
         webView.getSettings().setDefaultFixedFontSize(18);
@@ -141,6 +141,9 @@ public class ReaderActivity extends Activity {
 
                 return true;
             }
+
+
+
         });
 
 
@@ -586,7 +589,7 @@ public class ReaderActivity extends Activity {
         webView.setBackgroundColor(color);
         ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
-        ViewGroup controls = (ViewGroup)findViewById(R.id.controls_layout);
+        ViewGroup controls = findViewById(R.id.controls_layout);
         for (int i=0; i<controls.getChildCount(); i++) {
             controls.getChildAt(i).setBackground(null);
             Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();

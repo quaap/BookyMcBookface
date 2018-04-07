@@ -71,9 +71,9 @@ public class BookListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_list);
 
-        listHolder = (ViewGroup)findViewById(R.id.book_list_holder);
-        listScroller = (ScrollView)findViewById(R.id.book_list_scroller);
-        tv = (TextView)findViewById(R.id.progress_text);
+        listHolder = findViewById(R.id.book_list_holder);
+        listScroller = findViewById(R.id.book_list_scroller);
+        tv = findViewById(R.id.progress_text);
         checkStorageAccess(false);
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
@@ -338,8 +338,8 @@ public class BookListActivity extends AppCompatActivity {
             //Log.d("Book", "Filename "  + filename);
 
             ViewGroup listEntry = (ViewGroup)getLayoutInflater().inflate(R.layout.book_list_item, listHolder, false);
-            TextView titleView = (TextView)listEntry.findViewById(R.id.book_title);
-            TextView authorView = (TextView)listEntry.findViewById(R.id.book_author);
+            TextView titleView = listEntry.findViewById(R.id.book_title);
+            TextView authorView = listEntry.findViewById(R.id.book_author);
 
             titleView.setText(maxlen(book.title, 120));
             authorView.setText(maxlen(book.author, 50));
@@ -421,7 +421,7 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void updateBookStatus(View child, long lastread, int text) {
-        TextView statusView = (TextView)child.findViewById(R.id.book_status);
+        TextView statusView = child.findViewById(R.id.book_status);
         CharSequence rtime;
         if (text==R.string.book_viewed_on) {
             statusView.setTextSize(14);
