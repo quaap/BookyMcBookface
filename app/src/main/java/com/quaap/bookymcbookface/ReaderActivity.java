@@ -27,6 +27,7 @@ import android.widget.PopupMenu;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -324,37 +325,55 @@ public class ReaderActivity extends Activity {
         isPagingDown = false;
     }
 
-    private void loadFile(final File file) {
+    private void loadFile(File file) {
 
         webView.loadData("Loading " + file.getPath(),"text/plain", "utf-8");
 
-        new AsyncTask<Void,Void,Void>()  {
-
-            @Override
-            protected Void doInBackground(Void... voids) {
-                try {
-                    book = Book.getBookHandler(ReaderActivity.this, file.getPath());
-                    Log.d("Main", "File " + file);
-                    book.load(file);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                int fontsize = book.getFontsize();
-                if (fontsize!=-1) {
-                    setFontSize(fontsize);
-                }
-                showUri(book.getCurrentSection());
-            }
-        }.execute();
+        new LoaderTask(this, file).execute();
 
 
     }
+
+
+    private static class LoaderTask extends  AsyncTask<Void,Void,Void>  {
+
+        private File file;
+        private WeakReference<ReaderActivity> ractref;
+
+        LoaderTask(ReaderActivity ract, File file) {
+            this.file = file;
+            this.ractref = new WeakReference<>(ract);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                ReaderActivity ract = ractref.get();
+                if (ract!=null) {
+                    ract.book = Book.getBookHandler(ract, file.getPath());
+                    Log.d("Main", "File " + file);
+                    ract.book.load(file);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                int fontsize = ract.book.getFontsize();
+                if (fontsize != -1) {
+                    ract.setFontSize(fontsize);
+                }
+                ract.showUri(ract.book.getCurrentSection());
+            }
+        }
+    }
+
 
     private void showUri(Uri uri) {
         if (uri !=null) {
