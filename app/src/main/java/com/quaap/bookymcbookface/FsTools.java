@@ -61,15 +61,28 @@ public class FsTools {
 
         Map<File,String> files = new LinkedHashMap<>();
 
-        int sd = 1;
-        for (File e: r.listFiles()) {
-            Log.d("storage", e.getPath() + " " + e.isDirectory());
-            if (e.isDirectory() && !e.getName().equals("emulated") && !e.getName().equals("self")) {
-                String name = "SD";
-                if (sd++>1) name += sd;
-                files.put(e, Environment.isExternalStorageRemovable(e) ? name : e.getName());
+        try {
+            int sd = 1;
+            for (File e : r.listFiles()) {
+                Log.d("storage", e.getPath() + " " + e.isDirectory());
+                try {
+                    if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
+                        boolean removable = Environment.isExternalStorageRemovable(e);
+                        String name = "SD";
+                        if (sd++ > 1) name += sd;
+                        files.put(e, removable ? name : e.getName());
+                    }
+                } catch (IllegalArgumentException ex) {
+                    Log.d("storage", e.getPath() + " is no good");
+                } catch (Throwable t) {
+                    Log.e("storage", t.getMessage(), t);
+                }
+
             }
+        } catch (Exception e) {
+            Log.e("storage", e.getMessage(), e);
         }
+
 
         File ext = Environment.getExternalStorageDirectory();
         if (Environment.isExternalStorageEmulated()) {
