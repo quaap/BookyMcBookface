@@ -2,7 +2,11 @@
 
 An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt and html ebooks. 
 
-[![Booky McBookface eReader on Google Play](https://cloud.githubusercontent.com/assets/23243656/19977341/8d6d4be6-a1f3-11e6-9f10-bf53a4e43bf1.png)](https://play.google.com/store/apps/details?id=com.quaap.bookymcbookface)
+<a href="https://f-droid.org/packages/com.quaap.bookymcbookface" target="_blank">
+<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="90"/></a>
+<a href="https://play.google.com/store/apps/details?id=com.quaap.bookymcbookface" target="_blank">
+<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="90"/></a>
+
 
 ## Features:
 * Completely Open Source: no ads, tracking, or malicious permissions.

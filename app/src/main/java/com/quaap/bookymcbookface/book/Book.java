@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public abstract class Book {
     public Book(Context context) {
         this.dataDir = context.getFilesDir();
         this.context = context;
+        sectionIDs = new ArrayList<>();
     }
 
     protected abstract void load() throws IOException;
@@ -204,12 +206,17 @@ public abstract class Book {
     }
 
     public static boolean remove(Context context, File file) {
-        FsTools.deleteDir(getBookDir(context, file));
-        if (Build.VERSION.SDK_INT>=24) {
-            return context.deleteSharedPreferences(makeFName(file));
-        } else {
-            return getStorage(context, file).edit().clear().commit();
+        try {
+            FsTools.deleteDir(getBookDir(context, file));
+            if (Build.VERSION.SDK_INT >= 24) {
+                return context.deleteSharedPreferences(makeFName(file));
+            } else {
+                return getStorage(context, file).edit().clear().commit();
+            }
+        } catch (Exception e) {
+            Log.e("Book", e.getMessage(),e);
         }
+        return false;
     }
 
     public boolean remove() {

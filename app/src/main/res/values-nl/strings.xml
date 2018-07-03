@@ -1,0 +1,60 @@
+<resources>
+    <string name="app_name">Booky McBookface</string>
+    <string name="book_viewed_on">Bekeken op %s</string>
+    <string name="book_added_on">Toegevoegd op %s</string>
+    <string name="add">Boek toevoegen</string>
+    <string name="add_dir">Boeken toevoegen vanuit map</string>
+    <string name="contents">Inhoud</string>
+    <string name="zoom">zoomen</string>
+    <string name="already_added">Het bestand \"%s\" is al toegevoegd</string>
+    <string name="select_thisfolder">Deze map selecteren</string>
+    <string name="cancel">Annuleren</string>
+    <string name="find_folder">Map zoeken</string>
+    <string name="find_book">Boek zoeken</string>
+    <string name="open_book">Boek openen</string>
+    <string name="remove_book">Boek verwijderen</string>
+    <string name="coulndt_add_book">\"%s\" kan niet worden toegevoegd</string>
+
+    <string name="about">Over</string>
+    <string name="about_app">
+        <![CDATA[
+
+        Booky McBookface is open-bronsoftware, uitgebracht onder de GPLv3-licentie.\n\n
+
+        Hulp, de volledige license en sourcecode zijn beschikbaar op \n
+        https://github.com/quaap/BookyMcBookface\n\n
+
+        Deze app is geschreven door Tom Kliethermes.
+        ]]>
+    </string>
+    <string name="sort_by_added_date">Standaardsortering</string>
+    <string name="sort_by_title">Sorteren op titel</string>
+    <string name="sort_by_author">Sorteren op auteur</string>
+    <string name="prev_text">&lt;&lt;</string>
+    <string name="next_text">&gt;&gt;</string>
+    <string name="books_added">%d boeken toegevoegd</string>
+    <string name="bright">Licht</string>
+    <string name="dim">Donker</string>
+    <string name="bright_medium">Normaal</string>
+    <string name="book_default">Boekstandaard</string>
+    <string name="no_toc_found">Geen inhoudsopgave gevonden</string>
+    <string name="added_numbooks">%d toegevoegd</string>
+    <string name="loading">Bezig met laden...</string>
+    <string name="find_books_online">Online naar boeken zoeken</string>
+    <string name="source_name">Bronnaam</string>
+    <string name="web_url">URL</string>
+    <string name="web_add">Toevoegen</string>
+    <string name="getbooks_desc">De onderstaande links worden geopend in je webbrowser. Gedownloade boeken worden opgeslagen in de standaardlocatie van de webbrowser.</string>
+    <string name="new_websrc">Nieuw</string>
+    <string name="web_url_hint">http://www.</string>
+
+    <string-array name="getbook_names">
+        <item>Project Gutenberg</item>
+        <item>Archive.org</item>
+    </string-array>
+    <string-array name="getbook_urls">
+        <item>http://m.gutenberg.org/</item>
+        <item>https://archive.org/details/texts</item>
+    </string-array>
+
+</resources>

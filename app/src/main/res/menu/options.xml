@@ -14,8 +14,8 @@
         android:id="@+id/menu_add_dir"
         android:title="@string/add_dir" />
     <item
-        android:id="@+id/menu_gutenberg"
-        android:title="@string/project_gutenberg" />
+        android:id="@+id/menu_get_books"
+        android:title="@string/find_books_online" />
     <group
         android:id="@+id/sortgroup"
         android:checkableBehavior="single">
