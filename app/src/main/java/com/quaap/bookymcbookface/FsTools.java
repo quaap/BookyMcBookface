@@ -3,31 +3,24 @@ package com.quaap.bookymcbookface;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Environment;
 import android.util.Log;
 
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -405,6 +398,7 @@ public class FsTools {
         return files;
     }
 
+    /*
     public static Map<String,CharSequence> extractFilesAsString(File srcFile, String ... searchFiles) {
 
         Map<String,CharSequence> files = new HashMap<>();
@@ -521,5 +515,5 @@ public class FsTools {
         }
         return res;
     }
-
+*/
 }
