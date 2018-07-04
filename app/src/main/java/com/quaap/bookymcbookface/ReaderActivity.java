@@ -358,8 +358,8 @@ public class ReaderActivity extends Activity {
                     ract.book.load(file);
                 }
 
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
             }
             return null;
         }
@@ -367,7 +367,7 @@ public class ReaderActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             ReaderActivity ract = ractref.get();
-            if (ract!=null) {
+            if (ract!=null && ract.book!=null) {
                 int fontsize = ract.book.getFontsize();
                 if (fontsize != -1) {
                     ract.setFontSize(fontsize);
@@ -388,8 +388,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void handleLink(String clickedLink) {
-        Log.d("Main", "clicked on " + clickedLink);
-        showUri(book.handleClickedLink(clickedLink));
+        if (clickedLink!=null) {
+            Log.d("Main", "clicked on " + clickedLink);
+            showUri(book.handleClickedLink(clickedLink));
+        }
 
     }
 
