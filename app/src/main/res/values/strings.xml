@@ -30,8 +30,8 @@
     <string name="sort_by_added_date">Default sort</string>
     <string name="sort_by_title">Sort by title</string>
     <string name="sort_by_author">Sort by author</string>
-    <string name="prev_text">&lt;&lt;</string>
-    <string name="next_text">&gt;&gt;</string>
+    <string translatable="false" name="prev_text">&lt;&lt;</string>
+    <string translatable="false" name="next_text">&gt;&gt;</string>
     <string name="books_added">%d books added</string>
     <string name="bright">Bright</string>
     <string name="dim">Dim</string>
@@ -46,13 +46,13 @@
     <string name="web_add">Add</string>
     <string name="getbooks_desc">The links below will open in your web browser. Downloaded books will be placed in the web browser\'s default download location.</string>
     <string name="new_websrc">New</string>
-    <string name="web_url_hint">http://www.</string>
+    <string translatable="false" name="web_url_hint">http://www.</string>
 
     <string-array name="getbook_names">
         <item>Project Gutenberg</item>
         <item>Archive.org</item>
     </string-array>
-    <string-array name="getbook_urls">
+    <string-array translatable="false" name="getbook_urls">
         <item>http://m.gutenberg.org/</item>
         <item>https://archive.org/details/texts</item>
     </string-array>
