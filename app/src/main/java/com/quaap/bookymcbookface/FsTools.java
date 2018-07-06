@@ -53,7 +53,11 @@ public class FsTools {
         roots.add(new File("/storage"));
         //roots.add(new File("/mnt"));
 
-        roots.addAll( Arrays.asList(mContext.getExternalFilesDirs(null)));
+        try {
+            roots.addAll(Arrays.asList(mContext.getExternalFilesDirs(null)));
+        } catch (Throwable t) {
+            Log.e("storage", t.getMessage(), t);
+        }
 
 
         Map<File,String> files = new LinkedHashMap<>();
@@ -61,22 +65,24 @@ public class FsTools {
         for(File r: roots) {
             try {
                 int sd = 1;
-                for (File e : r.listFiles()) {
-                    Log.d("storage", e.getPath() + " " + e.isDirectory());
-                    try {
-                        if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
-                            boolean removable = Environment.isExternalStorageRemovable(e);
-                            String name = "SD";
-                            if (sd++ > 1) name += sd;
-                            files.put(e, removable ? name : e.getName());
-                            //Log.d("storage", name + " " + e.getPath());
+                if (r!=null) {
+                    for (File e : r.listFiles()) {
+                        try {
+                            Log.d("storage", e.getPath() + " " + e.isDirectory());
+                            if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
+                                boolean removable = Environment.isExternalStorageRemovable(e);
+                                String name = "SD";
+                                if (sd++ > 1) name += sd;
+                                files.put(e, removable ? name : e.getName());
+                                //Log.d("storage", name + " " + e.getPath());
+                            }
+                        } catch (IllegalArgumentException ex) {
+                            Log.d("storage", e.getPath() + " is no good");
+                        } catch (Throwable t) {
+                            Log.e("storage", t.getMessage(), t);
                         }
-                    } catch (IllegalArgumentException ex) {
-                        Log.d("storage", e.getPath() + " is no good");
-                    } catch (Throwable t) {
-                        Log.e("storage", t.getMessage(), t);
-                    }
 
+                    }
                 }
             } catch (Exception e) {
                 Log.e("storage", e.getMessage(), e);
