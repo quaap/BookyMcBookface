@@ -48,32 +48,39 @@ public class FsTools {
         mContext = context;
     }
 
-    public static Map<File,String> getDrives() {
-        File r = new File("/storage");
+    public  Map<File,String> getDrives() {
+        List<File> roots = new ArrayList<>();
+        roots.add(new File("/storage"));
+        //roots.add(new File("/mnt"));
+
+        roots.addAll( Arrays.asList(mContext.getExternalFilesDirs(null)));
 
 
         Map<File,String> files = new LinkedHashMap<>();
 
-        try {
-            int sd = 1;
-            for (File e : r.listFiles()) {
-                Log.d("storage", e.getPath() + " " + e.isDirectory());
-                try {
-                    if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
-                        boolean removable = Environment.isExternalStorageRemovable(e);
-                        String name = "SD";
-                        if (sd++ > 1) name += sd;
-                        files.put(e, removable ? name : e.getName());
+        for(File r: roots) {
+            try {
+                int sd = 1;
+                for (File e : r.listFiles()) {
+                    Log.d("storage", e.getPath() + " " + e.isDirectory());
+                    try {
+                        if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
+                            boolean removable = Environment.isExternalStorageRemovable(e);
+                            String name = "SD";
+                            if (sd++ > 1) name += sd;
+                            files.put(e, removable ? name : e.getName());
+                            //Log.d("storage", name + " " + e.getPath());
+                        }
+                    } catch (IllegalArgumentException ex) {
+                        Log.d("storage", e.getPath() + " is no good");
+                    } catch (Throwable t) {
+                        Log.e("storage", t.getMessage(), t);
                     }
-                } catch (IllegalArgumentException ex) {
-                    Log.d("storage", e.getPath() + " is no good");
-                } catch (Throwable t) {
-                    Log.e("storage", t.getMessage(), t);
-                }
 
+                }
+            } catch (Exception e) {
+                Log.e("storage", e.getMessage(), e);
             }
-        } catch (Exception e) {
-            Log.e("storage", e.getMessage(), e);
         }
 
 
@@ -92,20 +99,30 @@ public class FsTools {
 
         Map<File,String> drives = getDrives();
 
-        if (extdir==null ) {
+        if (extdir==null) {
             return drives;
         }
 
-        FilenameFilter filterdirs = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String filename) {
-                File sel = new File(dir, filename);
-                return sel.isDirectory();
+        List<File> dirs;
+        if (!extdir.exists() || !extdir.isDirectory()) {
+            dirs = new ArrayList<>();
+        } else {
+            FilenameFilter filterdirs = new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String filename) {
+                    File sel = new File(dir, filename);
+                    return sel.isDirectory();
+                }
+
+            };
+
+            try {
+                dirs = new ArrayList<>(Arrays.asList(extdir.listFiles(filterdirs)));
+            } catch (Exception e) {
+                Log.d("FsTools", e.getMessage(), e);
+                dirs = new ArrayList<>();
             }
-
-        };
-
-        List<File> dirs = new ArrayList<>(Arrays.asList(extdir.listFiles(filterdirs)));
+        }
 
         Collections.sort(dirs, new Comparator<File>() {
             @Override
@@ -138,7 +155,17 @@ public class FsTools {
 
             };
 
-            List<File> files = new ArrayList<>(Arrays.asList(extdir.listFiles(filterfiles)));
+            List<File> files;
+            if (!extdir.exists() || !extdir.isDirectory()) {
+                files = new ArrayList<>();
+            } else {
+                try {
+                    files = new ArrayList<>(Arrays.asList(extdir.listFiles(filterfiles)));
+                } catch (Exception e) {
+                    Log.d("FsTools", e.getMessage(), e);
+                    files = new ArrayList<>();
+                }
+            }
 
             Collections.sort(files, new Comparator<File>() {
                 @Override

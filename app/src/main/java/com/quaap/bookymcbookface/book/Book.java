@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,11 +94,15 @@ public abstract class Book {
 
     public Uri getCurrentSection() {
         restoreCurrentSectionID();
-        if (currentSectionIDPos > sectionIDs.size()) {
+        if (currentSectionIDPos >= sectionIDs.size()) {
             currentSectionIDPos = 0;
             saveCurrentSectionID();
         }
 
+        if (currentSectionIDPos>=sectionIDs.size()) {
+            currentSectionIDPos = 0;
+            Toast.makeText(context,"Something went wrong. Please report this book as a bug",Toast.LENGTH_LONG).show();
+        }
         return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 

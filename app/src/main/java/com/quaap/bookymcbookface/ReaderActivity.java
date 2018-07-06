@@ -24,6 +24,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -248,6 +249,7 @@ public class ReaderActivity extends Activity {
                     timer.schedule(scrollTask, 0, 100);
                 } catch(IllegalStateException e) {
                     Log.d(TAG, e.getMessage(), e);
+                    Toast.makeText(this,"Something went wrong. Please report a 'scroll' bug.",Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -528,6 +530,7 @@ public class ReaderActivity extends Activity {
                 timer.schedule(nowakeTask, 3 * 60 * 1000);
             } catch(IllegalStateException e) {
                 Log.d(TAG, e.getMessage(), e);
+                Toast.makeText(this,"Something went wrong. Please report a 'setAwake' bug.",Toast.LENGTH_LONG).show();
             }
         }
 

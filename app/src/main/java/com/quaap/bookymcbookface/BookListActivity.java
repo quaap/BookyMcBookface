@@ -171,7 +171,12 @@ public class BookListActivity extends AppCompatActivity {
     @NonNull
     private SortOrder getSortOrder() {
 
-        return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
+        try {
+            return SortOrder.valueOf(data.getString(SORTORDER_KEY, SortOrder.Default.name()));
+        } catch (IllegalArgumentException e) {
+            Log.e("Booklist", e.getMessage(), e);
+            return SortOrder.Default;
+        }
     }
 
 
@@ -326,7 +331,9 @@ public class BookListActivity extends AppCompatActivity {
 
     private static String maxlen(String text, int maxlen) {
         if (text!=null && text.length() > maxlen) {
-            return text.substring(0, maxlen-3) + "...";
+            int minus = text.length()>3?3:0;
+
+            return text.substring(0, maxlen-minus) + "...";
         }
         return text;
     }
