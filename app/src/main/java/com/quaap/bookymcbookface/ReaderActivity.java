@@ -58,6 +58,7 @@ public class ReaderActivity extends Activity {
     public static final String FILENAME = "filename";
 
 
+    private final Object timerSync = new Object();
     private Timer timer;
 
     private TimerTask nowakeTask = null;
@@ -230,19 +231,25 @@ public class ReaderActivity extends Activity {
     }
 
     private void startScrollTask() {
-        if (scrollTask == null) {
-            scrollTask = new TimerTask() {
-                @Override
-                public void run() {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            webView.scrollBy(0, scrollDir);
-                        }
-                    });
+        synchronized (timerSync) {
+            if (scrollTask == null) {
+                scrollTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                webView.scrollBy(0, scrollDir);
+                            }
+                        });
+                    }
+                };
+                try {
+                    timer.schedule(scrollTask, 0, 100);
+                } catch(IllegalStateException e) {
+                    Log.d(TAG, e.getMessage(), e);
                 }
-            };
-            timer.schedule(scrollTask, 0, 100);
+            }
         }
     }
 
@@ -463,6 +470,8 @@ public class ReaderActivity extends Activity {
     @Override
     protected void onPause() {
         timer.cancel();
+        timer.purge();
+        timer = null;
         saveScrollOffset();
         super.onPause();
     }
@@ -497,23 +506,30 @@ public class ReaderActivity extends Activity {
         Window w = this.getWindow();
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (nowakeTask !=null) {
-            nowakeTask.cancel();
-            timer.purge();
-        }
-        nowakeTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Window w = ReaderActivity.this.getWindow();
-                        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-                });
+        synchronized (timerSync) {
+            if (nowakeTask != null) {
+                nowakeTask.cancel();
+                timer.purge();
             }
-        };
-        timer.schedule(nowakeTask, 3*60*1000);
+            nowakeTask = new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Window w = ReaderActivity.this.getWindow();
+                            w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        }
+                    });
+                }
+            };
+
+            try {
+                timer.schedule(nowakeTask, 3 * 60 * 1000);
+            } catch(IllegalStateException e) {
+                Log.d(TAG, e.getMessage(), e);
+            }
+        }
 
     }
 
@@ -581,8 +597,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreBgColor() {
-        int bgcolor = book.getBackgroundColor();
-        if (bgcolor!=Integer.MAX_VALUE) applyColor(bgcolor);
+        if (book!=null) {
+            int bgcolor = book.getBackgroundColor();
+            if (bgcolor != Integer.MAX_VALUE) applyColor(bgcolor);
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
