@@ -565,7 +565,7 @@ public class BookListActivity extends AppCompatActivity {
             BookListActivity blact = blactref.get();
             if (blact!=null) {
                 blact.viewAdder.hideProgress();
-                Toast.makeText(blact, blact.getString(R.string.books_added, added), Toast.LENGTH_SHORT).show();
+                Toast.makeText(blact, blact.getString(R.string.books_added, added), Toast.LENGTH_LONG).show();
                 blact.populateBooks();
             }
         }
