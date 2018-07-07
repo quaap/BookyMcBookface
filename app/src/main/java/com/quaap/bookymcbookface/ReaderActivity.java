@@ -381,7 +381,12 @@ public class ReaderActivity extends Activity {
                 if (fontsize != -1) {
                     ract.setFontSize(fontsize);
                 }
-                ract.showUri(ract.book.getCurrentSection());
+                Uri uri = ract.book.getCurrentSection();
+                if (uri!=null) {
+                    ract.showUri(uri);
+                } else {
+                    Toast.makeText(ract,"Something went wrong (no sections). Please report this book as a bug",Toast.LENGTH_LONG).show();
+                }
             }
         }
     }

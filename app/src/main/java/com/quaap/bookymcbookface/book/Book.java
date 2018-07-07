@@ -99,9 +99,8 @@ public abstract class Book {
             saveCurrentSectionID();
         }
 
-        if (currentSectionIDPos>=sectionIDs.size()) {
-            currentSectionIDPos = 0;
-            Toast.makeText(context,"Something went wrong. Please report this book as a bug",Toast.LENGTH_LONG).show();
+        if (sectionIDs.size()==0) {
+            return null;
         }
         return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
