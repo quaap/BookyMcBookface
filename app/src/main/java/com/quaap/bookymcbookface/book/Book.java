@@ -93,16 +93,21 @@ public abstract class Book {
     }
 
     public Uri getCurrentSection() {
-        restoreCurrentSectionID();
-        if (currentSectionIDPos >= sectionIDs.size()) {
-            currentSectionIDPos = 0;
-            saveCurrentSectionID();
-        }
+        try {
+            restoreCurrentSectionID();
+            if (currentSectionIDPos >= sectionIDs.size()) {
+                currentSectionIDPos = 0;
+                saveCurrentSectionID();
+            }
 
-        if (sectionIDs.size()==0) {
+            if (sectionIDs.size() == 0) {
+                return null;
+            }
+            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
             return null;
         }
-        return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
     }
 
     public void setFontsize(int fontsize) {
@@ -144,31 +149,43 @@ public abstract class Book {
 
 
     public Uri getNextSection() {
-        if (currentSectionIDPos + 1 < sectionIDs.size()) {
-            clearSectionOffset();
-            currentSectionIDPos++;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            if (currentSectionIDPos + 1 < sectionIDs.size()) {
+                clearSectionOffset();
+                currentSectionIDPos++;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
 
     public Uri getPreviousSection() {
-        if (currentSectionIDPos - 1 >= 0) {
-            clearSectionOffset();
-            currentSectionIDPos--;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            if (currentSectionIDPos - 1 >= 0) {
+                clearSectionOffset();
+                currentSectionIDPos--;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
 
     public Uri gotoSectionID(String id) {
-        int pos = sectionIDs.indexOf(id);
-        if (pos>-1 && pos < sectionIDs.size()) {
-            currentSectionIDPos = pos;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            int pos = sectionIDs.indexOf(id);
+            if (pos > -1 && pos < sectionIDs.size()) {
+                currentSectionIDPos = pos;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
