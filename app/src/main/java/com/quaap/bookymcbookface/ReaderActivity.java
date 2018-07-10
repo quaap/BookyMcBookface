@@ -322,6 +322,7 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreScrollOffset() {
+        if (book==null) return;
         int spos = book.getSectionOffset();
         webView.computeScroll();
         if (spos>=0) {

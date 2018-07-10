@@ -131,13 +131,25 @@ public class EpubBook extends Book {
     protected ReadPoint locateReadPoint(String section) {
         ReadPoint point = null;
 
-        Uri suri = Uri.parse(Uri.decode(section));
+        if (section==null) return null;
+
+        Uri suri = null;
+
+        try {
+            suri = Uri.parse(Uri.decode(section));
+        } catch (Exception e) {
+            Log.e("Epub", e.getMessage(), e);
+        }
+
+        if (suri==null) return null;
 
         if (suri.isRelative()) {
             suri = new Uri.Builder().scheme("file").path(getFullBookContentDir().getPath()).appendPath(suri.getPath()).fragment(suri.getFragment()).build();
         }
 
         String file = suri.getLastPathSegment();
+
+        if (file==null) return null;
 
         String sectionID = null;
 
