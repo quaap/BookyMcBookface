@@ -540,19 +540,29 @@ public class BookListActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(File... dirs) {
             BookListActivity blact = blactref.get();
-            if (blact!=null) {
+            if (blact!=null && dirs!=null) {
                 long time = System.currentTimeMillis();
                 for (File d : dirs) {
-                    for (final File file : d.listFiles()) {
-                        if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
-                            if (blact.addBook(file.getPath(), false, time)) {
-                                added++;
-                            }
-                            blact.viewAdder.showProgress(added);
+                    try {
+                        if (d == null) continue;
+                        for (final File file : d.listFiles()) {
+                            try {
+                                if (file == null) continue;
+                                if (file.isFile() && file.getName().matches(Book.getFileExtensionRX())) {
+                                    if (blact.addBook(file.getPath(), false, time)) {
+                                        added++;
+                                    }
+                                    blact.viewAdder.showProgress(added);
 
-                        } else if (file.isDirectory()) {
-                            doInBackground(file);
+                                } else if (file.isDirectory()) {
+                                    doInBackground(file);
+                                }
+                            } catch (Exception e) {
+                                Log.e("Booky", e.getMessage(), e);
+                            }
                         }
+                    } catch (Exception e) {
+                        Log.e("Booky", e.getMessage(), e);
                     }
                 }
             }
