@@ -544,7 +544,7 @@ public class BookListActivity extends AppCompatActivity {
                 long time = System.currentTimeMillis();
                 for (File d : dirs) {
                     try {
-                        if (d == null) continue;
+                        if (d == null || !d.isDirectory()) continue;
                         for (final File file : d.listFiles()) {
                             try {
                                 if (file == null) continue;
