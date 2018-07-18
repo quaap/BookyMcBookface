@@ -123,6 +123,7 @@ public class ReaderActivity extends Activity {
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
                         setAwake();
+                        mkFull();
                         return false;
 
                     case MotionEvent.ACTION_MOVE:
@@ -276,6 +277,7 @@ public class ReaderActivity extends Activity {
 
         }
         //saveScrollOffsetDelayed(1500);
+        mkFull();
 
     }
 
@@ -292,6 +294,7 @@ public class ReaderActivity extends Activity {
         }
 
         //saveScrollOffsetDelayed(1500);
+        mkFull();
     }
 
     private void saveScrollOffsetDelayed(int delay) {
@@ -468,11 +471,23 @@ public class ReaderActivity extends Activity {
 
     }
 
+    private void mkFull() {
+        View decorView = getWindow().getDecorView();
+        // Hide the status bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
         timer = new Timer();
+        mkFull();
     }
 
     @Override
@@ -484,6 +499,11 @@ public class ReaderActivity extends Activity {
         super.onPause();
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) mkFull();
+    }
 
     protected void showToc() {
         Map<String,String> tocmap = book.getToc();
@@ -511,33 +531,42 @@ public class ReaderActivity extends Activity {
 
     //keep the screen on for a few minutes, but not forever
     private void setAwake() {
-        Window w = this.getWindow();
-        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        try {
+            Window w = this.getWindow();
+            w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        synchronized (timerSync) {
-            if (nowakeTask != null) {
-                nowakeTask.cancel();
-                timer.purge();
-            }
-            nowakeTask = new TimerTask() {
-                @Override
-                public void run() {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Window w = ReaderActivity.this.getWindow();
-                            w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        }
-                    });
+            synchronized (timerSync) {
+                if (nowakeTask != null) {
+                    nowakeTask.cancel();
+                    timer.purge();
                 }
-            };
+                nowakeTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Window w = ReaderActivity.this.getWindow();
+                                    w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                } catch (Throwable t) {
+                                    Log.e(TAG, t.getMessage(), t);
+                                }
 
-            try {
-                timer.schedule(nowakeTask, 3 * 60 * 1000);
-            } catch(IllegalStateException e) {
-                Log.d(TAG, e.getMessage(), e);
-                Toast.makeText(this,"Something went wrong. Please report a 'setAwake' bug.",Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                };
+
+                try {
+                    timer.schedule(nowakeTask, 3 * 60 * 1000);
+                } catch (IllegalStateException e) {
+                    Log.d(TAG, e.getMessage(), e);
+                    //Toast.makeText(this, "Something went wrong. Please report a 'setAwake' bug.", Toast.LENGTH_LONG).show();
+                }
             }
+        } catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
         }
 
     }
