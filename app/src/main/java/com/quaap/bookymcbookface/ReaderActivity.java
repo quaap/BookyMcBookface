@@ -23,6 +23,7 @@ import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -599,7 +600,7 @@ public class ReaderActivity extends Activity {
 
         for (int i = 0; i<7; i++) {
             int b = i*33;
-            final int color = Color.argb(255, 255-b, 255-b, 255-b);
+            final int color = Color.argb(255, 255-b, 250-b, 240-b);
             String strcolor;
             switch (i) {
                 case 0:
@@ -650,10 +651,14 @@ public class ReaderActivity extends Activity {
 
         ViewGroup controls = findViewById(R.id.controls_layout);
         for (int i=0; i<controls.getChildCount(); i++) {
-            controls.getChildAt(i).setBackground(null);
+            View button = controls.getChildAt(i);
+            button.setBackground(null);
             Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
             btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-            controls.getChildAt(i).setBackground(btn);
+            button.setBackground(btn);
+            if (button instanceof ImageButton) {
+                ((ImageButton)button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            }
         }
 
         //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
