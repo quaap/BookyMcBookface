@@ -730,16 +730,19 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String searchfor = editText.getText().toString();
-                data.edit().putString("__LAST_SEARCH_STR__", searchfor).apply();
-                data.edit().putBoolean("__LAST_TITLE__", title.isChecked()).apply();
-                data.edit().putBoolean("__LAST_AUTHOR__", author.isChecked()).apply();
+                data.edit()
+                        .putString("__LAST_SEARCH_STR__", searchfor)
+                        .putBoolean("__LAST_TITLE__", title.isChecked())
+                        .putBoolean("__LAST_AUTHOR__", author.isChecked())
+                        .apply();
+
                 if (!searchfor.trim().isEmpty()) {
                     boolean stitle = title.isChecked() || authortitle.isChecked();
                     boolean sauthor = author.isChecked() || authortitle.isChecked();
 
                     List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
                     populateBooks(books, false);
-                    BookListActivity.this.setTitle("Search for '" + searchfor + "'.  Results: " + books.size());
+                    BookListActivity.this.setTitle("Search for '" + searchfor + "'. (" + books.size() + ")");
                     showingSearch = true;
                 } else {
                     dialogInterface.cancel();
