@@ -224,6 +224,11 @@ public class EpubBook extends Book {
 
     }
 
+    @Override
+    public String getTitle() {
+        return getSharedPreferences().getString(META_PREFIX + "dc:title", "No title");
+    }
+
 
     public BookMetadata getMetaData() throws IOException {
 

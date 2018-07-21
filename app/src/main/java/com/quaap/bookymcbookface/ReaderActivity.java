@@ -28,7 +28,6 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Timer;
