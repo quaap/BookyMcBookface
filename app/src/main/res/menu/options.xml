@@ -15,7 +15,7 @@
         android:title="@string/add_dir" />
     <item
         android:id="@+id/menu_search_books"
-        android:title="Search books" />
+        android:title="@string/search_your_books" />
 
     <item
         android:id="@+id/menu_get_books"

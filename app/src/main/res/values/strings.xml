@@ -53,6 +53,7 @@
     <string name="title">Title</string>
     <string name="author">Author</string>
     <string name="both">Both</string>
+    <string name="search_your_books">Search your books</string>
 
     <string-array name="getbook_names">
         <item>Project Gutenberg</item>

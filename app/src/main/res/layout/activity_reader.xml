@@ -1,22 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.quaap.bookymcbookface.ReaderActivity">
 
 
-    <WebView
-        android:id="@+id/page_view"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/controls_layout"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp">
+        android:layout_centerVertical="true">
 
-    </WebView>
+        <WebView
+            android:id="@+id/page_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:elevation="-1dp">
+
+        </WebView>
+
+        <LinearLayout
+            android:id="@+id/slide_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:elevation="2dp"
+            android:layout_gravity="bottom|center_horizontal">
+
+            <ImageButton
+                android:id="@+id/brightness_button"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/zoom"
+                android:src="@drawable/light" />
+
+            <ImageButton
+                android:id="@+id/zoom_button"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/zoom"
+                android:src="@android:drawable/ic_menu_zoom" />
+
+            <Button
+                android:id="@+id/contents_button"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/contents" />
+        </LinearLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/controls_layout"
@@ -35,30 +76,13 @@
             android:text="@string/prev_text"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/contents_button"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/contents" />
 
-
-        <ImageButton
-            android:id="@+id/zoom_button"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
+        <ImageView
+            android:id="@+id/control_view_more"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_weight="1"
-            android:contentDescription="@string/zoom"
-            android:src="@android:drawable/ic_menu_zoom" />
-
-        <ImageButton
-            android:id="@+id/brightness_button"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:contentDescription="@string/zoom"
-            android:src="@drawable/light" />
+            android:src="@android:drawable/arrow_up_float" />
 
         <Button
             android:id="@+id/next_button"

@@ -1,5 +1,6 @@
 package com.quaap.bookymcbookface;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -24,6 +25,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -222,6 +224,23 @@ public class ReaderActivity extends Activity {
                 showBrightnessControl();
             }
         });
+
+        final ImageView moreControls = findViewById(R.id.control_view_more);
+
+        moreControls.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final View v = findViewById(R.id.slide_menu);
+                if (v.getVisibility()==View.GONE) {
+                    v.setVisibility(View.VISIBLE);
+                    moreControls.setImageResource(android.R.drawable.arrow_down_float);
+                } else {
+                    v.setVisibility(View.GONE);
+                    moreControls.setImageResource(android.R.drawable.arrow_up_float);
+                }
+            }
+        });
+
 
         //findFile();
         Intent intent = getIntent();

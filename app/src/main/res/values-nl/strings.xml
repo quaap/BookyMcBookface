@@ -55,6 +55,7 @@
     <string name="title">Titel</string>
     <string name="author">Auteur</string>
     <string name="both">Zowel</string>
+    <string name="search_your_books">Search your books</string>
 
 
 </resources>
