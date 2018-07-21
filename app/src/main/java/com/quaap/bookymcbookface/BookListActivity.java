@@ -723,11 +723,15 @@ public class BookListActivity extends AppCompatActivity {
         builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                String searchfor = editText.getText().toString();
-                List<Integer> books = db.searchBooks(searchfor, title.isChecked(), author.isChecked());
-                populateBooks(books, false);
-                BookListActivity.this.setTitle("Search for '" + searchfor + "'");
-                showingSearch = true;
+                if (author.isChecked() || title.isChecked()) {
+                    String searchfor = editText.getText().toString();
+                    List<Integer> books = db.searchBooks(searchfor, title.isChecked(), author.isChecked());
+                    populateBooks(books, false);
+                    BookListActivity.this.setTitle("Search for '" + searchfor + "': " + books.size() + " results");
+                    showingSearch = true;
+                } else {
+                    dialogInterface.cancel();
+                }
             }
         });
 
