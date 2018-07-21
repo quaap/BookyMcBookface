@@ -283,6 +283,7 @@ public class BookListActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options, menu);
 
@@ -302,6 +303,23 @@ public class BookListActivity extends AppCompatActivity {
 
         return true;
     }
+
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
+        boolean showmwenu = super.onPrepareOptionsMenu(menu);
+        if (showingSearch) {
+            showmwenu = false;
+        }
+
+        for (int i=0; i<menu.size()-1; i++) {
+            menu.getItem(i).setVisible(showmwenu);
+        }
+
+        return showmwenu;
+    }
+
 
 
     @Override
