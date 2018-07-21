@@ -279,6 +279,45 @@ public class BookDb extends SQLiteOpenHelper {
         return books;
     }
 
+    public List<Integer> searchBooks(String text, boolean title, boolean author) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        List<Integer> books = new ArrayList<>();
+
+        String whereclause = null;
+
+        List<String> whereargs = new ArrayList<>();
+        String orderby = "2";
+
+        if (title) {
+            whereclause = BOOK_LIB_TITLE + " like ?";
+            whereargs.add("%" + text + "%");
+            orderby += "," + BOOK_LIB_TITLE;
+        }
+
+        if (author) {
+            if (whereclause!=null) {
+                whereclause += " or ";
+            } else {
+                whereclause = "";
+            }
+            whereclause += BOOK_LIB_AUTHOR + " like ?";
+            whereargs.add("%" + text + "%");
+            orderby += "," + BOOK_LIB_AUTHOR;
+        }
+
+
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"},
+                whereclause, whereargs.toArray(new String[whereargs.size()])
+                , null, null, orderby)) {
+
+            while (bookscursor.moveToNext()) {
+                books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));
+            }
+        }
+
+        return books;
+    }
 
 
     public class BookRecord {

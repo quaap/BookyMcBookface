@@ -14,6 +14,10 @@
         android:id="@+id/menu_add_dir"
         android:title="@string/add_dir" />
     <item
+        android:id="@+id/menu_search_books"
+        android:title="Search books" />
+
+    <item
         android:id="@+id/menu_get_books"
         android:title="@string/find_books_online" />
     <group

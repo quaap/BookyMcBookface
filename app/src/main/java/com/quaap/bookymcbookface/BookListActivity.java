@@ -19,12 +19,18 @@ import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -65,6 +71,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private BookDb db;
     private int recentread;
+    private boolean showingSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +112,17 @@ public class BookListActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateViewTimes();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (showingSearch) {
+            setTitle(R.string.app_name);
+            populateBooks();
+            showingSearch = false;
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void update() {
@@ -179,22 +197,25 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-
     private void populateBooks() {
+        SortOrder sortorder = getSortOrder();
+        final List<Integer> books = db.getBookIds(sortorder);
+        populateBooks(books,  true);
+    }
+
+    private void populateBooks(final List<Integer> books, boolean showRecent) {
 
         showProgress(0);
         Thread.yield();
-        SortOrder sortorder = getSortOrder();
-
-        final List<Integer> books = db.getBookIds(sortorder);
-
-        recentread = db.getMostRecentlyRead();
 
         listHolder.removeAllViews();
 
-        if (recentread>=0) {
-            viewAdder.displayBook(recentread);
-            books.remove((Integer) recentread);
+        if (showRecent) {
+            recentread = db.getMostRecentlyRead();
+            if (recentread >= 0) {
+                viewAdder.displayBook(recentread);
+                books.remove((Integer) recentread);
+            }
         }
 
         new DisplayBooksTask(this, books).execute();
@@ -312,6 +333,9 @@ public class BookListActivity extends AppCompatActivity {
             case R.id.menu_get_books:
                 Intent intent = new Intent(this, GetBooksActivity.class);
                 startActivity(intent);
+                break;
+            case R.id.menu_search_books:
+                showSearch();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -683,6 +707,71 @@ public class BookListActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    public void showSearch() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Find books");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.search, null);
+        builder.setView(dialogView);
+
+        final EditText editText =  dialogView.findViewById(R.id.search_text);
+        final CheckBox author = dialogView.findViewById(R.id.search_author);
+        final CheckBox title = dialogView.findViewById(R.id.search_title);
+
+        builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String searchfor = editText.getText().toString();
+                List<Integer> books = db.searchBooks(searchfor, title.isChecked(), author.isChecked());
+                populateBooks(books, false);
+                BookListActivity.this.setTitle("Search for '" + searchfor + "'");
+                showingSearch = true;
+            }
+        });
+
+        builder.setNegativeButton(android.R.string.cancel, null);
+
+        editText.setFocusable(true);
+        final AlertDialog alertDialog = builder.create();
+
+        alertDialog.show();
+
+        final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        editText.setImeActionLabel("Search", EditorInfo.IME_ACTION_SEARCH);
+
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (event != null && event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return false;
+                } else if (actionId == EditorInfo.IME_ACTION_SEARCH
+                        || event == null
+                        || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                    editText.clearFocus();
+
+                    if (imm!=null) imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+                    // Your code
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        editText.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (imm!=null) imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }, 100);
+
+    }
 
     private static class BookListAdderHandler extends Handler {
 
