@@ -20,20 +20,37 @@
         android:imeOptions="actionSearch"
         android:inputType="textPersonName" />
 
-    <CheckBox
-        android:id="@+id/search_title"
+    <RadioGroup
+        android:id="@+id/search_where"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:checked="true"
-        android:text="Title" />
+        android:layout_margin="16dp">
 
-    <CheckBox
-        android:id="@+id/search_author"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:checked="true"
-        android:text="Author" />
+        <RadioButton
+            android:id="@+id/search_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Title" />
+
+        <RadioButton
+            android:id="@+id/search_author"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Author" />
+
+
+        <RadioButton
+            android:id="@+id/search_authortitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="Both" />
+
+    </RadioGroup>
+
+
 
 </LinearLayout>

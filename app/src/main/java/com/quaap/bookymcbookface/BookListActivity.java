@@ -35,6 +35,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.PopupMenu;
+import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -721,22 +722,27 @@ public class BookListActivity extends AppCompatActivity {
         builder.setView(dialogView);
 
         final EditText editText =  dialogView.findViewById(R.id.search_text);
-        final CheckBox author = dialogView.findViewById(R.id.search_author);
-        final CheckBox title = dialogView.findViewById(R.id.search_title);
+        final RadioButton author = dialogView.findViewById(R.id.search_author);
+        final RadioButton title = dialogView.findViewById(R.id.search_title);
+        final RadioButton authortitle = dialogView.findViewById(R.id.search_authortitle);
 
         builder.setPositiveButton(android.R.string.search_go, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String searchfor = editText.getText().toString();
-                if ((author.isChecked() || title.isChecked()) && !searchfor.trim().isEmpty()) {
-                    List<Integer> books = db.searchBooks(searchfor, title.isChecked(), author.isChecked());
+                data.edit().putString("__LAST_SEARCH_STR__", searchfor).apply();
+                data.edit().putBoolean("__LAST_TITLE__", title.isChecked()).apply();
+                data.edit().putBoolean("__LAST_AUTHOR__", author.isChecked()).apply();
+                if (!searchfor.trim().isEmpty()) {
+                    boolean stitle = title.isChecked() || authortitle.isChecked();
+                    boolean sauthor = author.isChecked() || authortitle.isChecked();
+
+                    List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
                     populateBooks(books, false);
                     BookListActivity.this.setTitle("Search for '" + searchfor + "'.  Results: " + books.size());
                     showingSearch = true;
                 } else {
-
-                    //dialogInterface.cancel();
-                    showMsg(BookListActivity.this, "Nothing selected", "Must select either author or title");
+                    dialogInterface.cancel();
                 }
             }
         });
@@ -745,12 +751,17 @@ public class BookListActivity extends AppCompatActivity {
 
         editText.setFocusable(true);
         final AlertDialog alertDialog = builder.create();
-
         alertDialog.show();
 
-        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+        title.setChecked(data.getBoolean("__LAST_TITLE__", false));
+        author.setChecked(data.getBoolean("__LAST_AUTHOR__", false));
 
+        String lastSearch = data.getString("__LAST_SEARCH_STR__","");
+        editText.setText(lastSearch);
+        editText.setSelection(lastSearch.length());
+        editText.setSelection(0, lastSearch.length());
 
+        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(!lastSearch.isEmpty());
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -763,23 +774,11 @@ public class BookListActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                updateSearchButton(alertDialog, editText, author, title);
+                alertDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                        .setEnabled(!editText.getText().toString().trim().isEmpty());
             }
         });
 
-        author.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                updateSearchButton(alertDialog, editText, author, title);
-            }
-        });
-
-        title.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                updateSearchButton(alertDialog, editText, author, title);
-            }
-        });
 
         final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -795,7 +794,7 @@ public class BookListActivity extends AppCompatActivity {
                 } else if (actionId == EditorInfo.IME_ACTION_SEARCH
                         || event == null
                         || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    if (updateSearchButton(alertDialog, editText, author, title)) {
+                    if (!editText.getText().toString().trim().isEmpty()) {
                         editText.clearFocus();
 
                         if (imm != null) imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
@@ -815,13 +814,6 @@ public class BookListActivity extends AppCompatActivity {
             }
         }, 100);
 
-    }
-
-    private boolean  updateSearchButton(AlertDialog alertDialog, EditText editText, CheckBox author, CheckBox title) {
-        boolean enabled = !editText.getText().toString().trim().isEmpty() && (author.isChecked() || title.isChecked());
-        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-                .setEnabled(enabled);
-        return enabled;
     }
 
     private static class BookListAdderHandler extends Handler {
