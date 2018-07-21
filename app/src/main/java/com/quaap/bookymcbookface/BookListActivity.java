@@ -15,7 +15,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.SpannableString;
+import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.Log;
@@ -30,6 +32,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.ScrollView;
@@ -687,12 +690,13 @@ public class BookListActivity extends AppCompatActivity {
         builder.setTitle(title);
 
         final TextView messageview = new TextView(context);
-        messageview.setPadding(16,8,16,8);
+        messageview.setPadding(32,8,32,8);
 
         final SpannableString s = new SpannableString(message);
         Linkify.addLinks(s, Linkify.ALL);
         messageview.setText(s);
         messageview.setMovementMethod(LinkMovementMethod.getInstance());
+        messageview.setTextSize(18);
 
         builder.setView(messageview);
 
@@ -720,17 +724,19 @@ public class BookListActivity extends AppCompatActivity {
         final CheckBox author = dialogView.findViewById(R.id.search_author);
         final CheckBox title = dialogView.findViewById(R.id.search_title);
 
-        builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(android.R.string.search_go, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if (author.isChecked() || title.isChecked()) {
-                    String searchfor = editText.getText().toString();
+                String searchfor = editText.getText().toString();
+                if ((author.isChecked() || title.isChecked()) && !searchfor.trim().isEmpty()) {
                     List<Integer> books = db.searchBooks(searchfor, title.isChecked(), author.isChecked());
                     populateBooks(books, false);
-                    BookListActivity.this.setTitle("Search for '" + searchfor + "': " + books.size() + " results");
+                    BookListActivity.this.setTitle("Search for '" + searchfor + "'.  Results: " + books.size());
                     showingSearch = true;
                 } else {
-                    dialogInterface.cancel();
+
+                    //dialogInterface.cancel();
+                    showMsg(BookListActivity.this, "Nothing selected", "Must select either author or title");
                 }
             }
         });
@@ -742,25 +748,59 @@ public class BookListActivity extends AppCompatActivity {
 
         alertDialog.show();
 
+        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+
+
+
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                updateSearchButton(alertDialog, editText, author, title);
+            }
+        });
+
+        author.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                updateSearchButton(alertDialog, editText, author, title);
+            }
+        });
+
+        title.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                updateSearchButton(alertDialog, editText, author, title);
+            }
+        });
+
         final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         editText.setImeActionLabel("Search", EditorInfo.IME_ACTION_SEARCH);
 
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
 
+            @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (event != null && event.getAction() != KeyEvent.ACTION_DOWN) {
                     return false;
                 } else if (actionId == EditorInfo.IME_ACTION_SEARCH
                         || event == null
                         || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    editText.clearFocus();
+                    if (updateSearchButton(alertDialog, editText, author, title)) {
+                        editText.clearFocus();
 
-                    if (imm!=null) imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
-                    // Your code
+                        if (imm != null) imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+                    }
                     return true;
                 }
 
@@ -775,6 +815,13 @@ public class BookListActivity extends AppCompatActivity {
             }
         }, 100);
 
+    }
+
+    private boolean  updateSearchButton(AlertDialog alertDialog, EditText editText, CheckBox author, CheckBox title) {
+        boolean enabled = !editText.getText().toString().trim().isEmpty() && (author.isChecked() || title.isChecked());
+        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                .setEnabled(enabled);
+        return enabled;
     }
 
     private static class BookListAdderHandler extends Handler {
