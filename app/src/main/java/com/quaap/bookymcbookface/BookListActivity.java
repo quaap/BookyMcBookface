@@ -715,7 +715,7 @@ public class BookListActivity extends AppCompatActivity {
     public void showSearch() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle("Find books");
+        builder.setTitle(android.R.string.search_go);
 
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.search, null);
@@ -742,7 +742,7 @@ public class BookListActivity extends AppCompatActivity {
 
                     List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
                     populateBooks(books, false);
-                    BookListActivity.this.setTitle("Search for '" + searchfor + "'. (" + books.size() + ")");
+                    BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
                     showingSearch = true;
                 } else {
                     dialogInterface.cancel();
@@ -786,7 +786,7 @@ public class BookListActivity extends AppCompatActivity {
         final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        editText.setImeActionLabel("Search", EditorInfo.IME_ACTION_SEARCH);
+        editText.setImeActionLabel(getString(android.R.string.search_go), EditorInfo.IME_ACTION_SEARCH);
 
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 

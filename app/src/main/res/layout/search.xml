@@ -9,14 +9,14 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Search for:" />
+        android:text="@string/search_for" />
 
     <EditText
         android:id="@+id/search_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Little Women"
+        android:hint="@string/hint_search_text"
         android:imeOptions="actionSearch"
         android:inputType="textPersonName" />
 
@@ -31,14 +31,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Title" />
+            android:text="@string/title" />
 
         <RadioButton
             android:id="@+id/search_author"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Author" />
+            android:text="@string/author" />
 
 
         <RadioButton
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:checked="true"
-            android:text="Both" />
+            android:text="@string/both" />
 
     </RadioGroup>
 
