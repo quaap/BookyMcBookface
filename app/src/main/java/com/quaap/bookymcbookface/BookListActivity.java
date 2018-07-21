@@ -116,6 +116,7 @@ public class BookListActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateViewTimes();
+
     }
 
     @Override
@@ -205,6 +206,14 @@ public class BookListActivity extends AppCompatActivity {
         SortOrder sortorder = getSortOrder();
         final List<Integer> books = db.getBookIds(sortorder);
         populateBooks(books,  true);
+    }
+
+
+    private void searchBooks(String searchfor, boolean stitle, boolean sauthor) {
+        List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
+        populateBooks(books, false);
+        BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
+        showingSearch = true;
     }
 
     private void populateBooks(final List<Integer> books, boolean showRecent) {
@@ -758,10 +767,7 @@ public class BookListActivity extends AppCompatActivity {
                     boolean stitle = title.isChecked() || authortitle.isChecked();
                     boolean sauthor = author.isChecked() || authortitle.isChecked();
 
-                    List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
-                    populateBooks(books, false);
-                    BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
-                    showingSearch = true;
+                    searchBooks(searchfor, stitle, sauthor);
                 } else {
                     dialogInterface.cancel();
                 }
