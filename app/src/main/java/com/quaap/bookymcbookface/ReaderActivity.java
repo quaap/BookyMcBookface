@@ -225,21 +225,8 @@ public class ReaderActivity extends Activity {
             }
         });
 
-        final ImageView moreControls = findViewById(R.id.control_view_more);
-
-        moreControls.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final View v = findViewById(R.id.slide_menu);
-                if (v.getVisibility()==View.GONE) {
-                    v.setVisibility(View.VISIBLE);
-                    moreControls.setImageResource(android.R.drawable.arrow_down_float);
-                } else {
-                    v.setVisibility(View.GONE);
-                    moreControls.setImageResource(android.R.drawable.arrow_up_float);
-                }
-            }
-        });
+        findViewById(R.id.control_view_more).setOnClickListener(morelessControls);
+        findViewById(R.id.control_view_less).setOnClickListener(morelessControls);
 
 
         //findFile();
@@ -250,6 +237,24 @@ public class ReaderActivity extends Activity {
         }
 
     }
+
+    private View.OnClickListener morelessControls = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            final View v = findViewById(R.id.slide_menu);
+            if (v.getVisibility()==View.GONE) {
+                v.setVisibility(View.VISIBLE);
+                findViewById(R.id.control_view_more).setVisibility(View.GONE);
+                findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
+                mkReg();
+            } else {
+                v.setVisibility(View.GONE);
+                findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
+                findViewById(R.id.control_view_less).setVisibility(View.GONE);
+                mkFull();
+            }
+        }
+    };
 
     private void startScrollTask() {
         synchronized (timerSync) {
@@ -502,6 +507,11 @@ public class ReaderActivity extends Activity {
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    private void mkReg() {
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
 
     @Override
     protected void onResume() {
@@ -668,20 +678,31 @@ public class ReaderActivity extends Activity {
         ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
         ViewGroup controls = findViewById(R.id.controls_layout);
+        setDimLevel(controls, color);
         for (int i=0; i<controls.getChildCount(); i++) {
             View button = controls.getChildAt(i);
-            button.setBackground(null);
-            Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
-            btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-            button.setBackground(btn);
-            if (button instanceof ImageButton) {
-                ((ImageButton)button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-            }
+            setDimLevel(button, color);
+        }
+
+        ViewGroup extracontrols = findViewById(R.id.slide_menu);
+        for (int i=0; i<extracontrols.getChildCount(); i++) {
+            View button = extracontrols.getChildAt(i);
+            setDimLevel(button, color);
         }
 
         //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
         webView.getSettings().setJavaScriptEnabled(true);
         webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
         webView.getSettings().setJavaScriptEnabled(false);
+    }
+
+    private void setDimLevel(View button, int color) {
+        button.setBackground(null);
+        Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
+        btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        button.setBackground(btn);
+        if (button instanceof ImageButton) {
+            ((ImageButton)button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        }
     }
 }
