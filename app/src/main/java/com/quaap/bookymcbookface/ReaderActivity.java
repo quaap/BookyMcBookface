@@ -71,6 +71,7 @@ public class ReaderActivity extends Activity {
 
     private Handler handler = new Handler();
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -209,6 +210,7 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 showToc();
+                hideMenu();
             }
         });
 
@@ -216,12 +218,14 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 selectFontSize();
+                hideMenu();
             }
         });
         findViewById(R.id.brightness_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showBrightnessControl();
+                hideMenu();
             }
         });
 
@@ -241,20 +245,30 @@ public class ReaderActivity extends Activity {
     private View.OnClickListener morelessControls = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            final View v = findViewById(R.id.slide_menu);
+            View v = findViewById(R.id.slide_menu);
             if (v.getVisibility()==View.GONE) {
-                v.setVisibility(View.VISIBLE);
-                findViewById(R.id.control_view_more).setVisibility(View.GONE);
-                findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
-                mkReg();
+                showMenu();
             } else {
-                v.setVisibility(View.GONE);
-                findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
-                findViewById(R.id.control_view_less).setVisibility(View.GONE);
-                mkFull();
+                hideMenu();
             }
         }
     };
+
+    private void showMenu() {
+        View v = findViewById(R.id.slide_menu);
+        v.setVisibility(View.VISIBLE);
+        findViewById(R.id.control_view_more).setVisibility(View.GONE);
+        findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
+        mkReg();
+    }
+
+    private void hideMenu() {
+        View v = findViewById(R.id.slide_menu);
+        v.setVisibility(View.GONE);
+        findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
+        findViewById(R.id.control_view_less).setVisibility(View.GONE);
+        mkFull();
+    }
 
     private void startScrollTask() {
         synchronized (timerSync) {
@@ -301,7 +315,7 @@ public class ReaderActivity extends Activity {
 
         }
         //saveScrollOffsetDelayed(1500);
-        mkFull();
+        hideMenu();
 
     }
 
@@ -316,9 +330,8 @@ public class ReaderActivity extends Activity {
 
 
         }
-
         //saveScrollOffsetDelayed(1500);
-        mkFull();
+        hideMenu();
     }
 
     private void saveScrollOffsetDelayed(int delay) {
