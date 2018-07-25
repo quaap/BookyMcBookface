@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import com.quaap.bookymcbookface.FsTools;
 
@@ -214,7 +216,20 @@ public abstract class Book {
 
 
     private static String makeFName(File file) {
-        return file.getPath().replaceAll("/|\\\\","_");
+        String fname = file.getPath().replaceAll("/|\\\\","_");
+        if (fname.getBytes().length>126) {
+            //for very long names, we take the first part and the last part and the crc.
+            // should be unique.
+            fname = fname.substring(0,50) + fname.substring(fname.length()-30) + crc32(fname);
+        }
+        return fname;
+    }
+
+    public static long crc32(String input) {
+        byte[] bytes = input.getBytes();
+        Checksum checksum = new CRC32();
+        checksum.update(bytes, 0, bytes.length);
+        return checksum.getValue();
     }
 
     public static SharedPreferences getStorage(Context context, File file) {
