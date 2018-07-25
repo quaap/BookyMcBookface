@@ -3,7 +3,7 @@
     <string name="book_viewed_on">Bekeken op %s</string>
     <string name="book_added_on">Toegevoegd op %s</string>
     <string name="add">Boek toevoegen</string>
-    <string name="add_dir">Boeken toevoegen vanuit map</string>
+    <string name="add_dir">Boeken toevoegen uit map</string>
     <string name="contents">Inhoud</string>
     <string name="zoom">zoomen</string>
     <string name="already_added">Het bestand \"%s\" is al toegevoegd</string>
@@ -44,14 +44,14 @@
     <string name="web_add">Toevoegen</string>
     <string name="getbooks_desc">De onderstaande links worden geopend in je webbrowser. Gedownloade boeken worden opgeslagen in de standaardlocatie van de webbrowser.</string>
     <string name="new_websrc">Nieuw</string>
-    <string name="search_for">Zoek naar:</string>
+    <string name="search_for">Zoeken naar:</string>
     <string name="hint_search_text">De ontdekking van de hemel</string>
 
-    <string name="search_res_title">Zoek naar \'%1$s\' (%2$d)</string>
+    <string name="search_res_title">Zoeken naar \'%1$s\' (%2$d)</string>
     <string name="title">Titel</string>
     <string name="author">Auteur</string>
-    <string name="both">Zowel</string>
-    <string name="search_your_books">Zoek uw boeken</string>
+    <string name="both">Beiden</string>
+    <string name="search_your_books">Doorzoek je boeken</string>
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">
