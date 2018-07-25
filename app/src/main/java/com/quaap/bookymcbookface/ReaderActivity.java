@@ -516,15 +516,20 @@ public class ReaderActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (timer!=null) {
+            timer.cancel();
+        }
         timer = new Timer();
         mkFull();
     }
 
     @Override
     protected void onPause() {
-        timer.cancel();
-        timer.purge();
-        timer = null;
+        if (timer!=null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+        }
         saveScrollOffset();
         super.onPause();
     }
@@ -568,6 +573,7 @@ public class ReaderActivity extends Activity {
             synchronized (timerSync) {
                 if (nowakeTask != null) {
                     nowakeTask.cancel();
+                    if (timer==null)  return;
                     timer.purge();
                 }
                 nowakeTask = new TimerTask() {
@@ -589,6 +595,7 @@ public class ReaderActivity extends Activity {
                 };
 
                 try {
+                    if (timer==null)  return;
                     timer.schedule(nowakeTask, 3 * 60 * 1000);
                 } catch (IllegalStateException e) {
                     Log.d(TAG, e.getMessage(), e);
@@ -603,6 +610,8 @@ public class ReaderActivity extends Activity {
 
 
     private void showBrightnessControl() {
+        if (book==null) return;
+
         PopupMenu bmenu = new PopupMenu(this, findViewById(R.id.brightness_button));
         int bg = book.getBackgroundColor();
 
