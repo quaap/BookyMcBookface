@@ -30,8 +30,6 @@
     <string name="sort_by_added_date">Standaardsortering</string>
     <string name="sort_by_title">Sorteren op titel</string>
     <string name="sort_by_author">Sorteren op auteur</string>
-    <string name="prev_text">&lt;&lt;</string>
-    <string name="next_text">&gt;&gt;</string>
     <string name="books_added">%d boeken toegevoegd</string>
     <string name="bright">Licht</string>
     <string name="dim">Donker</string>
@@ -46,12 +44,21 @@
     <string name="web_add">Toevoegen</string>
     <string name="getbooks_desc">De onderstaande links worden geopend in je webbrowser. Gedownloade boeken worden opgeslagen in de standaardlocatie van de webbrowser.</string>
     <string name="new_websrc">Nieuw</string>
-    <string name="web_url_hint">http://www.</string>
+    <string name="search_for">Zoek naar:</string>
+    <string name="hint_search_text">De ontdekking van de hemel</string>
 
+    <string name="search_res_title">Zoek naar \'%1$s\' (%2$d)</string>
+    <string name="title">Titel</string>
+    <string name="author">Auteur</string>
+    <string name="both">Zowel</string>
+    <string name="search_your_books">Zoek uw boeken</string>
+
+    <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">
         <item>Project Gutenberg</item>
         <item>Archive.org</item>
     </string-array>
+
     <string-array name="getbook_urls">
         <item>http://m.gutenberg.org/</item>
         <item>https://archive.org/details/texts</item>

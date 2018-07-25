@@ -2,9 +2,15 @@
 
 An extremely unfancy, slightly broken, bare-bones epub reader. Also reads txt and html ebooks. 
 
+<a href="https://f-droid.org/packages/com.quaap.bookymcbookface" target="_blank">
+<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="90"/></a>
+<a href="https://play.google.com/store/apps/details?id=com.quaap.bookymcbookface" target="_blank">
+<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="90"/></a>
+
+
 ## Features:
-* Completely opensource: no ads, tracking, or malicious permissions.
-* Loads epub, txt, and html books.
+* Completely Open Source: no ads, tracking, or malicious permissions.
+* Loads epub, txt, and HTML books.
 * Load all books in a directory.
 * List of books.
 * Sort book list by title, author, or date added.

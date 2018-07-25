@@ -1,5 +1,6 @@
 package com.quaap.bookymcbookface;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -23,10 +24,12 @@ import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Timer;
@@ -58,6 +61,7 @@ public class ReaderActivity extends Activity {
     public static final String FILENAME = "filename";
 
 
+    private final Object timerSync = new Object();
     private Timer timer;
 
     private TimerTask nowakeTask = null;
@@ -121,6 +125,7 @@ public class ReaderActivity extends Activity {
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
                         setAwake();
+                        mkFull();
                         return false;
 
                     case MotionEvent.ACTION_MOVE:
@@ -220,6 +225,10 @@ public class ReaderActivity extends Activity {
             }
         });
 
+        findViewById(R.id.control_view_more).setOnClickListener(morelessControls);
+        findViewById(R.id.control_view_less).setOnClickListener(morelessControls);
+
+
         //findFile();
         Intent intent = getIntent();
         String filename = intent.getStringExtra(FILENAME);
@@ -229,20 +238,45 @@ public class ReaderActivity extends Activity {
 
     }
 
+    private View.OnClickListener morelessControls = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            final View v = findViewById(R.id.slide_menu);
+            if (v.getVisibility()==View.GONE) {
+                v.setVisibility(View.VISIBLE);
+                findViewById(R.id.control_view_more).setVisibility(View.GONE);
+                findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
+                mkReg();
+            } else {
+                v.setVisibility(View.GONE);
+                findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
+                findViewById(R.id.control_view_less).setVisibility(View.GONE);
+                mkFull();
+            }
+        }
+    };
+
     private void startScrollTask() {
-        if (scrollTask == null) {
-            scrollTask = new TimerTask() {
-                @Override
-                public void run() {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            webView.scrollBy(0, scrollDir);
-                        }
-                    });
+        synchronized (timerSync) {
+            if (scrollTask == null) {
+                scrollTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                webView.scrollBy(0, scrollDir);
+                            }
+                        });
+                    }
+                };
+                try {
+                    timer.schedule(scrollTask, 0, 100);
+                } catch(IllegalStateException e) {
+                    Log.d(TAG, e.getMessage(), e);
+                    Toast.makeText(this,"Something went wrong. Please report a 'scroll' bug.",Toast.LENGTH_LONG).show();
                 }
-            };
-            timer.schedule(scrollTask, 0, 100);
+            }
         }
     }
 
@@ -267,6 +301,7 @@ public class ReaderActivity extends Activity {
 
         }
         //saveScrollOffsetDelayed(1500);
+        mkFull();
 
     }
 
@@ -283,6 +318,7 @@ public class ReaderActivity extends Activity {
         }
 
         //saveScrollOffsetDelayed(1500);
+        mkFull();
     }
 
     private void saveScrollOffsetDelayed(int delay) {
@@ -313,6 +349,7 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreScrollOffset() {
+        if (book==null) return;
         int spos = book.getSectionOffset();
         webView.computeScroll();
         if (spos>=0) {
@@ -358,8 +395,8 @@ public class ReaderActivity extends Activity {
                     ract.book.load(file);
                 }
 
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
             }
             return null;
         }
@@ -367,12 +404,17 @@ public class ReaderActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             ReaderActivity ract = ractref.get();
-            if (ract!=null) {
+            if (ract!=null && ract.book!=null) {
                 int fontsize = ract.book.getFontsize();
                 if (fontsize != -1) {
                     ract.setFontSize(fontsize);
                 }
-                ract.showUri(ract.book.getCurrentSection());
+                Uri uri = ract.book.getCurrentSection();
+                if (uri!=null) {
+                    ract.showUri(uri);
+                } else {
+                    Toast.makeText(ract,"Something went wrong (no sections). Please report this book as a bug",Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
@@ -388,8 +430,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void handleLink(String clickedLink) {
-        Log.d("Main", "clicked on " + clickedLink);
-        showUri(book.handleClickedLink(clickedLink));
+        if (clickedLink!=null) {
+            Log.d("Main", "clicked on " + clickedLink);
+            showUri(book.handleClickedLink(clickedLink));
+        }
 
     }
 
@@ -451,20 +495,50 @@ public class ReaderActivity extends Activity {
 
     }
 
+    private void mkFull() {
+        View decorView = getWindow().getDecorView();
+        // Hide the status bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+
+    private void mkReg() {
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (timer!=null) {
+            timer.cancel();
+        }
         timer = new Timer();
+        mkFull();
     }
 
     @Override
     protected void onPause() {
-        timer.cancel();
+        if (timer!=null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+        }
         saveScrollOffset();
         super.onPause();
     }
 
+//    @Override
+//    public void onWindowFocusChanged(boolean hasFocus) {
+//        super.onWindowFocusChanged(hasFocus);
+//        //if (hasFocus) mkFull();
+//    }
 
     protected void showToc() {
         Map<String,String> tocmap = book.getToc();
@@ -492,31 +566,52 @@ public class ReaderActivity extends Activity {
 
     //keep the screen on for a few minutes, but not forever
     private void setAwake() {
-        Window w = this.getWindow();
-        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        try {
+            Window w = this.getWindow();
+            w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (nowakeTask !=null) {
-            nowakeTask.cancel();
-            timer.purge();
-        }
-        nowakeTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
+            synchronized (timerSync) {
+                if (nowakeTask != null) {
+                    nowakeTask.cancel();
+                    if (timer==null)  return;
+                    timer.purge();
+                }
+                nowakeTask = new TimerTask() {
                     @Override
                     public void run() {
-                        Window w = ReaderActivity.this.getWindow();
-                        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Window w = ReaderActivity.this.getWindow();
+                                    w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                } catch (Throwable t) {
+                                    Log.e(TAG, t.getMessage(), t);
+                                }
+
+                            }
+                        });
                     }
-                });
+                };
+
+                try {
+                    if (timer==null)  return;
+                    timer.schedule(nowakeTask, 3 * 60 * 1000);
+                } catch (IllegalStateException e) {
+                    Log.d(TAG, e.getMessage(), e);
+                    //Toast.makeText(this, "Something went wrong. Please report a 'setAwake' bug.", Toast.LENGTH_LONG).show();
+                }
             }
-        };
-        timer.schedule(nowakeTask, 3*60*1000);
+        } catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
+        }
 
     }
 
 
     private void showBrightnessControl() {
+        if (book==null) return;
+
         PopupMenu bmenu = new PopupMenu(this, findViewById(R.id.brightness_button));
         int bg = book.getBackgroundColor();
 
@@ -542,7 +637,7 @@ public class ReaderActivity extends Activity {
 
         for (int i = 0; i<7; i++) {
             int b = i*33;
-            final int color = Color.argb(255, 255-b, 255-b, 255-b);
+            final int color = Color.argb(255, 255-b, 250-b, 240-b);
             String strcolor;
             switch (i) {
                 case 0:
@@ -579,8 +674,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreBgColor() {
-        int bgcolor = book.getBackgroundColor();
-        if (bgcolor!=Integer.MAX_VALUE) applyColor(bgcolor);
+        if (book!=null) {
+            int bgcolor = book.getBackgroundColor();
+            if (bgcolor != Integer.MAX_VALUE) applyColor(bgcolor);
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -590,16 +687,31 @@ public class ReaderActivity extends Activity {
         ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
         ViewGroup controls = findViewById(R.id.controls_layout);
+        setDimLevel(controls, color);
         for (int i=0; i<controls.getChildCount(); i++) {
-            controls.getChildAt(i).setBackground(null);
-            Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
-            btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-            controls.getChildAt(i).setBackground(btn);
+            View button = controls.getChildAt(i);
+            setDimLevel(button, color);
+        }
+
+        ViewGroup extracontrols = findViewById(R.id.slide_menu);
+        for (int i=0; i<extracontrols.getChildCount(); i++) {
+            View button = extracontrols.getChildAt(i);
+            setDimLevel(button, color);
         }
 
         //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #0000AA !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
+        webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
         webView.getSettings().setJavaScriptEnabled(false);
+    }
+
+    private void setDimLevel(View button, int color) {
+        button.setBackground(null);
+        Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
+        btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        button.setBackground(btn);
+        if (button instanceof ImageButton) {
+            ((ImageButton)button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        }
     }
 }

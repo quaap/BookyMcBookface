@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import com.quaap.bookymcbookface.FsTools;
 
@@ -92,13 +96,21 @@ public abstract class Book {
     }
 
     public Uri getCurrentSection() {
-        restoreCurrentSectionID();
-        if (currentSectionIDPos > sectionIDs.size()) {
-            currentSectionIDPos = 0;
-            saveCurrentSectionID();
-        }
+        try {
+            restoreCurrentSectionID();
+            if (currentSectionIDPos >= sectionIDs.size()) {
+                currentSectionIDPos = 0;
+                saveCurrentSectionID();
+            }
 
-        return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            if (sectionIDs.size() == 0) {
+                return null;
+            }
+            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
+            return null;
+        }
     }
 
     public void setFontsize(int fontsize) {
@@ -140,31 +152,43 @@ public abstract class Book {
 
 
     public Uri getNextSection() {
-        if (currentSectionIDPos + 1 < sectionIDs.size()) {
-            clearSectionOffset();
-            currentSectionIDPos++;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            if (currentSectionIDPos + 1 < sectionIDs.size()) {
+                clearSectionOffset();
+                currentSectionIDPos++;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
 
     public Uri getPreviousSection() {
-        if (currentSectionIDPos - 1 >= 0) {
-            clearSectionOffset();
-            currentSectionIDPos--;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            if (currentSectionIDPos - 1 >= 0) {
+                clearSectionOffset();
+                currentSectionIDPos--;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
 
     public Uri gotoSectionID(String id) {
-        int pos = sectionIDs.indexOf(id);
-        if (pos>-1 && pos < sectionIDs.size()) {
-            currentSectionIDPos = pos;
-            saveCurrentSectionID();
-            return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+        try {
+            int pos = sectionIDs.indexOf(id);
+            if (pos > -1 && pos < sectionIDs.size()) {
+                currentSectionIDPos = pos;
+                saveCurrentSectionID();
+                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+            }
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
         }
         return null;
     }
@@ -191,25 +215,68 @@ public abstract class Book {
         Log.d("Book", "Loaded section " + currentSectionIDPos);
     }
 
-
-    private static String makeFName(File file) {
+    private static String makeOldFName(File file) {
         return file.getPath().replaceAll("/|\\\\","_");
     }
 
-    public static SharedPreferences getStorage(Context context, File file) {
-        return context.getSharedPreferences(makeFName(file), Context.MODE_PRIVATE);
+    private static final String reservedChars = "?:\"'*|/\\<>+[]()";
+
+    private static String makeFName(File file) {
+        String fname = file.getPath().replaceAll("/|\\\\","_").replaceAll(Pattern.quote(reservedChars),"_");
+        if (fname.getBytes().length>120) {
+            //for very long names, we take the first part and the last part and the crc.
+            // should be unique.
+            int len = 60;
+            if (fname.length()<=len) {  //just in case I'm missing some utf bytes vs length weirdness here
+                len = fname.length()-1;
+            }
+            fname = fname.substring(0,len) + fname.substring(fname.length()-len/2) + crc32(fname);
+        }
+        return fname;
+    }
+
+    public static long crc32(String input) {
+        byte[] bytes = input.getBytes();
+        Checksum checksum = new CRC32();
+        checksum.update(bytes, 0, bytes.length);
+        return checksum.getValue();
+    }
+
+    //fix long/invalid filenames while maintaining those that somehow worked.
+    private static String getProperFName(Context context, File file) {
+        String fname;
+        if (hasOldBookDir(context, file)) {
+            fname = makeOldFName(file);
+            Log.d("Book", "using old fname " + fname);
+        } else {
+            fname = makeFName(file);
+            Log.d("Book", "using new fname " + fname);
+        }
+        return fname;
+    }
+
+    private static boolean hasOldBookDir(Context context, File file) {
+        String subbook = "book" + makeOldFName(file);
+        return new File(context.getFilesDir(), subbook).exists();
     }
 
     private static File getBookDir(Context context, File file) {
-        String subbook = "book" + makeFName(file);
+        String fname = getProperFName(context, file);
+        String subbook = "book" + fname;
         return new File(context.getFilesDir(), subbook);
+    }
+
+    public static SharedPreferences getStorage(Context context, File file) {
+        String fname = getProperFName(context, file);
+        return context.getSharedPreferences(fname, Context.MODE_PRIVATE);
     }
 
     public static boolean remove(Context context, File file) {
         try {
             FsTools.deleteDir(getBookDir(context, file));
+            String fname = getProperFName(context, file);
             if (Build.VERSION.SDK_INT >= 24) {
-                return context.deleteSharedPreferences(makeFName(file));
+                return context.deleteSharedPreferences(fname);
             } else {
                 return getStorage(context, file).edit().clear().commit();
             }
