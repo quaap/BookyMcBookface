@@ -37,7 +37,7 @@
     <string name="book_default">Boekstandaard</string>
     <string name="no_toc_found">Geen inhoudsopgave gevonden</string>
     <string name="added_numbooks">%d toegevoegd</string>
-    <string name="loading">Bezig met laden...</string>
+    <string name="loading">Bezig met laden…</string>
     <string name="find_books_online">Online naar boeken zoeken</string>
     <string name="source_name">Bronnaam</string>
     <string name="web_url">URL</string>
