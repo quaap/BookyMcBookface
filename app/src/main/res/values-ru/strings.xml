@@ -15,7 +15,7 @@
     <string name="remove_book">Удалить книгу</string>
     <string name="coulndt_add_book">Не удалось добавить \"%s\"</string>
 
-    <string name="about">О</string>
+    <string name="about">О приложении</string>
     <string name="about_app">
         <![CDATA[
         Booky McBookface - открытый исходный код с лицензией GPLv3.\n\n
@@ -36,18 +36,18 @@
     <string name="no_toc_found">Оглавление не найдено</string>
     <string name="added_numbooks">Добавлен %d</string>
     <string name="loading">Загрузка</string>
-    <string name="find_books_online">Найти книги online</string>
-    <string name="source_name">Имя источника</string>
+    <string name="find_books_online">Найти книги онлайн</string>
+    <string name="source_name">Название</string>
     <string name="web_url">URL</string>
     <string name="web_add">Добавить</string>
     <string name="getbooks_desc">В вашем веб-браузере откроются ссылки ниже. Загруженные книги будут размещены в папке загрузки веб-браузера.</string>
-    <string name="new_websrc">Новый</string>
+    <string name="new_websrc">Добавить источник</string>
     <string name="search_res_title">Искать \'%1$s\' (%2$d)</string>
     <string name="search_for">Искать:</string>
     <string name="hint_search_text">Анна Каренина</string>
     <string name="title">Название</string>
     <string name="author">Автор</string>
-    <string name="both">И то и другое</string>
+    <string name="both">Все</string>
     <string name="search_your_books">Поиск ваших книг</string>
 
     <!-- if your language/country has its own sites change or add them here -->
