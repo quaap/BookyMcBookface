@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -214,13 +215,22 @@ public abstract class Book {
         Log.d("Book", "Loaded section " + currentSectionIDPos);
     }
 
+    private static String makeOldFName(File file) {
+        return file.getPath().replaceAll("/|\\\\","_");
+    }
+
+    private static final String reservedChars = "?:\"'*|/\\<>+[]()";
 
     private static String makeFName(File file) {
-        String fname = file.getPath().replaceAll("/|\\\\","_");
-        if (fname.getBytes().length>126) {
+        String fname = file.getPath().replaceAll("/|\\\\","_").replaceAll(Pattern.quote(reservedChars),"_");
+        if (fname.getBytes().length>120) {
             //for very long names, we take the first part and the last part and the crc.
             // should be unique.
-            fname = fname.substring(0,50) + fname.substring(fname.length()-30) + crc32(fname);
+            int len = 60;
+            if (fname.length()<=len) {  //just in case I'm missing some utf bytes vs length weirdness here
+                len = fname.length()-1;
+            }
+            fname = fname.substring(0,len) + fname.substring(fname.length()-len/2) + crc32(fname);
         }
         return fname;
     }
@@ -232,20 +242,41 @@ public abstract class Book {
         return checksum.getValue();
     }
 
-    public static SharedPreferences getStorage(Context context, File file) {
-        return context.getSharedPreferences(makeFName(file), Context.MODE_PRIVATE);
+    //fix long/invalid filenames while maintaining those that somehow worked.
+    private static String getProperFName(Context context, File file) {
+        String fname;
+        if (hasOldBookDir(context, file)) {
+            fname = makeOldFName(file);
+            Log.d("Book", "using old fname " + fname);
+        } else {
+            fname = makeFName(file);
+            Log.d("Book", "using new fname " + fname);
+        }
+        return fname;
+    }
+
+    private static boolean hasOldBookDir(Context context, File file) {
+        String subbook = "book" + makeOldFName(file);
+        return new File(context.getFilesDir(), subbook).exists();
     }
 
     private static File getBookDir(Context context, File file) {
-        String subbook = "book" + makeFName(file);
+        String fname = getProperFName(context, file);
+        String subbook = "book" + fname;
         return new File(context.getFilesDir(), subbook);
+    }
+
+    public static SharedPreferences getStorage(Context context, File file) {
+        String fname = getProperFName(context, file);
+        return context.getSharedPreferences(fname, Context.MODE_PRIVATE);
     }
 
     public static boolean remove(Context context, File file) {
         try {
             FsTools.deleteDir(getBookDir(context, file));
+            String fname = getProperFName(context, file);
             if (Build.VERSION.SDK_INT >= 24) {
-                return context.deleteSharedPreferences(makeFName(file));
+                return context.deleteSharedPreferences(fname);
             } else {
                 return getStorage(context, file).edit().clear().commit();
             }
