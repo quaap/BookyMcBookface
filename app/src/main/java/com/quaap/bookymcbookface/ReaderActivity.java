@@ -384,7 +384,7 @@ public class ReaderActivity extends Activity {
 
         new LoaderTask(this, file).execute();
 
-
+        setAwake();
     }
 
 
