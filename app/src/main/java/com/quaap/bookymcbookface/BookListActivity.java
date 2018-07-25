@@ -497,6 +497,10 @@ public class BookListActivity extends AppCompatActivity {
 
     private void removeBook(int bookid) {
         BookDb.BookRecord book = db.getBookRecord(bookid);
+        if (book==null) {
+            Toast.makeText(this, "Bug? The book doesn't seem to be in the database",Toast.LENGTH_LONG).show();
+            return;
+        }
         if (book.filename!=null && book.filename.length()>0) {
             Book.remove(this, new File(book.filename));
         }
@@ -673,8 +677,8 @@ public class BookListActivity extends AppCompatActivity {
         menu.getMenu().add(R.string.remove_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                removeBook(bookid);
                 ((ViewGroup)view.getParent()).removeView(view);
+                removeBook(bookid);
                 return false;
             }
         });
