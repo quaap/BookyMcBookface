@@ -24,8 +24,9 @@ import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -70,6 +71,9 @@ public class ReaderActivity extends Activity {
     private volatile int scrollDir;
 
     private Handler handler = new Handler();
+
+    private CheckBox fullscreenBox;
+
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -232,6 +236,32 @@ public class ReaderActivity extends Activity {
         findViewById(R.id.control_view_more).setOnClickListener(morelessControls);
         findViewById(R.id.control_view_less).setOnClickListener(morelessControls);
 
+        fullscreenBox = findViewById(R.id.fullscreen_box);
+
+        fullscreenBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                setFullscreen(b);
+                if (b) {
+                    fullscreenBox.postDelayed(
+                        new Runnable() {
+                              @Override
+                              public void run() {
+                                  mkFull();
+                                  hideMenu();
+                              }
+                        }, 500);
+                } else {
+                    fullscreenBox.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                hideMenu();
+                            }
+                        }, 500);
+                }
+            }
+        });
 
         //findFile();
         Intent intent = getIntent();
@@ -253,6 +283,17 @@ public class ReaderActivity extends Activity {
             }
         }
     };
+    private void setFullscreenMode() {
+        if (book!=null) {
+            setFullscreen(book.getFlag("fullscreen", true));
+        }
+    }
+
+    private void setFullscreen(boolean full) {
+        if (book!=null) book.setFlag("fullscreen", full);
+
+        fullscreenBox.setChecked(full);
+    }
 
     private void showMenu() {
         View v = findViewById(R.id.slide_menu);
@@ -428,6 +469,12 @@ public class ReaderActivity extends Activity {
                 } else {
                     Toast.makeText(ract,"Something went wrong (no sections). Please report this book as a bug",Toast.LENGTH_LONG).show();
                 }
+                if (ract.book.getFlag("fullscreen", true)) {
+                    ract.mkFull();
+                } else {
+                    ract.mkReg();
+                }
+                ract.setFullscreenMode();
             }
         }
     }
@@ -509,6 +556,11 @@ public class ReaderActivity extends Activity {
     }
 
     private void mkFull() {
+
+        if (book!=null && !book.getFlag("fullscreen", true)) return;
+//        findViewById(R.id.fullscreen_no_button).setVisibility(View.VISIBLE);
+//        findViewById(R.id.fullscreen_button).setVisibility(View.GONE);
+
         View decorView = getWindow().getDecorView();
         // Hide the status bar.
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -521,6 +573,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void mkReg() {
+
+//        findViewById(R.id.fullscreen_button).setVisibility(View.VISIBLE);
+//        findViewById(R.id.fullscreen_no_button).setVisibility(View.GONE);
+
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
         decorView.setSystemUiVisibility(uiOptions);
@@ -533,7 +589,6 @@ public class ReaderActivity extends Activity {
             timer.cancel();
         }
         timer = new Timer();
-        mkFull();
     }
 
     @Override

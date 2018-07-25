@@ -32,6 +32,27 @@
             android:elevation="2dp"
             android:layout_gravity="bottom|center_horizontal">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:drawable/btn_default"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/fullscreen_box"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp" />
+
+                <ImageButton
+                    android:id="@+id/fullscreen_button"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:contentDescription="@string/zoom"
+                    android:src="@drawable/fullscreen"
+                    android:visibility="visible" />
+            </LinearLayout>
+
             <ImageButton
                 android:id="@+id/brightness_button"
                 android:layout_width="match_parent"
