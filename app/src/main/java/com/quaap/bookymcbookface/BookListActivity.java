@@ -125,7 +125,6 @@ public class BookListActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     Toast.makeText(BookListActivity.this, "New! !"+ getString(R.string.search_your_books) + "!", Toast.LENGTH_LONG).show();
-                    openOptionsMenu();
                 }
             },3000);
 
