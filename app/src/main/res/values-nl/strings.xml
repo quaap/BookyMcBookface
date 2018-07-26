@@ -12,6 +12,7 @@
     <string name="find_folder">Map zoeken</string>
     <string name="find_book">Boek zoeken</string>
     <string name="open_book">Boek openen</string>
+    <string name="close_book">Boek sluiten</string>
     <string name="remove_book">Boek verwijderen</string>
     <string name="coulndt_add_book">\"%s\" kan niet worden toegevoegd</string>
 

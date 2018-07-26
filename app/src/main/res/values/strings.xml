@@ -12,6 +12,7 @@
     <string name="find_folder">Find folder</string>
     <string name="find_book">Find book</string>
     <string name="open_book">Open book</string>
+    <string name="close_book">Close book</string>
     <string name="remove_book">Remove book</string>
     <string name="coulndt_add_book">Couldn\'t add \"%s\"</string>
 

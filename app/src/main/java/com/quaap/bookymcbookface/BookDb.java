@@ -209,6 +209,18 @@ public class BookDb extends SQLiteOpenHelper {
         return -1;
     }
 
+
+    public long getAddedTime(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ADDED}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
+
+            if (bookscursor.moveToNext()) {
+                return bookscursor.getLong(bookscursor.getColumnIndex(BOOK_ADDED));
+            }
+        }
+        return -1;
+    }
+
     public int getMostRecentlyRead() {
         SQLiteDatabase db = this.getReadableDatabase();
         try (Cursor bookscursor =

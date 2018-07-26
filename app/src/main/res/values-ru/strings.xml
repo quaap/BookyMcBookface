@@ -12,6 +12,7 @@
     <string name="find_folder">Найти папку</string>
     <string name="find_book">Найти книгу</string>
     <string name="open_book">Открыть книгу</string>
+    <string name="close_book">Закрыть книгу</string>
     <string name="remove_book">Удалить книгу</string>
     <string name="coulndt_add_book">Не удалось добавить \"%s\"</string>
 
@@ -49,6 +50,7 @@
     <string name="author">Автор</string>
     <string name="both">Все</string>
     <string name="search_your_books">Поиск ваших книг</string>
+
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">

@@ -294,9 +294,13 @@ public class BookListActivity extends AppCompatActivity {
             if (child!=null) {
                 Integer id = (Integer)child.getTag();
                 if (id !=null) {
-                    long rt = db.getLastReadTime(id);
-                    if (rt>0) {
-                        updateBookStatus(child, rt, R.string.book_viewed_on);
+                    long lastread = db.getLastReadTime(id);
+
+                    if (lastread>0) {
+                        updateBookStatus(child, lastread, R.string.book_viewed_on);
+                    } else {
+                        long added = db.getAddedTime(id);
+                        updateBookStatus(child, added, R.string.book_added_on);
                     }
                 }
             }
@@ -508,7 +512,7 @@ public class BookListActivity extends AppCompatActivity {
         statusView.setText(getString(text, rtime));
     }
 
-    private void removeBook(int bookid) {
+    private void removeBook(int bookid, boolean delete) {
         BookDb.BookRecord book = db.getBookRecord(bookid);
         if (book==null) {
             Toast.makeText(this, "Bug? The book doesn't seem to be in the database",Toast.LENGTH_LONG).show();
@@ -517,7 +521,11 @@ public class BookListActivity extends AppCompatActivity {
         if (book.filename!=null && book.filename.length()>0) {
             Book.remove(this, new File(book.filename));
         }
-        db.removeBook(bookid);
+        if (delete) {
+            db.removeBook(bookid);
+        } else {
+            db.updateLastRead(bookid, -1);
+        }
         recentread = db.getMostRecentlyRead();
     }
 
@@ -687,11 +695,24 @@ public class BookListActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        if (db.getLastReadTime(bookid)!=-1) {
+            menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    removeBook(bookid, false);
+                    updateViewTimes();
+                    listHolder.invalidate();
+                    return false;
+                }
+            });
+        }
+
         menu.getMenu().add(R.string.remove_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 ((ViewGroup)view.getParent()).removeView(view);
-                removeBook(bookid);
+                removeBook(bookid, true);
                 return false;
             }
         });
