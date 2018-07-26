@@ -53,7 +53,7 @@
     <string name="title">Title</string>
     <string name="author">Author</string>
     <string name="both">Both</string>
-    <string name="search_your_books">Find your books</string>
+    <string name="search_your_books">Search your books</string>
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">
