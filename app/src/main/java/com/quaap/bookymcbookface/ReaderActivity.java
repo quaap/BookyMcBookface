@@ -28,6 +28,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -73,6 +74,8 @@ public class ReaderActivity extends Activity {
     private Handler handler = new Handler();
 
     private CheckBox fullscreenBox;
+
+    private ProgressBar progressBar;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -195,6 +198,8 @@ public class ReaderActivity extends Activity {
             });
 
         }
+
+        progressBar = findViewById(R.id.progressBar);
 
         findViewById(R.id.prev_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -436,7 +441,7 @@ public class ReaderActivity extends Activity {
     }
 
 
-    private static class LoaderTask extends  AsyncTask<Void,Void,Void>  {
+    private static class LoaderTask extends  AsyncTask<Void,Integer,Void>  {
 
         private File file;
         private WeakReference<ReaderActivity> ractref;
@@ -447,6 +452,35 @@ public class ReaderActivity extends Activity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setProgress(0);
+                ract.progressBar.setVisibility(View.VISIBLE);
+
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setProgress(values[0]);
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
         protected Void doInBackground(Void... voids) {
             try {
                 ReaderActivity ract = ractref.get();
@@ -454,6 +488,8 @@ public class ReaderActivity extends Activity {
                     ract.book = Book.getBookHandler(ract, file.getPath());
                     Log.d("Main", "File " + file);
                     ract.book.load(file);
+
+                    publishProgress(1);
                 }
 
             } catch (Exception e) {
@@ -465,6 +501,9 @@ public class ReaderActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setVisibility(View.GONE);
+            }
             if (ract!=null && ract.book!=null) {
                 int fontsize = ract.book.getFontsize();
                 if (fontsize != -1) {
