@@ -263,6 +263,13 @@ public class ReaderActivity extends Activity {
             }
         });
 
+        findViewById(R.id.fullscreen_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fullscreenBox.setChecked(!fullscreenBox.isChecked());
+            }
+        });
+
         //findFile();
         Intent intent = getIntent();
         String filename = intent.getStringExtra(FILENAME);
