@@ -117,6 +117,20 @@ public class BookListActivity extends AppCompatActivity {
         super.onResume();
         updateViewTimes();
 
+        int seen = 40;
+        String seennewsKey = "seennews";
+
+        if (seen != data.getInt(seennewsKey, -1)) {
+            viewAdder.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(BookListActivity.this, "New! !"+ getString(R.string.search_your_books) + "!", Toast.LENGTH_LONG).show();
+                    openOptionsMenu();
+                }
+            },3000);
+
+            data.edit().putInt(seennewsKey, seen).apply();
+        }
     }
 
     @Override
