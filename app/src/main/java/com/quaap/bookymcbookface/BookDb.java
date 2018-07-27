@@ -118,6 +118,10 @@ public class BookDb extends SQLiteOpenHelper {
             db.execSQL("alter table " + BOOK_TABLE + " add column " + BOOK_STATUS + " INTEGER");
 
             ContentValues data = new ContentValues();
+            data.put(BOOK_STATUS, STATUS_NONE);
+            db.update(BOOK_TABLE,data,null, null);
+
+            data = new ContentValues();
             data.put(BOOK_STATUS, STATUS_STARTED);
             db.update(BOOK_TABLE,data,BOOK_LASTREAD + ">0", null);
         }
@@ -323,8 +327,9 @@ public class BookDb extends SQLiteOpenHelper {
 
         String where = null;
         if (status!=STATUS_ANY) {
-            where = BOOK_STATUS + "=" + status;
+            where = BOOK_STATUS + " <> " + status;
         }
+        System.out.println("where: " + where);
 
         String orderby = BOOK_STATUS + ", " + "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
@@ -336,6 +341,7 @@ public class BookDb extends SQLiteOpenHelper {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));
+                //System.out.println(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_STATUS)));
             }
         }
 

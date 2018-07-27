@@ -411,6 +411,7 @@ public class BookListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        int status = BookDb.STATUS_ANY;
         boolean pop = false;
         switch (item.getItemId()) {
             case R.id.menu_add:
@@ -444,36 +445,39 @@ public class BookListActivity extends AppCompatActivity {
                 break;
             case R.id.menu_completed_books:
                 pop = true;
-                showStatus = BookDb.STATUS_DONE;
+                status = BookDb.STATUS_DONE;
                 break;
             case R.id.menu_later_books:
                 pop = true;
-                showStatus = BookDb.STATUS_LATER;
+                status = BookDb.STATUS_LATER;
                 break;
             case R.id.menu_open_books:
                 pop = true;
-                showStatus = BookDb.STATUS_STARTED;
+                status = BookDb.STATUS_STARTED;
                 break;
             case R.id.menu_unopen_books:
                 pop = true;
-                showStatus = BookDb.STATUS_NONE;
+                status = BookDb.STATUS_NONE;
                 break;
             case R.id.menu_search_books:
                 showSearch();
                 break;
             case R.id.menu_all_books:
                 pop = true;
-                showStatus = BookDb.STATUS_ANY;
+                status = BookDb.STATUS_ANY;
                 break;
             default:
+
                 return super.onOptionsItemSelected(item);
         }
 
+
+        final int statusf = status;
         if (pop) {
             listHolder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                   populateBooks(showStatus);
+                   populateBooks(statusf);
                     invalidateOptionsMenu();
                 }
             }, 120);
