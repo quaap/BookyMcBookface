@@ -223,6 +223,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void populateBooks(int status) {
         showStatus = status;
+        showingSearch = false;
         SortOrder sortorder = getSortOrder();
         final List<Integer> books = db.getBookIds(sortorder, status);
 
@@ -363,17 +364,14 @@ public class BookListActivity extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
+        //Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
         super.onPrepareOptionsMenu(menu);
 
-        int lastnum = 4;
-        if (showingSearch) {
-            lastnum = 1;
-        }
+        menu.findItem(R.id.menu_add).setVisible(!showingSearch);
+        menu.findItem(R.id.menu_add_dir).setVisible(!showingSearch);
+        menu.findItem(R.id.menu_get_books).setVisible(!showingSearch);
+        menu.findItem(R.id.menu_sort).setVisible(!showingSearch);
 
-        for (int i=0; i<menu.size()-lastnum; i++) {
-            menu.getItem(i).setVisible(!(showingSearch || showStatus!=BookDb.STATUS_ANY));
-        }
 
         menu.findItem(R.id.menu_all_books).setVisible(true);
         menu.findItem(R.id.menu_open_books).setVisible(true);
