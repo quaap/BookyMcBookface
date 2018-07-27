@@ -5,11 +5,12 @@
 
     <string name="book_status_completed">Completed %s</string>
     <string name="book_status_later">Later (%s)</string>
-    <string name="book_status_later2">Books marked \'Later\'</string>
-    <string name="book_status_completed2">Books marked \'Completed\'</string>
+    <string name="book_status_later2">Books marked \'Later\'</string> //translate
+    <string name="book_status_completed2">Books marked \'Completed\'</string> //translate
     <string name="book_status_any">All Books</string>
     <string name="book_status_started">Open books</string>
     <string name="book_status_none">Unread books</string>
+    <string name="mark">Mark</string> //translate
     <string name="un_mark">Unmark</string>
     <string name="mark_later">Mark \'For later\'</string>
     <string name="mark_completed">Mark \'Completed\'</string>
@@ -40,9 +41,10 @@
         This program was written by Tom Kliethermes.
         ]]>
     </string>
-    <string name="sort_by_added_date">Default sort</string>
-    <string name="sort_by_title">Sort by title</string>
-    <string name="sort_by_author">Sort by author</string>
+    <string name="sort">Sort</string> //translate
+    <string name="sort_by_added_date">Default sort</string> //translate
+    <string name="sort_by_title">Sort by title</string> //translate
+    <string name="sort_by_author">Sort by author</string> //translate
     <string translatable="false" name="prev_text">&lt;&lt;</string>
     <string translatable="false" name="next_text">&gt;&gt;</string>
     <string name="books_added">%d books added</string>
