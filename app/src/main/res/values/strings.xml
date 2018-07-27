@@ -2,6 +2,18 @@
     <string name="app_name">Booky McBookface</string>
     <string name="book_viewed_on">Viewed %s</string>
     <string name="book_added_on">Added %s</string>
+
+    <string name="book_status_completed">Completed %s</string>
+    <string name="book_status_later">Later (%s)</string>
+    <string name="book_status_later2">Books marked \'Later\'</string>
+    <string name="book_status_completed2">Books marked \'Completed\'</string>
+    <string name="book_status_any">All Books</string>
+    <string name="book_status_started">Open books</string>
+    <string name="book_status_none">Unread books</string>
+    <string name="un_mark">Unmark</string>
+    <string name="mark_later">Mark \'For later\'</string>
+    <string name="mark_completed">Mark \'Completed\'</string>
+
     <string name="add">Add Book</string>
     <string name="add_dir">Add Books From Folder</string>
     <string name="contents">Contents</string>
@@ -12,6 +24,7 @@
     <string name="find_folder">Find folder</string>
     <string name="find_book">Find book</string>
     <string name="open_book">Open book</string>
+    <string name="close_book">Close book</string>
     <string name="remove_book">Remove book</string>
     <string name="coulndt_add_book">Couldn\'t add \"%s\"</string>
 
@@ -53,7 +66,8 @@
     <string name="title">Title</string>
     <string name="author">Author</string>
     <string name="both">Both</string>
-    <string name="search_your_books">Find your books</string>
+    <string name="search_your_books">Search your books</string>
+
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">

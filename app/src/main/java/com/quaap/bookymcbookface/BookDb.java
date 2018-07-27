@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public class BookDb extends SQLiteOpenHelper {
 
     public final static String DBNAME = "bookdb";
-    private final static int DBVERSION = 1;
+    private final static int DBVERSION = 2;
 
     private final static String BOOK_TABLE = "book";
     private final static String BOOK_ID = "id";
@@ -41,6 +41,7 @@ public class BookDb extends SQLiteOpenHelper {
     private final static String BOOK_FILENAME = "filename";
     private final static String BOOK_ADDED = "added";
     private final static String BOOK_LASTREAD = "lastread";
+    private final static String BOOK_STATUS = "status";
 
 
     private final static String WEBS_TABLE = "webs";
@@ -51,6 +52,14 @@ public class BookDb extends SQLiteOpenHelper {
 
     private Pattern authorRX;
     private Pattern titleRX;
+
+    public final static int STATUS_DONE = 128;
+    public final static int STATUS_LATER = 32;
+    public final static int STATUS_STARTED = 8;
+    public final static int STATUS_NONE = 0;
+    public final static int STATUS_ANY = -1;
+
+
 
     public BookDb(Context context) {
         super(context, DBNAME, null, DBVERSION);
@@ -75,7 +84,8 @@ public class BookDb extends SQLiteOpenHelper {
                         BOOK_LIB_AUTHOR + " TEXT," +
                         BOOK_FILENAME + " TEXT," +
                         BOOK_ADDED    + " INTEGER," +
-                        BOOK_LASTREAD + " INTEGER" +
+                        BOOK_LASTREAD + " INTEGER," +
+                        BOOK_STATUS  + " INTEGER" +
                  ")";
         db.execSQL(createbooktable);
 
@@ -104,6 +114,13 @@ public class BookDb extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion<2) {
+            db.execSQL("alter table " + BOOK_TABLE + " add column " + BOOK_STATUS + " INTEGER");
+
+            ContentValues data = new ContentValues();
+            data.put(BOOK_STATUS, STATUS_STARTED);
+            db.update(BOOK_TABLE,data,BOOK_LASTREAD + ">0", null);
+        }
 
     }
 
@@ -173,6 +190,7 @@ public class BookDb extends SQLiteOpenHelper {
         data.put(BOOK_FILENAME, filename);
         data.put(BOOK_ADDED, dateadded);
         data.put(BOOK_LASTREAD, -1);
+        data.put(BOOK_STATUS, STATUS_NONE);
 
         return (int)db.insert(BOOK_TABLE,null, data);
 
@@ -183,13 +201,27 @@ public class BookDb extends SQLiteOpenHelper {
 
         ContentValues data = new ContentValues();
         data.put(BOOK_LASTREAD, lastread);
+        db.update(BOOK_TABLE, data, BOOK_ID + "=?", new String[]{ id + ""});
+
+        // Only change the status if it is NONE
+        data = new ContentValues();
+        data.put(BOOK_STATUS, STATUS_STARTED);
+        db.update(BOOK_TABLE, data,BOOK_ID + "=? and " + BOOK_STATUS + "=" + STATUS_NONE, new String[]{ id + ""});
+    }
+
+    public void updateStatus(int id, int status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues data = new ContentValues();
+        data.put(BOOK_STATUS, status);
 
         db.update(BOOK_TABLE, data, BOOK_ID + "=?", new String[]{ id + ""});
     }
 
+
     public BookRecord getBookRecord(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD, BOOK_ADDED}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ID, BOOK_FILENAME, BOOK_TITLE, BOOK_AUTHOR, BOOK_LASTREAD, BOOK_ADDED, BOOK_STATUS}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
 
             if (bookscursor.moveToNext()) {
                 return getBookRecord(bookscursor);
@@ -209,13 +241,38 @@ public class BookDb extends SQLiteOpenHelper {
         return -1;
     }
 
+
+    public long getAddedTime(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_ADDED}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
+
+            if (bookscursor.moveToNext()) {
+                return bookscursor.getLong(bookscursor.getColumnIndex(BOOK_ADDED));
+            }
+        }
+        return -1;
+    }
+
+
+    public int getStatus(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try (Cursor bookscursor = db.query(BOOK_TABLE, new String[] {BOOK_STATUS}, BOOK_ID + "=?", new String[] {""+id}, null, null, null)) {
+
+            if (bookscursor.moveToNext()) {
+                return bookscursor.getInt(bookscursor.getColumnIndex(BOOK_STATUS));
+            }
+        }
+        return 0;
+    }
+
+
     public int getMostRecentlyRead() {
         SQLiteDatabase db = this.getReadableDatabase();
         try (Cursor bookscursor =
                      db.rawQuery(
                            "select " + BOOK_ID + " from " + BOOK_TABLE +
                              " where " + BOOK_LASTREAD +
-                                   " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + " where " + BOOK_LASTREAD + ">0)", null)) {
+                                   " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + " where " + BOOK_LASTREAD + ">0) and " + BOOK_STATUS +"=" + STATUS_STARTED, null)) {
 
             if (bookscursor.moveToNext()) {
                 return bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID));
@@ -233,6 +290,7 @@ public class BookDb extends SQLiteOpenHelper {
         br.author = bookscursor.getString(bookscursor.getColumnIndex(BOOK_AUTHOR));
         br.lastread = bookscursor.getLong(bookscursor.getColumnIndex(BOOK_LASTREAD));
         br.added = bookscursor.getLong(bookscursor.getColumnIndex(BOOK_ADDED));
+        br.status = bookscursor.getInt(bookscursor.getColumnIndex(BOOK_STATUS));
         return br;
     }
 
@@ -258,18 +316,23 @@ public class BookDb extends SQLiteOpenHelper {
         return books;
     }
 
-    public List<Integer> getBookIds(SortOrder sortOrder) {
+    public List<Integer> getBookIds(SortOrder sortOrder, int status) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         List<Integer> books = new ArrayList<>();
 
-        String orderby = "2 desc, " + BOOK_LIB_TITLE + " asc";
+        String where = null;
+        if (status!=STATUS_ANY) {
+            where = BOOK_STATUS + "=" + status;
+        }
+
+        String orderby = BOOK_STATUS + ", " + "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
             case Title: orderby = BOOK_LIB_TITLE; break;
             case Author: orderby = BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"},null, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"}, where, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));
@@ -327,6 +390,7 @@ public class BookDb extends SQLiteOpenHelper {
         public String author;
         public long lastread;
         public long added;
+        public int status;
 
     }
 

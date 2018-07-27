@@ -151,6 +151,15 @@ public abstract class Book {
     }
 
 
+    public void setFlag(String key, boolean value) {
+        data.edit().putBoolean(key, value).apply();
+    }
+
+    public boolean getFlag(String key, boolean value) {
+        return data.getBoolean(key, value);
+    }
+
+
     public Uri getNextSection() {
         try {
             if (currentSectionIDPos + 1 < sectionIDs.size()) {

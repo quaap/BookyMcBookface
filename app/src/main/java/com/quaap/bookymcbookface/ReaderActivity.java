@@ -24,9 +24,11 @@ import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -71,6 +73,12 @@ public class ReaderActivity extends Activity {
 
     private Handler handler = new Handler();
 
+    private CheckBox fullscreenBox;
+
+    private ProgressBar progressBar;
+
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,6 +199,8 @@ public class ReaderActivity extends Activity {
 
         }
 
+        progressBar = findViewById(R.id.progressBar);
+
         findViewById(R.id.prev_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -209,6 +219,7 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 showToc();
+                hideMenu();
             }
         });
 
@@ -216,18 +227,53 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 selectFontSize();
+                hideMenu();
             }
         });
         findViewById(R.id.brightness_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showBrightnessControl();
+                hideMenu();
             }
         });
 
         findViewById(R.id.control_view_more).setOnClickListener(morelessControls);
         findViewById(R.id.control_view_less).setOnClickListener(morelessControls);
 
+        fullscreenBox = findViewById(R.id.fullscreen_box);
+
+        fullscreenBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                setFullscreen(b);
+                if (b) {
+                    fullscreenBox.postDelayed(
+                        new Runnable() {
+                              @Override
+                              public void run() {
+                                  mkFull();
+                                  hideMenu();
+                              }
+                        }, 500);
+                } else {
+                    fullscreenBox.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                hideMenu();
+                            }
+                        }, 500);
+                }
+            }
+        });
+
+        findViewById(R.id.fullscreen_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fullscreenBox.setChecked(!fullscreenBox.isChecked());
+            }
+        });
 
         //findFile();
         Intent intent = getIntent();
@@ -241,20 +287,41 @@ public class ReaderActivity extends Activity {
     private View.OnClickListener morelessControls = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            final View v = findViewById(R.id.slide_menu);
+            View v = findViewById(R.id.slide_menu);
             if (v.getVisibility()==View.GONE) {
-                v.setVisibility(View.VISIBLE);
-                findViewById(R.id.control_view_more).setVisibility(View.GONE);
-                findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
-                mkReg();
+                showMenu();
             } else {
-                v.setVisibility(View.GONE);
-                findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
-                findViewById(R.id.control_view_less).setVisibility(View.GONE);
-                mkFull();
+                hideMenu();
             }
         }
     };
+    private void setFullscreenMode() {
+        if (book!=null) {
+            setFullscreen(book.getFlag("fullscreen", true));
+        }
+    }
+
+    private void setFullscreen(boolean full) {
+        if (book!=null) book.setFlag("fullscreen", full);
+
+        fullscreenBox.setChecked(full);
+    }
+
+    private void showMenu() {
+        View v = findViewById(R.id.slide_menu);
+        v.setVisibility(View.VISIBLE);
+        findViewById(R.id.control_view_more).setVisibility(View.GONE);
+        findViewById(R.id.control_view_less).setVisibility(View.VISIBLE);
+        mkReg();
+    }
+
+    private void hideMenu() {
+        View v = findViewById(R.id.slide_menu);
+        v.setVisibility(View.GONE);
+        findViewById(R.id.control_view_more).setVisibility(View.VISIBLE);
+        findViewById(R.id.control_view_less).setVisibility(View.GONE);
+        mkFull();
+    }
 
     private void startScrollTask() {
         synchronized (timerSync) {
@@ -301,7 +368,7 @@ public class ReaderActivity extends Activity {
 
         }
         //saveScrollOffsetDelayed(1500);
-        mkFull();
+        hideMenu();
 
     }
 
@@ -316,9 +383,8 @@ public class ReaderActivity extends Activity {
 
 
         }
-
         //saveScrollOffsetDelayed(1500);
-        mkFull();
+        hideMenu();
     }
 
     private void saveScrollOffsetDelayed(int delay) {
@@ -371,11 +437,10 @@ public class ReaderActivity extends Activity {
 
         new LoaderTask(this, file).execute();
 
-
     }
 
 
-    private static class LoaderTask extends  AsyncTask<Void,Void,Void>  {
+    private static class LoaderTask extends  AsyncTask<Void,Integer,Void>  {
 
         private File file;
         private WeakReference<ReaderActivity> ractref;
@@ -386,6 +451,35 @@ public class ReaderActivity extends Activity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setProgress(0);
+                ract.progressBar.setVisibility(View.VISIBLE);
+
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setProgress(values[0]);
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
         protected Void doInBackground(Void... voids) {
             try {
                 ReaderActivity ract = ractref.get();
@@ -393,6 +487,8 @@ public class ReaderActivity extends Activity {
                     ract.book = Book.getBookHandler(ract, file.getPath());
                     Log.d("Main", "File " + file);
                     ract.book.load(file);
+
+                    publishProgress(1);
                 }
 
             } catch (Exception e) {
@@ -404,6 +500,9 @@ public class ReaderActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             ReaderActivity ract = ractref.get();
+            if (ract!=null) {
+                ract.progressBar.setVisibility(View.GONE);
+            }
             if (ract!=null && ract.book!=null) {
                 int fontsize = ract.book.getFontsize();
                 if (fontsize != -1) {
@@ -415,6 +514,13 @@ public class ReaderActivity extends Activity {
                 } else {
                     Toast.makeText(ract,"Something went wrong (no sections). Please report this book as a bug",Toast.LENGTH_LONG).show();
                 }
+                if (ract.book.getFlag("fullscreen", true)) {
+                    ract.mkFull();
+                } else {
+                    ract.mkReg();
+                }
+                ract.setFullscreenMode();
+                ract.setAwake();
             }
         }
     }
@@ -496,6 +602,11 @@ public class ReaderActivity extends Activity {
     }
 
     private void mkFull() {
+
+        if (book!=null && !book.getFlag("fullscreen", true)) return;
+//        findViewById(R.id.fullscreen_no_button).setVisibility(View.VISIBLE);
+//        findViewById(R.id.fullscreen_button).setVisibility(View.GONE);
+
         View decorView = getWindow().getDecorView();
         // Hide the status bar.
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -508,6 +619,10 @@ public class ReaderActivity extends Activity {
     }
 
     private void mkReg() {
+
+//        findViewById(R.id.fullscreen_button).setVisibility(View.VISIBLE);
+//        findViewById(R.id.fullscreen_no_button).setVisibility(View.GONE);
+
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
         decorView.setSystemUiVisibility(uiOptions);
@@ -520,11 +635,12 @@ public class ReaderActivity extends Activity {
             timer.cancel();
         }
         timer = new Timer();
-        mkFull();
     }
 
     @Override
     protected void onPause() {
+        setNoAwake();
+
         if (timer!=null) {
             timer.cancel();
             timer.purge();
@@ -534,7 +650,17 @@ public class ReaderActivity extends Activity {
         super.onPause();
     }
 
-//    @Override
+    @Override
+    protected void onDestroy() {
+        if (timer!=null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+        }
+        super.onDestroy();
+    }
+
+    //    @Override
 //    public void onWindowFocusChanged(boolean hasFocus) {
 //        super.onWindowFocusChanged(hasFocus);
 //        //if (hasFocus) mkFull();
@@ -573,7 +699,10 @@ public class ReaderActivity extends Activity {
             synchronized (timerSync) {
                 if (nowakeTask != null) {
                     nowakeTask.cancel();
-                    if (timer==null)  return;
+                    if (timer==null)  {
+                        timer = new Timer();
+                        Log.d("Reader", "timer was null?");
+                    }
                     timer.purge();
                 }
                 nowakeTask = new TimerTask() {
@@ -583,8 +712,8 @@ public class ReaderActivity extends Activity {
                             @Override
                             public void run() {
                                 try {
-                                    Window w = ReaderActivity.this.getWindow();
-                                    w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                    setNoAwake();
+                                    Log.d("Reader", "Clear FLAG_KEEP_SCREEN_ON");
                                 } catch (Throwable t) {
                                     Log.e(TAG, t.getMessage(), t);
                                 }
@@ -604,8 +733,14 @@ public class ReaderActivity extends Activity {
             }
         } catch (Throwable t) {
             Log.e(TAG, t.getMessage(), t);
+            setNoAwake();
         }
 
+    }
+
+    private void setNoAwake() {
+        Window w = ReaderActivity.this.getWindow();
+        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
 
