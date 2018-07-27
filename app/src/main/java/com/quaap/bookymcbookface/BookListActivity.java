@@ -294,14 +294,10 @@ public class BookListActivity extends AppCompatActivity {
             if (child!=null) {
                 Integer id = (Integer)child.getTag();
                 if (id !=null) {
-                    long lastread = db.getLastReadTime(id);
 
-                    if (lastread>0) {
-                        updateBookStatus(child, lastread, R.string.book_viewed_on);
-                    } else {
-                        long added = db.getAddedTime(id);
-                        updateBookStatus(child, added, R.string.book_added_on);
-                    }
+                    BookDb.BookRecord book = db.getBookRecord(id);
+                    updateBookDisplay(book, child);
+
                 }
             }
         }
@@ -422,13 +418,9 @@ public class BookListActivity extends AppCompatActivity {
 
             titleView.setText(maxlen(book.title, 120));
             authorView.setText(maxlen(book.author, 50));
-            long lastread = book.lastread;
 
-            if (lastread>0) {
-                updateBookStatus(listEntry, lastread, R.string.book_viewed_on);
-            } else {
-                updateBookStatus(listEntry, book.added, R.string.book_added_on);
-            }
+            long lastread = updateBookDisplay(book, listEntry);
+
             listEntry.setTag(bookid);
             listEntry.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -448,13 +440,28 @@ public class BookListActivity extends AppCompatActivity {
             if (book.id == recentread) {
                 listHolder.addView(listEntry,0);
             } else {
-                if (lastread>0 && listHolder.getChildCount()>0 && getSortOrder()==SortOrder.Default) {
+                if (book.status==0 && lastread>0 && listHolder.getChildCount()>0 && getSortOrder()==SortOrder.Default) {
                     listHolder.addView(listEntry, 1);
                 } else {
                     listHolder.addView(listEntry);
                 }
             }
         }
+    }
+
+    private long updateBookDisplay(BookDb.BookRecord book, View listEntry) {
+        long lastread = book.lastread;
+
+        if (book.status==BookDb.STATUS_DONE) {
+            updateBookStatus(listEntry, lastread, R.string.book_status_completed);
+        } else if (book.status==BookDb.STATUS_DONE) {
+            updateBookStatus(listEntry, 0, R.string.book_status_later);
+        } else if (lastread>0) {
+            updateBookStatus(listEntry, lastread, R.string.book_viewed_on);
+        } else {
+            updateBookStatus(listEntry, book.added, R.string.book_added_on);
+        }
+        return lastread;
     }
 
     private void readBook(final int bookid) {
@@ -499,15 +506,14 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void updateBookStatus(View child, long lastread, int text) {
+    private void updateBookStatus(View child, long time, int text) {
         TextView statusView = child.findViewById(R.id.book_status);
-        CharSequence rtime;
+        CharSequence rtime = android.text.format.DateUtils.getRelativeTimeSpanString(time);
+
+        statusView.setTextSize(10);
+
         if (text==R.string.book_viewed_on) {
             statusView.setTextSize(14);
-            rtime = android.text.format.DateUtils.getRelativeTimeSpanString(lastread);
-        } else {
-            statusView.setTextSize(10);
-            rtime = android.text.format.DateUtils.getRelativeTimeSpanString(this, lastread);
         }
         statusView.setText(getString(text, rtime));
     }
@@ -697,6 +703,22 @@ public class BookListActivity extends AppCompatActivity {
         });
 
         if (db.getLastReadTime(bookid)!=-1) {
+            menu.getMenu().add("Completed").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    updateBookStatus(bookid, view, BookDb.STATUS_DONE);
+                    return false;
+                }
+            });
+
+            menu.getMenu().add("For later").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    updateBookStatus(bookid, view, BookDb.STATUS_LATER);
+                    return false;
+                }
+            });
+
             menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
@@ -708,6 +730,7 @@ public class BookListActivity extends AppCompatActivity {
             });
         }
 
+
         menu.getMenu().add(R.string.remove_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -717,6 +740,14 @@ public class BookListActivity extends AppCompatActivity {
             }
         });
         menu.show();
+    }
+
+    private void updateBookStatus(int bookid, View view, int status) {
+        db.updateStatus(bookid, status);
+        listHolder.removeView(view);
+        listHolder.addView(view);
+        updateViewTimes();
+        listHolder.invalidate();
     }
 
     private boolean checkStorageAccess(boolean yay) {
