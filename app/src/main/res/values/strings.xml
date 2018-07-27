@@ -5,18 +5,19 @@
 
     <string name="book_status_completed">Completed %s</string>
     <string name="book_status_later">Later (%s)</string>
-    <string name="book_status_later2">Books marked \'Later\'</string> //translate
-    <string name="book_status_completed2">Books marked \'Completed\'</string> //translate
-    <string name="book_status_any">All Books</string>
+    <string name="book_status_later2">Books marked \'Later\'</string>
+    <string name="book_status_completed2">Books marked \'Completed\'</string>
+    <string name="book_status_any">All books</string>
     <string name="book_status_started">Open books</string>
     <string name="book_status_none">Unread books</string>
-    <string name="mark">Mark</string> //translate
+    <string name="mark">Show…</string>
+
     <string name="un_mark">Unmark</string>
     <string name="mark_later">Mark \'For later\'</string>
     <string name="mark_completed">Mark \'Completed\'</string>
 
-    <string name="add">Add Book</string>
-    <string name="add_dir">Add Books From Folder</string>
+    <string name="add">Add book</string>
+    <string name="add_dir">Add books from folder</string>
     <string name="contents">Contents</string>
     <string name="zoom">zoom</string>
     <string name="already_added">File \"%s\" already added</string>
@@ -42,9 +43,9 @@
         ]]>
     </string>
     <string name="sort">Sort</string> //translate
-    <string name="sort_by_added_date">Default sort</string> //translate
-    <string name="sort_by_title">Sort by title</string> //translate
-    <string name="sort_by_author">Sort by author</string> //translate
+    <string name="sort_by_added_date">Default sort</string>
+    <string name="sort_by_title">Sort by title</string>
+    <string name="sort_by_author">Sort by author</string>
     <string translatable="false" name="prev_text">&lt;&lt;</string>
     <string translatable="false" name="next_text">&gt;&gt;</string>
     <string name="books_added">%d books added</string>
@@ -55,8 +56,8 @@
     <string name="no_toc_found">No table of contents found</string>
     <string name="added_numbooks">Added %d</string>
     <string name="loading">Loading</string>
-    <string name="find_books_online">Find Books Online</string>
-    <string name="source_name">Source Name</string>
+    <string name="find_books_online">Find books online</string>
+    <string name="source_name">Source name</string>
     <string name="web_url">URL</string>
     <string name="web_add">Add</string>
     <string name="getbooks_desc">The links below will open in your web browser. Downloaded books will be placed in the web browser\'s default download location.</string>

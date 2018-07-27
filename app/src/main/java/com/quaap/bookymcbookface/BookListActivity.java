@@ -373,33 +373,23 @@ public class BookListActivity extends AppCompatActivity {
         menu.findItem(R.id.menu_sort).setVisible(!showingSearch);
 
 
-        menu.findItem(R.id.menu_all_books).setVisible(true);
-        menu.findItem(R.id.menu_open_books).setVisible(true);
-        menu.findItem(R.id.menu_unopen_books).setVisible(true);
-
-        menu.findItem(R.id.menu_completed_books).setVisible(true);
-
-        menu.findItem(R.id.menu_later_books).setVisible(true);
-
-        menu.findItem(R.id.menu_search_books).setVisible(true);
-
 
 
         switch (showStatus) {
             case BookDb.STATUS_ANY:
-                menu.findItem(R.id.menu_all_books).setVisible(false);
+                menu.findItem(R.id.menu_all_books).setChecked(true);
                 break;
             case BookDb.STATUS_DONE:
-                menu.findItem(R.id.menu_completed_books).setVisible(false);
+                menu.findItem(R.id.menu_completed_books).setChecked(true);
                 break;
             case BookDb.STATUS_LATER:
-                menu.findItem(R.id.menu_later_books).setVisible(false);
+                menu.findItem(R.id.menu_later_books).setChecked(true);
                 break;
             case BookDb.STATUS_NONE:
-                menu.findItem(R.id.menu_unopen_books).setVisible(false);
+                menu.findItem(R.id.menu_unopen_books).setChecked(true);
                 break;
             case BookDb.STATUS_STARTED:
-                menu.findItem(R.id.menu_open_books).setVisible(false);
+                menu.findItem(R.id.menu_open_books).setChecked(true);
                 break;
         }
 
