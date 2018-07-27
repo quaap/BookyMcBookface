@@ -225,12 +225,20 @@ public class BookListActivity extends AppCompatActivity {
         showStatus = status;
         SortOrder sortorder = getSortOrder();
         final List<Integer> books = db.getBookIds(sortorder, status);
-        populateBooks(books,  true);
-        invalidateOptionsMenu();
+
+        boolean showRecent = false;
         int title = R.string.app_name;
         switch (status) {
             case BookDb.STATUS_ANY:
                 title = R.string.book_status_any;
+                showRecent = true;
+                break;
+            case BookDb.STATUS_NONE:
+                title = R.string.book_status_none;
+                break;
+            case BookDb.STATUS_STARTED:
+                title = R.string.book_status_started;
+                showRecent = true;
                 break;
             case BookDb.STATUS_DONE:
                 title = R.string.book_status_completed2;
@@ -241,16 +249,17 @@ public class BookListActivity extends AppCompatActivity {
 
         }
         BookListActivity.this.setTitle(title);
+        populateBooks(books,  showRecent);
+        invalidateOptionsMenu();
     }
 
-    private void populateCompletedBooks() {
-
-        populateBooks(BookDb.STATUS_DONE);
-    }
-
-    private void populateLaterBooks() {
-        populateBooks(BookDb.STATUS_LATER);
-    }
+//    private void populateCompletedBooks() {
+//        populateBooks(BookDb.STATUS_DONE);
+//    }
+//
+//    private void populateLaterBooks() {
+//        populateBooks(BookDb.STATUS_LATER);
+//    }
 
 
     private void searchBooks(String searchfor, boolean stitle, boolean sauthor) {
@@ -366,10 +375,12 @@ public class BookListActivity extends AppCompatActivity {
         super.onPrepareOptionsMenu(menu);
 
         for (int i=0; i<menu.size()-1; i++) {
-            menu.getItem(i).setVisible(!showingSearch);
+            menu.getItem(i).setVisible(!(showingSearch || showStatus!=BookDb.STATUS_ANY));
         }
 
         menu.findItem(R.id.menu_all_books).setVisible(true);
+        menu.findItem(R.id.menu_open_books).setVisible(true);
+        menu.findItem(R.id.menu_unopen_books).setVisible(true);
 
         menu.findItem(R.id.menu_completed_books).setVisible(true);
 
@@ -389,6 +400,12 @@ public class BookListActivity extends AppCompatActivity {
             case BookDb.STATUS_LATER:
                 menu.findItem(R.id.menu_later_books).setVisible(false);
                 break;
+            case BookDb.STATUS_NONE:
+                menu.findItem(R.id.menu_later_books).setVisible(false);
+                break;
+            case BookDb.STATUS_STARTED:
+                menu.findItem(R.id.menu_later_books).setVisible(false);
+                break;
         }
 
 
@@ -405,7 +422,7 @@ public class BookListActivity extends AppCompatActivity {
         boolean pop = false;
         switch (item.getItemId()) {
             case R.id.menu_add:
-            case R.id.menu_add2:
+            //case R.id.menu_add2:
                 findFile();
                 break;
             case R.id.menu_add_dir:
@@ -434,10 +451,16 @@ public class BookListActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case R.id.menu_completed_books:
-                populateCompletedBooks();
+                populateBooks(BookDb.STATUS_DONE);
                 break;
             case R.id.menu_later_books:
-                populateLaterBooks();
+                populateBooks(BookDb.STATUS_LATER);
+                break;
+            case R.id.menu_open_books:
+                populateBooks(BookDb.STATUS_STARTED);
+                break;
+            case R.id.menu_unopen_books:
+                populateBooks(BookDb.STATUS_NONE);
                 break;
             case R.id.menu_search_books:
                 showSearch();

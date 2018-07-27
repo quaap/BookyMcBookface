@@ -8,6 +8,8 @@
     <string name="book_status_later2">Books marked \'Later\'</string>
     <string name="book_status_completed2">Books marked \'Completed\'</string>
     <string name="book_status_any">All Books</string>
+    <string name="book_status_started">Open books</string>
+    <string name="book_status_none">Unread books</string>
 
     <string name="add">Add Book</string>
     <string name="add_dir">Add Books From Folder</string>

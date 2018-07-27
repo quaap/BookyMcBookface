@@ -54,7 +54,8 @@ public class BookDb extends SQLiteOpenHelper {
     private Pattern titleRX;
 
     public final static int STATUS_DONE = 128;
-    public final static int STATUS_LATER = 8;
+    public final static int STATUS_LATER = 32;
+    public final static int STATUS_STARTED = 8;
     public final static int STATUS_NONE = 0;
     public final static int STATUS_ANY = -1;
 
@@ -115,7 +116,12 @@ public class BookDb extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion<2) {
             db.execSQL("alter table " + BOOK_TABLE + " add column " + BOOK_STATUS + " INTEGER");
+
+            ContentValues data = new ContentValues();
+            data.put(BOOK_STATUS, STATUS_STARTED);
+            db.update(BOOK_TABLE,data,BOOK_LASTREAD + ">0", null);
         }
+
     }
 
 
@@ -184,7 +190,7 @@ public class BookDb extends SQLiteOpenHelper {
         data.put(BOOK_FILENAME, filename);
         data.put(BOOK_ADDED, dateadded);
         data.put(BOOK_LASTREAD, -1);
-        data.put(BOOK_STATUS, 0);
+        data.put(BOOK_STATUS, STATUS_NONE);
 
         return (int)db.insert(BOOK_TABLE,null, data);
 
@@ -195,8 +201,12 @@ public class BookDb extends SQLiteOpenHelper {
 
         ContentValues data = new ContentValues();
         data.put(BOOK_LASTREAD, lastread);
-
         db.update(BOOK_TABLE, data, BOOK_ID + "=?", new String[]{ id + ""});
+
+        // Only change the status if it is NONE
+        data = new ContentValues();
+        data.put(BOOK_STATUS, STATUS_STARTED);
+        db.update(BOOK_TABLE, data,BOOK_ID + "=? and " + BOOK_STATUS + "=" + STATUS_NONE, new String[]{ id + ""});
     }
 
     public void updateStatus(int id, int status) {
@@ -262,7 +272,7 @@ public class BookDb extends SQLiteOpenHelper {
                      db.rawQuery(
                            "select " + BOOK_ID + " from " + BOOK_TABLE +
                              " where " + BOOK_LASTREAD +
-                                   " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + " where " + BOOK_LASTREAD + ">0) and " + BOOK_STATUS +"=0", null)) {
+                                   " = (select max(" + BOOK_LASTREAD +") from " + BOOK_TABLE + " where " + BOOK_LASTREAD + ">0) and " + BOOK_STATUS +"=" + STATUS_STARTED, null)) {
 
             if (bookscursor.moveToNext()) {
                 return bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID));
@@ -312,17 +322,8 @@ public class BookDb extends SQLiteOpenHelper {
         List<Integer> books = new ArrayList<>();
 
         String where = null;
-        switch (status) {
-            case STATUS_NONE:
-                where = BOOK_STATUS + "=" + STATUS_NONE;
-                break;
-            case STATUS_DONE:
-                where = BOOK_STATUS + "=" + STATUS_DONE;
-                break;
-            case STATUS_LATER:
-                where = BOOK_STATUS + "=" +  + STATUS_LATER;
-                break;
-
+        if (status!=STATUS_ANY) {
+            where = BOOK_STATUS + "=" + status;
         }
 
         String orderby = "2 desc, " + BOOK_LIB_TITLE + " asc";
@@ -331,7 +332,7 @@ public class BookDb extends SQLiteOpenHelper {
             case Author: orderby = BOOK_STATUS + ", " + BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"},where, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"}, where, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));
