@@ -437,7 +437,6 @@ public class ReaderActivity extends Activity {
 
         new LoaderTask(this, file).execute();
 
-        setAwake();
     }
 
 
@@ -521,6 +520,7 @@ public class ReaderActivity extends Activity {
                     ract.mkReg();
                 }
                 ract.setFullscreenMode();
+                ract.setAwake();
             }
         }
     }
@@ -639,6 +639,8 @@ public class ReaderActivity extends Activity {
 
     @Override
     protected void onPause() {
+        setNoAwake();
+
         if (timer!=null) {
             timer.cancel();
             timer.purge();
@@ -648,7 +650,17 @@ public class ReaderActivity extends Activity {
         super.onPause();
     }
 
-//    @Override
+    @Override
+    protected void onDestroy() {
+        if (timer!=null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+        }
+        super.onDestroy();
+    }
+
+    //    @Override
 //    public void onWindowFocusChanged(boolean hasFocus) {
 //        super.onWindowFocusChanged(hasFocus);
 //        //if (hasFocus) mkFull();
@@ -687,7 +699,10 @@ public class ReaderActivity extends Activity {
             synchronized (timerSync) {
                 if (nowakeTask != null) {
                     nowakeTask.cancel();
-                    if (timer==null)  return;
+                    if (timer==null)  {
+                        timer = new Timer();
+                        Log.d("Reader", "timer was null?");
+                    }
                     timer.purge();
                 }
                 nowakeTask = new TimerTask() {
@@ -697,8 +712,8 @@ public class ReaderActivity extends Activity {
                             @Override
                             public void run() {
                                 try {
-                                    Window w = ReaderActivity.this.getWindow();
-                                    w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                    setNoAwake();
+                                    Log.d("Reader", "Clear FLAG_KEEP_SCREEN_ON");
                                 } catch (Throwable t) {
                                     Log.e(TAG, t.getMessage(), t);
                                 }
@@ -718,8 +733,14 @@ public class ReaderActivity extends Activity {
             }
         } catch (Throwable t) {
             Log.e(TAG, t.getMessage(), t);
+            setNoAwake();
         }
 
+    }
+
+    private void setNoAwake() {
+        Window w = ReaderActivity.this.getWindow();
+        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
 
