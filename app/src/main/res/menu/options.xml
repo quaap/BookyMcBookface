@@ -16,6 +16,16 @@
     <item
         android:id="@+id/menu_search_books"
         android:title="@string/search_your_books" />
+    <item
+        android:id="@+id/menu_later_books"
+        android:title="@string/book_status_later2" />
+    <item
+        android:id="@+id/menu_completed_books"
+        android:title="@string/book_status_completed2" />
+
+    <item
+        android:id="@+id/menu_all_books"
+        android:title="@string/book_status_any" />
 
     <item
         android:id="@+id/menu_get_books"

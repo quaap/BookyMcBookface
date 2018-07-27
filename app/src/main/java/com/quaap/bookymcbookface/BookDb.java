@@ -53,8 +53,11 @@ public class BookDb extends SQLiteOpenHelper {
     private Pattern authorRX;
     private Pattern titleRX;
 
-    public static int STATUS_DONE = 128;
-    public static int STATUS_LATER = 8;
+    public final static int STATUS_DONE = 128;
+    public final static int STATUS_LATER = 8;
+    public final static int STATUS_NONE = 0;
+    public final static int STATUS_ANY = -1;
+
 
 
     public BookDb(Context context) {
@@ -303,10 +306,24 @@ public class BookDb extends SQLiteOpenHelper {
         return books;
     }
 
-    public List<Integer> getBookIds(SortOrder sortOrder) {
+    public List<Integer> getBookIds(SortOrder sortOrder, int status) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         List<Integer> books = new ArrayList<>();
+
+        String where = null;
+        switch (status) {
+            case STATUS_NONE:
+                where = BOOK_STATUS + "=" + STATUS_NONE;
+                break;
+            case STATUS_DONE:
+                where = BOOK_STATUS + "=" + STATUS_DONE;
+                break;
+            case STATUS_LATER:
+                where = BOOK_STATUS + "=" +  + STATUS_LATER;
+                break;
+
+        }
 
         String orderby = "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
@@ -314,7 +331,7 @@ public class BookDb extends SQLiteOpenHelper {
             case Author: orderby = BOOK_STATUS + ", " + BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"},null, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"},where, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));

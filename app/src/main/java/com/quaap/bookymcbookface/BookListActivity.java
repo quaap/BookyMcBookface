@@ -77,6 +77,8 @@ public class BookListActivity extends AppCompatActivity {
     private int recentread;
     private boolean showingSearch;
 
+    private int showStatus = BookDb.STATUS_ANY;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,7 +136,7 @@ public class BookListActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (showingSearch) {
+        if (showingSearch || showStatus!=BookDb.STATUS_ANY) {
             setTitle(R.string.app_name);
             populateBooks();
             showingSearch = false;
@@ -216,13 +218,43 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void populateBooks() {
+        populateBooks(BookDb.STATUS_ANY);
+    }
+
+    private void populateBooks(int status) {
+        showStatus = status;
         SortOrder sortorder = getSortOrder();
-        final List<Integer> books = db.getBookIds(sortorder);
+        final List<Integer> books = db.getBookIds(sortorder, status);
         populateBooks(books,  true);
+        invalidateOptionsMenu();
+        int title = R.string.app_name;
+        switch (status) {
+            case BookDb.STATUS_ANY:
+                title = R.string.book_status_any;
+                break;
+            case BookDb.STATUS_DONE:
+                title = R.string.book_status_completed2;
+                break;
+            case BookDb.STATUS_LATER:
+                title = R.string.book_status_later2;
+                break;
+
+        }
+        BookListActivity.this.setTitle(title);
+    }
+
+    private void populateCompletedBooks() {
+
+        populateBooks(BookDb.STATUS_DONE);
+    }
+
+    private void populateLaterBooks() {
+        populateBooks(BookDb.STATUS_LATER);
     }
 
 
     private void searchBooks(String searchfor, boolean stitle, boolean sauthor) {
+        showStatus = BookDb.STATUS_NONE;
         List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
         populateBooks(books, false);
         BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
@@ -330,16 +362,38 @@ public class BookListActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
-        boolean showmwenu = super.onPrepareOptionsMenu(menu);
-        if (showingSearch) {
-            showmwenu = false;
-        }
+        super.onPrepareOptionsMenu(menu);
 
         for (int i=0; i<menu.size()-1; i++) {
-            menu.getItem(i).setVisible(showmwenu);
+            menu.getItem(i).setVisible(!showingSearch);
         }
 
-        return showmwenu;
+        menu.findItem(R.id.menu_all_books).setVisible(true);
+
+        menu.findItem(R.id.menu_completed_books).setVisible(true);
+
+        menu.findItem(R.id.menu_later_books).setVisible(true);
+
+        menu.findItem(R.id.menu_search_books).setVisible(true);
+
+
+
+        switch (showStatus) {
+            case BookDb.STATUS_ANY:
+                menu.findItem(R.id.menu_all_books).setVisible(false);
+                break;
+            case BookDb.STATUS_DONE:
+                menu.findItem(R.id.menu_completed_books).setVisible(false);
+                break;
+            case BookDb.STATUS_LATER:
+                menu.findItem(R.id.menu_later_books).setVisible(false);
+                break;
+        }
+
+
+
+
+        return true;
     }
 
 
@@ -378,8 +432,17 @@ public class BookListActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, GetBooksActivity.class);
                 startActivity(intent);
                 break;
+            case R.id.menu_completed_books:
+                populateCompletedBooks();
+                break;
+            case R.id.menu_later_books:
+                populateLaterBooks();
+                break;
             case R.id.menu_search_books:
                 showSearch();
+                break;
+            case R.id.menu_all_books:
+                pop = true;
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -393,6 +456,8 @@ public class BookListActivity extends AppCompatActivity {
                 }
             }, 120);
         }
+
+        invalidateOptionsMenu();
         return true;
     }
 

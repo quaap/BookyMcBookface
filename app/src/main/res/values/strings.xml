@@ -2,9 +2,13 @@
     <string name="app_name">Booky McBookface</string>
     <string name="book_viewed_on">Viewed %s</string>
     <string name="book_added_on">Added %s</string>
+
     <string name="book_status_completed">Completed %s</string>
     <string name="book_status_later">Later (%s)</string>
-    <string name="book_status_later2">Later</string>
+    <string name="book_status_later2">Books marked \'Later\'</string>
+    <string name="book_status_completed2">Books marked \'Completed\'</string>
+    <string name="book_status_any">All Books</string>
+
     <string name="add">Add Book</string>
     <string name="add_dir">Add Books From Folder</string>
     <string name="contents">Contents</string>
