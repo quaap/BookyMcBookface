@@ -259,6 +259,7 @@ public class BookListActivity extends AppCompatActivity {
         populateBooks(books, false);
         BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
         showingSearch = true;
+        invalidateOptionsMenu();
     }
 
     private void populateBooks(final List<Integer> books, boolean showRecent) {
@@ -453,6 +454,7 @@ public class BookListActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                    populateBooks();
+                    invalidateOptionsMenu();
                 }
             }, 120);
         }
@@ -575,7 +577,7 @@ public class BookListActivity extends AppCompatActivity {
         TextView statusView = child.findViewById(R.id.book_status);
         CharSequence rtime = android.text.format.DateUtils.getRelativeTimeSpanString(time);
 
-        statusView.setTextSize(10);
+        statusView.setTextSize(12);
 
         if (text==R.string.book_viewed_on) {
             statusView.setTextSize(14);
@@ -783,6 +785,17 @@ public class BookListActivity extends AppCompatActivity {
                     return false;
                 }
             });
+
+            if (db.getStatus(bookid)!=BookDb.STATUS_NONE) {
+                menu.getMenu().add("Unmark").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        updateBookStatus(bookid, view, BookDb.STATUS_NONE);
+                        return false;
+                    }
+                });
+            }
+
 
             menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
