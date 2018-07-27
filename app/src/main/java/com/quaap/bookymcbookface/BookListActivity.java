@@ -122,7 +122,7 @@ public class BookListActivity extends AppCompatActivity {
         int seen = 40;
         String seennewsKey = "seennews";
 
-        if (seen != data.getInt(seennewsKey, -1)) {
+        if (recentread>0 && seen > data.getInt(seennewsKey, -1)) {
             viewAdder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -130,8 +130,8 @@ public class BookListActivity extends AppCompatActivity {
                 }
             },3000);
 
-            data.edit().putInt(seennewsKey, seen).apply();
         }
+        data.edit().putInt(seennewsKey, seen).apply();
     }
 
     @Override
@@ -238,9 +238,7 @@ public class BookListActivity extends AppCompatActivity {
                 break;
             case BookDb.STATUS_STARTED:
                 title = R.string.book_status_started;
-                if (sortorder==SortOrder.Default) {
-                    showRecent = true;
-                }
+                showRecent = true;
                 break;
             case BookDb.STATUS_DONE:
                 title = R.string.book_status_completed2;
