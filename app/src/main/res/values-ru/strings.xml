@@ -16,6 +16,17 @@
     <string name="remove_book">Удалить книгу</string>
     <string name="coulndt_add_book">Не удалось добавить \"%s\"</string>
 
+    <string name="book_status_completed">завершено %s</string>
+    <string name="book_status_later">позже (%s)</string>
+    <string name="book_status_later2">Книги с надписью \"Позже\"</string>
+    <string name="book_status_completed2">Книги с надписью \"Завершено\"</string>
+    <string name="book_status_any">Все книги</string>
+    <string name="book_status_started">Открытые книги</string>
+    <string name="book_status_none">Непрочитанные книги</string>
+    <string name="un_mark">отменить</string>
+    <string name="mark_later">Марк \"Для более поздних\"</string>
+    <string name="mark_completed">Марк \"Завершено\"</string>
+
     <string name="about">О приложении</string>
     <string name="about_app">
         <![CDATA[

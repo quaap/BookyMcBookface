@@ -10,6 +10,9 @@
     <string name="book_status_any">All Books</string>
     <string name="book_status_started">Open books</string>
     <string name="book_status_none">Unread books</string>
+    <string name="un_mark">Unmark</string>
+    <string name="mark_later">Mark \'For later\'</string>
+    <string name="mark_completed">Mark \'Completed\'</string>
 
     <string name="add">Add Book</string>
     <string name="add_dir">Add Books From Folder</string>
@@ -64,6 +67,7 @@
     <string name="author">Author</string>
     <string name="both">Both</string>
     <string name="search_your_books">Search your books</string>
+
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">

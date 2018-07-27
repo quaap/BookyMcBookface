@@ -801,7 +801,7 @@ public class BookListActivity extends AppCompatActivity {
         final long lastread = db.getLastReadTime(bookid);
 
         if (status!=BookDb.STATUS_DONE) {
-            menu.getMenu().add("Mark 'Completed'").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            menu.getMenu().add(R.string.mark_completed).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     updateBookStatus(bookid, view, BookDb.STATUS_DONE);
@@ -814,7 +814,7 @@ public class BookListActivity extends AppCompatActivity {
         }
 
         if (status!=BookDb.STATUS_LATER) {
-            menu.getMenu().add("Mark 'For later'").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            menu.getMenu().add(R.string.mark_later).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     updateBookStatus(bookid, view, BookDb.STATUS_LATER);
@@ -824,7 +824,7 @@ public class BookListActivity extends AppCompatActivity {
         }
 
         if (status!=BookDb.STATUS_NONE && status!=BookDb.STATUS_STARTED) {
-            menu.getMenu().add("Unmark").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            menu.getMenu().add(R.string.un_mark).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
 

@@ -16,6 +16,17 @@
     <string name="remove_book">Boek verwijderen</string>
     <string name="coulndt_add_book">\"%s\" kan niet worden toegevoegd</string>
 
+    <string name="book_status_completed">" Voltooid %s"</string>
+    <string name="book_status_later">Later (%s)</string>
+    <string name="book_status_later2">Boeken gemarkeerd als \'Later\'</string>
+    <string name="book_status_completed2">" Boeken gemarkeerd als 'Voltooid'"</string>
+    <string name="book_status_any">Alle boeken</string>
+    <string name="book_status_started">Open boeken</string>
+    <string name="book_status_none">Ongelezen boeken</string>
+    <string name="un_mark">Markering opheffen</string>
+    <string name="mark_later">Markeren \'voor later\'</string>
+    <string name="mark_completed">" Markeer 'Voltooid'"</string>
+
     <string name="about">Over</string>
     <string name="about_app">
         <![CDATA[
@@ -64,5 +75,6 @@
         <item>http://m.gutenberg.org/</item>
         <item>https://archive.org/details/texts</item>
     </string-array>
+
 
 </resources>
