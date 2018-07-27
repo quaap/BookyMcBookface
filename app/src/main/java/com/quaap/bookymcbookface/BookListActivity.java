@@ -366,7 +366,12 @@ public class BookListActivity extends AppCompatActivity {
         Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
         super.onPrepareOptionsMenu(menu);
 
-        for (int i=0; i<menu.size()-4; i++) {
+        int lastnum = 4;
+        if (showingSearch) {
+            lastnum = 1;
+        }
+
+        for (int i=0; i<menu.size()-lastnum; i++) {
             menu.getItem(i).setVisible(!(showingSearch || showStatus!=BookDb.STATUS_ANY));
         }
 
@@ -534,7 +539,7 @@ public class BookListActivity extends AppCompatActivity {
                 if (book.id == recentread) {
                     listHolder.addView(listEntry, 0);
                 } else {
-                    if (book.status == 0 && lastread > 0 && listHolder.getChildCount() > 0) {
+                    if (book.status == BookDb.STATUS_STARTED && listHolder.getChildCount() > 0) {
                         listHolder.addView(listEntry, 1);
                     } else {
                         listHolder.addView(listEntry);
@@ -553,7 +558,7 @@ public class BookListActivity extends AppCompatActivity {
             updateBookStatus(listEntry, lastread, R.string.book_status_completed);
         } else if (book.status==BookDb.STATUS_LATER) {
             updateBookStatus(listEntry, 0, R.string.book_status_later);
-        } else if (lastread>0) {
+        } else if (lastread>0 && book.status==BookDb.STATUS_STARTED) {
             updateBookStatus(listEntry, lastread, R.string.book_viewed_on);
         } else {
             updateBookStatus(listEntry, book.added, R.string.book_added_on);
@@ -615,7 +620,7 @@ public class BookListActivity extends AppCompatActivity {
         statusView.setText(getString(text, rtime));
     }
 
-    private void removeBook(int bookid, boolean delete, boolean resettime) {
+    private void removeBook(int bookid, boolean delete) {
         BookDb.BookRecord book = db.getBookRecord(bookid);
         if (book==null) {
             Toast.makeText(this, "Bug? The book doesn't seem to be in the database",Toast.LENGTH_LONG).show();
@@ -626,9 +631,11 @@ public class BookListActivity extends AppCompatActivity {
         }
         if (delete) {
             db.removeBook(bookid);
-        } else if (resettime) {
-            db.updateLastRead(bookid, -1);
         }
+//        else if (status!=BookDb.STATUS_ANY) {
+//            //db.updateLastRead(bookid, -1);
+//            db.updateStatus(bookid, status);
+//        }
         recentread = db.getMostRecentlyRead();
     }
 
@@ -806,10 +813,13 @@ public class BookListActivity extends AppCompatActivity {
             menu.getMenu().add(R.string.mark_completed).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
-                    updateBookStatus(bookid, view, BookDb.STATUS_DONE);
                     if (lastread > 0) {
-                        removeBook(bookid, false, false);
+                        removeBook(bookid, false);
+                    } else {
+                        db.updateLastRead(bookid, System.currentTimeMillis());
                     }
+                    updateBookStatus(bookid, view, BookDb.STATUS_DONE);
+
                     return false;
                 }
             });
@@ -842,7 +852,8 @@ public class BookListActivity extends AppCompatActivity {
             menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
-                    removeBook(bookid, false, true);
+                    removeBook(bookid, false);
+                    updateBookStatus(bookid, view, BookDb.STATUS_NONE);
                     updateViewTimes();
                     listHolder.invalidate();
                     return false;
@@ -855,7 +866,7 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 ((ViewGroup)view.getParent()).removeView(view);
-                removeBook(bookid, true, false);
+                removeBook(bookid, true);
                 return false;
             }
         });
