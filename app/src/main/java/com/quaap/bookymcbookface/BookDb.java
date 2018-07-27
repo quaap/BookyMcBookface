@@ -327,9 +327,9 @@ public class BookDb extends SQLiteOpenHelper {
 
         String where = null;
         if (status!=STATUS_ANY) {
-            where = BOOK_STATUS + " <> " + status;
+            where = BOOK_STATUS + "=" + status;
         }
-        System.out.println("where: " + where);
+        //System.out.println("where: " + where);
 
         String orderby = BOOK_STATUS + ", " + "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
