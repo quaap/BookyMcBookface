@@ -238,7 +238,9 @@ public class BookListActivity extends AppCompatActivity {
                 break;
             case BookDb.STATUS_STARTED:
                 title = R.string.book_status_started;
-                showRecent = true;
+                if (sortorder==SortOrder.Default) {
+                    showRecent = true;
+                }
                 break;
             case BookDb.STATUS_DONE:
                 title = R.string.book_status_completed2;
@@ -253,17 +255,9 @@ public class BookListActivity extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
-//    private void populateCompletedBooks() {
-//        populateBooks(BookDb.STATUS_DONE);
-//    }
-//
-//    private void populateLaterBooks() {
-//        populateBooks(BookDb.STATUS_LATER);
-//    }
-
 
     private void searchBooks(String searchfor, boolean stitle, boolean sauthor) {
-        showStatus = BookDb.STATUS_NONE;
+        showStatus = BookDb.STATUS_ANY;
         List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
         populateBooks(books, false);
         BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
@@ -374,7 +368,7 @@ public class BookListActivity extends AppCompatActivity {
         Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
         super.onPrepareOptionsMenu(menu);
 
-        for (int i=0; i<menu.size()-1; i++) {
+        for (int i=0; i<menu.size()-4; i++) {
             menu.getItem(i).setVisible(!(showingSearch || showStatus!=BookDb.STATUS_ANY));
         }
 
@@ -401,10 +395,10 @@ public class BookListActivity extends AppCompatActivity {
                 menu.findItem(R.id.menu_later_books).setVisible(false);
                 break;
             case BookDb.STATUS_NONE:
-                menu.findItem(R.id.menu_later_books).setVisible(false);
+                menu.findItem(R.id.menu_unopen_books).setVisible(false);
                 break;
             case BookDb.STATUS_STARTED:
-                menu.findItem(R.id.menu_later_books).setVisible(false);
+                menu.findItem(R.id.menu_open_books).setVisible(false);
                 break;
         }
 
@@ -451,22 +445,27 @@ public class BookListActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case R.id.menu_completed_books:
-                populateBooks(BookDb.STATUS_DONE);
+                pop = true;
+                showStatus = BookDb.STATUS_DONE;
                 break;
             case R.id.menu_later_books:
-                populateBooks(BookDb.STATUS_LATER);
+                pop = true;
+                showStatus = BookDb.STATUS_LATER;
                 break;
             case R.id.menu_open_books:
-                populateBooks(BookDb.STATUS_STARTED);
+                pop = true;
+                showStatus = BookDb.STATUS_STARTED;
                 break;
             case R.id.menu_unopen_books:
-                populateBooks(BookDb.STATUS_NONE);
+                pop = true;
+                showStatus = BookDb.STATUS_NONE;
                 break;
             case R.id.menu_search_books:
                 showSearch();
                 break;
             case R.id.menu_all_books:
                 pop = true;
+                showStatus = BookDb.STATUS_ANY;
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -476,7 +475,7 @@ public class BookListActivity extends AppCompatActivity {
             listHolder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                   populateBooks();
+                   populateBooks(showStatus);
                     invalidateOptionsMenu();
                 }
             }, 120);
@@ -527,14 +526,20 @@ public class BookListActivity extends AppCompatActivity {
                 }
             });
 
-            if (book.id == recentread) {
-                listHolder.addView(listEntry,0);
-            } else {
-                if (book.status==0 && lastread>0 && listHolder.getChildCount()>0 && getSortOrder()==SortOrder.Default) {
-                    listHolder.addView(listEntry, 1);
+            SortOrder sortOrder = getSortOrder();
+
+            if (sortOrder==SortOrder.Default) {
+                if (book.id == recentread) {
+                    listHolder.addView(listEntry, 0);
                 } else {
-                    listHolder.addView(listEntry);
+                    if (book.status == 0 && lastread > 0 && listHolder.getChildCount() > 0) {
+                        listHolder.addView(listEntry, 1);
+                    } else {
+                        listHolder.addView(listEntry);
+                    }
                 }
+            } else {
+                listHolder.addView(listEntry);
             }
         }
     }
@@ -544,7 +549,7 @@ public class BookListActivity extends AppCompatActivity {
 
         if (book.status==BookDb.STATUS_DONE) {
             updateBookStatus(listEntry, lastread, R.string.book_status_completed);
-        } else if (book.status==BookDb.STATUS_DONE) {
+        } else if (book.status==BookDb.STATUS_LATER) {
             updateBookStatus(listEntry, 0, R.string.book_status_later);
         } else if (lastread>0) {
             updateBookStatus(listEntry, lastread, R.string.book_viewed_on);
@@ -608,7 +613,7 @@ public class BookListActivity extends AppCompatActivity {
         statusView.setText(getString(text, rtime));
     }
 
-    private void removeBook(int bookid, boolean delete) {
+    private void removeBook(int bookid, boolean delete, boolean resettime) {
         BookDb.BookRecord book = db.getBookRecord(bookid);
         if (book==null) {
             Toast.makeText(this, "Bug? The book doesn't seem to be in the database",Toast.LENGTH_LONG).show();
@@ -619,7 +624,7 @@ public class BookListActivity extends AppCompatActivity {
         }
         if (delete) {
             db.removeBook(bookid);
-        } else {
+        } else if (resettime) {
             db.updateLastRead(bookid, -1);
         }
         recentread = db.getMostRecentlyRead();
@@ -792,38 +797,50 @@ public class BookListActivity extends AppCompatActivity {
             }
         });
 
-        if (db.getLastReadTime(bookid)!=-1) {
-            menu.getMenu().add("Completed").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        final int status = db.getStatus(bookid);
+        final long lastread = db.getLastReadTime(bookid);
+
+        if (status!=BookDb.STATUS_DONE) {
+            menu.getMenu().add("Mark 'Completed'").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     updateBookStatus(bookid, view, BookDb.STATUS_DONE);
+                    if (lastread > 0) {
+                        removeBook(bookid, false, false);
+                    }
                     return false;
                 }
             });
+        }
 
-            menu.getMenu().add("For later").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        if (status!=BookDb.STATUS_LATER) {
+            menu.getMenu().add("Mark 'For later'").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     updateBookStatus(bookid, view, BookDb.STATUS_LATER);
                     return false;
                 }
             });
+        }
 
-            if (db.getStatus(bookid)!=BookDb.STATUS_NONE) {
-                menu.getMenu().add("Unmark").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        updateBookStatus(bookid, view, BookDb.STATUS_NONE);
-                        return false;
-                    }
-                });
-            }
+        if (status!=BookDb.STATUS_NONE && status!=BookDb.STATUS_STARTED) {
+            menu.getMenu().add("Unmark").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
 
+                    updateBookStatus(bookid, view, lastread>0 ? BookDb.STATUS_STARTED : BookDb.STATUS_NONE);
+                    return false;
+                }
+            });
+        }
+
+
+        if (lastread>0) {
 
             menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
-                    removeBook(bookid, false);
+                    removeBook(bookid, false, true);
                     updateViewTimes();
                     listHolder.invalidate();
                     return false;
@@ -836,7 +853,7 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 ((ViewGroup)view.getParent()).removeView(view);
-                removeBook(bookid, true);
+                removeBook(bookid, true, false);
                 return false;
             }
         });
@@ -845,8 +862,8 @@ public class BookListActivity extends AppCompatActivity {
 
     private void updateBookStatus(int bookid, View view, int status) {
         db.updateStatus(bookid, status);
-        listHolder.removeView(view);
-        listHolder.addView(view);
+//        listHolder.removeView(view);
+//        listHolder.addView(view);
         updateViewTimes();
         listHolder.invalidate();
     }

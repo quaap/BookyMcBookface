@@ -326,10 +326,10 @@ public class BookDb extends SQLiteOpenHelper {
             where = BOOK_STATUS + "=" + status;
         }
 
-        String orderby = "2 desc, " + BOOK_LIB_TITLE + " asc";
+        String orderby = BOOK_STATUS + ", " + "2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
-            case Title: orderby = BOOK_STATUS + ", " + BOOK_LIB_TITLE; break;
-            case Author: orderby = BOOK_STATUS + ", " + BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
+            case Title: orderby = BOOK_LIB_TITLE; break;
+            case Author: orderby = BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
         }
 
         try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"}, where, null, null, null, orderby)) {
