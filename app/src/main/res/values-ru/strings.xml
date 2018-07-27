@@ -23,6 +23,7 @@
     <string name="book_status_any">Список книг</string>
     <string name="book_status_started">Открытые книги</string>
     <string name="book_status_none">Непрочитанные книги</string>
+    <string name="mark">Метки</string>
     <string name="un_mark">Отменить метку</string>
     <string name="mark_later">Почитать позже</string>
     <string name="mark_completed">Прочитана</string>
@@ -36,6 +37,7 @@
         Программа написана Tom Kliethermes.
         ]]>
     </string>
+    <string name="sort">Сортировать</string>
     <string name="sort_by_added_date">По умолчанию</string>
     <string name="sort_by_title">По названию</string>
     <string name="sort_by_author">По автору</string>

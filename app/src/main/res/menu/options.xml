@@ -11,9 +11,14 @@
     <item
         android:id="@+id/menu_add_dir"
         android:title="@string/add_dir" />
+
     <item
         android:id="@+id/menu_search_books"
         android:title="@string/search_your_books" />
+
+    <item
+        android:id="@+id/menu_get_books"
+        android:title="@string/find_books_online" />
 
     <item
         android:id="@+id/menu_all_books"
@@ -24,29 +29,40 @@
     <item
         android:id="@+id/menu_open_books"
         android:title="@string/book_status_started" />
-    <item
-        android:id="@+id/menu_later_books"
-        android:title="@string/book_status_later2" />
-    <item
-        android:id="@+id/menu_completed_books"
-        android:title="@string/book_status_completed2" />
 
     <item
-        android:id="@+id/menu_get_books"
-        android:title="@string/find_books_online" />
-    <group
-        android:id="@+id/sortgroup"
-        android:checkableBehavior="single">
-        <item
-            android:id="@+id/menu_sort_default"
-            android:title="@string/sort_by_added_date" />
-        <item
-            android:id="@+id/menu_sort_title"
-            android:title="@string/sort_by_title" />
-        <item
-            android:id="@+id/menu_sort_author"
-            android:title="@string/sort_by_author" />
-    </group>
+        android:id="@+id/menu_mark"
+        android:title="@string/mark" >
+        <menu>
+            <item
+                android:id="@+id/menu_later_books"
+                android:title="@string/book_status_later2" />
+            <item
+                android:id="@+id/menu_completed_books"
+                android:title="@string/book_status_completed2" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/menu_sort"
+        android:title="@string/sort">
+        <menu>
+            <group
+                android:id="@+id/sortgroup"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/menu_sort_default"
+                    android:title="@string/sort_by_added_date" />
+                <item
+                    android:id="@+id/menu_sort_title"
+                    android:title="@string/sort_by_title" />
+                <item
+                    android:id="@+id/menu_sort_author"
+                    android:title="@string/sort_by_author" />
+            </group>
+        </menu>
+    </item>
+
     <item
         android:id="@+id/menu_about"
         android:title="@string/about" />

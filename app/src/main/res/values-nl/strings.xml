@@ -18,11 +18,12 @@
 
     <string name="book_status_completed">%s voltooid</string>
     <string name="book_status_later">Later (%s)</string>
-    <string name="book_status_later2">Boeken gemarkeerd als \'"Voor later"\'</string>
-    <string name="book_status_completed2">Boeken gemarkeerd als \'"Voltooid"'\'</string>
+    <string name="book_status_later2">Boeken gemarkeerd als \'"Voor later"\'</string> //translate
+    <string name="book_status_completed2">Boeken gemarkeerd als \'"Voltooid"'\'</string> //translate
     <string name="book_status_any">Alle boeken</string>
     <string name="book_status_started">Geopende boeken</string>
     <string name="book_status_none">Ongelezen boeken</string>
+    <string name="mark">Mark</string> //translate
     <string name="un_mark">Markering verwijderen</string>
     <string name="mark_later">Markeren als \'"Voor later"\'</string>
     <string name="mark_completed">Markeren als \'"Voltooid"\'</string>
@@ -39,9 +40,10 @@
         Deze app is geschreven door Tom Kliethermes.
         ]]>
     </string>
-    <string name="sort_by_added_date">Standaardsortering</string>
-    <string name="sort_by_title">Sorteren op titel</string>
-    <string name="sort_by_author">Sorteren op auteur</string>
+    <string name="sort">Sort</string> //translate
+    <string name="sort_by_added_date">Standaardsortering</string> //translate
+    <string name="sort_by_title">Sorteren op titel</string> //translate
+    <string name="sort_by_author">Sorteren op auteur</string> //translate
     <string name="books_added">%d boeken toegevoegd</string>
     <string name="bright">Licht</string>
     <string name="dim">Donker</string>
