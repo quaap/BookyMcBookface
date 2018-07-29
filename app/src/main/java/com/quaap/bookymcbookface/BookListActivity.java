@@ -813,7 +813,7 @@ public class BookListActivity extends AppCompatActivity {
             });
         }
 
-        if (status!=BookDb.STATUS_LATER) {
+        if (status!=BookDb.STATUS_LATER && status!=BookDb.STATUS_DONE) {
             menu.getMenu().add(R.string.mark_later).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
@@ -823,7 +823,7 @@ public class BookListActivity extends AppCompatActivity {
             });
         }
 
-        if (status!=BookDb.STATUS_NONE && status!=BookDb.STATUS_STARTED) {
+        if (status==BookDb.STATUS_LATER || status==BookDb.STATUS_DONE) {
             menu.getMenu().add(R.string.un_mark).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
@@ -835,7 +835,7 @@ public class BookListActivity extends AppCompatActivity {
         }
 
 
-        if (lastread>0) {
+        if (status==BookDb.STATUS_STARTED) {
 
             menu.getMenu().add(R.string.close_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
