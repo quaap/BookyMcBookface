@@ -1,3 +1,5 @@
 A simple, very unfancy (and somewhat deficient) e-book reader. Loads epub, txt, and html books. See [https://github.com/quaap/BookyMcBookface Github]  for the full feature list and instructions. If you find a problem with a particular book, file a bug report!
 
+Version 0.4 features many improvements: search your books, mark books as completed or "for later", view book list by book status (read, unread, completed, etc), and fullscreen reading mode.
+
 It was created specifically so that I could have a free and open-source software (FOSS) epub reader on my phone. It is very basic on purpose! :)
