@@ -173,6 +173,7 @@ public class ReaderActivity extends Activity {
                 }
 
                 public void onPageFinished(WebView view, String url) {
+                    addEOCPadding();
                     restoreBgColor();
                     restoreScrollOffsetDelayed(100);
                 }
@@ -189,6 +190,7 @@ public class ReaderActivity extends Activity {
                 }
 
                 public void onPageFinished(WebView view, String url) {
+                    addEOCPadding();
                     restoreBgColor();
                     restoreScrollOffsetDelayed(100);
                 }
@@ -282,6 +284,14 @@ public class ReaderActivity extends Activity {
             loadFile(new File(filename));
         }
 
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void addEOCPadding() {
+        //Add padding to end of section to reduce confusing partial page scrolls
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.evaluateJavascript("document.getElementsByTagName('body')[0].innerHTML += '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>'", null);
+        webView.getSettings().setJavaScriptEnabled(false);
     }
 
     private View.OnClickListener morelessControls = new View.OnClickListener() {
