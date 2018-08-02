@@ -412,6 +412,7 @@ public class ReaderActivity extends Activity {
     }
 
     private void saveScrollOffset(int offset) {
+        if (book==null) return;
         book.setSectionOffset(offset);
     }
 
@@ -496,9 +497,11 @@ public class ReaderActivity extends Activity {
                 if (ract!=null) {
                     ract.book = Book.getBookHandler(ract, file.getPath());
                     Log.d("Main", "File " + file);
-                    ract.book.load(file);
+                    if (ract.book!=null) {
+                        ract.book.load(file);
+                    }
 
-                    publishProgress(1);
+                    //publishProgress(1);
                 }
 
             } catch (Exception e) {
@@ -509,29 +512,37 @@ public class ReaderActivity extends Activity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
+
             ReaderActivity ract = ractref.get();
-            if (ract!=null) {
+            if (ract==null) return;
+
+            try {
                 ract.progressBar.setVisibility(View.GONE);
+
+                if (ract.book != null) {
+                    int fontsize = ract.book.getFontsize();
+                    if (fontsize != -1) {
+                        ract.setFontSize(fontsize);
+                    }
+                    Uri uri = ract.book.getCurrentSection();
+                    if (uri != null) {
+                        ract.showUri(uri);
+                    } else {
+                        Toast.makeText(ract, "Something went wrong (no sections). Please report this book as a bug", Toast.LENGTH_LONG).show();
+                    }
+                    if (ract.book.getFlag("fullscreen", true)) {
+                        ract.mkFull();
+                    } else {
+                        ract.mkReg();
+                    }
+                    ract.setFullscreenMode();
+                    ract.setAwake();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
+                Toast.makeText(ract, "Something went wrong. Please report this book as a bug. " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
-            if (ract!=null && ract.book!=null) {
-                int fontsize = ract.book.getFontsize();
-                if (fontsize != -1) {
-                    ract.setFontSize(fontsize);
-                }
-                Uri uri = ract.book.getCurrentSection();
-                if (uri!=null) {
-                    ract.showUri(uri);
-                } else {
-                    Toast.makeText(ract,"Something went wrong (no sections). Please report this book as a bug",Toast.LENGTH_LONG).show();
-                }
-                if (ract.book.getFlag("fullscreen", true)) {
-                    ract.mkFull();
-                } else {
-                    ract.mkReg();
-                }
-                ract.setFullscreenMode();
-                ract.setAwake();
-            }
+
         }
     }
 
@@ -749,8 +760,12 @@ public class ReaderActivity extends Activity {
     }
 
     private void setNoAwake() {
-        Window w = ReaderActivity.this.getWindow();
-        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        try {
+            Window w = ReaderActivity.this.getWindow();
+            w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
+        }
     }
 
 
@@ -827,27 +842,32 @@ public class ReaderActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void applyColor(int color) {
-        ReaderActivity.this.getWindow().setBackgroundDrawable(null);
-        webView.setBackgroundColor(color);
-        ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
+        try {
+            ReaderActivity.this.getWindow().setBackgroundDrawable(null);
+            webView.setBackgroundColor(color);
+            ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
-        ViewGroup controls = findViewById(R.id.controls_layout);
-        setDimLevel(controls, color);
-        for (int i=0; i<controls.getChildCount(); i++) {
-            View button = controls.getChildAt(i);
-            setDimLevel(button, color);
+            ViewGroup controls = findViewById(R.id.controls_layout);
+            setDimLevel(controls, color);
+            for (int i = 0; i < controls.getChildCount(); i++) {
+                View button = controls.getChildAt(i);
+                setDimLevel(button, color);
+            }
+
+            ViewGroup extracontrols = findViewById(R.id.slide_menu);
+            for (int i = 0; i < extracontrols.getChildCount(); i++) {
+                View button = extracontrols.getChildAt(i);
+                setDimLevel(button, color);
+            }
+
+            //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
+            webView.getSettings().setJavaScriptEnabled(false);
+        } catch (Throwable t) {
+            Log.e("Booky", t.getMessage(), t);
+            Toast.makeText(this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
-
-        ViewGroup extracontrols = findViewById(R.id.slide_menu);
-        for (int i=0; i<extracontrols.getChildCount(); i++) {
-            View button = extracontrols.getChildAt(i);
-            setDimLevel(button, color);
-        }
-
-        //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
-        webView.getSettings().setJavaScriptEnabled(false);
     }
 
     private void setDimLevel(View button, int color) {
