@@ -65,7 +65,12 @@ import com.quaap.bookymcbookface.book.BookMetadata;
 public class BookListActivity extends AppCompatActivity {
 
     private static final String SORTORDER_KEY = "sortorder";
-
+    private static final int STARTLASTREAD = 1;
+    private static final int STARTOPEN = 2;
+    private static final int STARTALL = 3;
+    public static final String ACTION_SHOW_OPEN = "com.quaap.bookymcbookface.SHOW_OPEN_BOOKS";
+    public static final String ACTION_SHOW_UNREAD = "com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS";
+    public static final String ACTION_SHOW_LAST_STATUS = "com.quaap.bookymcbookface.SHOW_LAST_STATUS";
     private SharedPreferences data;
 
 
@@ -83,6 +88,9 @@ public class BookListActivity extends AppCompatActivity {
 
     public final String SHOW_STATUS = "showStatus";
 
+    private boolean openLastread = false;
+    private static boolean alreadyStarted=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +103,12 @@ public class BookListActivity extends AppCompatActivity {
 
         data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
 
+        viewAdder = new BookListAdderHandler(this);
+
+        int initShowStatus = BookDb.STATUS_ANY;
+
+
+
         if (!data.contains(SORTORDER_KEY)) {
             setSortOrder(SortOrder.Default);
         }
@@ -103,52 +117,87 @@ public class BookListActivity extends AppCompatActivity {
 
         db = BookyApp.getDB(this);
 
-        viewAdder = new BookListAdderHandler(this);
-        update();
-
         recentread = db.getMostRecentlyRead();
 
-        int initShowStatus = BookDb.STATUS_ANY;
+        openLastread = false;
+
+        boolean hadSpecialOpen = false;
         Intent intent = getIntent();
-        if (intent!=null) {
-            if (intent.getAction()!=null) {
-                if (intent.getAction().equals("com.quaap.bookymcbookface.SHOW_OPEN_BOOKS")) {
+        if (intent != null) {
+            if (intent.getAction() != null) {
+                if (intent.getAction().equals(ACTION_SHOW_OPEN)) {
                     initShowStatus = BookDb.STATUS_STARTED;
-                } else if (intent.getAction().equals("com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS")) {
+                    hadSpecialOpen = true;
+                } else if (intent.getAction().equals(ACTION_SHOW_UNREAD)) {
                     initShowStatus = BookDb.STATUS_NONE;
+                    hadSpecialOpen = true;
+                } else if (intent.getAction().equals(ACTION_SHOW_LAST_STATUS)) {
+                    initShowStatus = data.getInt("LastshowStatus", BookDb.STATUS_ANY);
+                    hadSpecialOpen = true;
                 }
+
             }
         }
 
-        final int initShowStatusF = initShowStatus;
-        listScroller.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                populateBooks(initShowStatusF);
+        if (!hadSpecialOpen && !alreadyStarted){
+            alreadyStarted = true;
+            switch (data.getInt("startwith", STARTLASTREAD)) {
+                case STARTLASTREAD:
+                    if (recentread!=-1 && data.getBoolean("readerexitednormally", true)) openLastread = true;
+                    break;
+                case STARTOPEN:
+                    initShowStatus = BookDb.STATUS_STARTED; break;
+                case STARTALL:
+                    initShowStatus = BookDb.STATUS_ANY;
             }
-        }, 100);
+        }
+
+        if (!openLastread) {
+            final int initShowStatusF = initShowStatus;
+            listScroller.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    populateBooks(initShowStatusF);
+                }
+            }, 100);
+        }
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        updateViewTimes();
-
-        int seen = 40;
-        String seennewsKey = "seennews";
-
-        if (recentread>0 && seen > data.getInt(seennewsKey, -1)) {
+        if (openLastread) {
             viewAdder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(BookListActivity.this, "New! !"+ getString(R.string.search_your_books) + "!", Toast.LENGTH_LONG).show();
+                    try {
+                        BookDb.BookRecord book = db.getBookRecord(recentread);
+                        getReader(book, true);
+                        finish();
+                    } catch (Exception e) {
+                        data.edit().putInt("startwith", STARTALL).apply();
+                    }
                 }
-            },3000);
+            }, 200);
+        } else {
+            updateViewTimes();
 
+            int seen = 40;
+            String seennewsKey = "seennews";
+
+            if (recentread > 0 && seen > data.getInt(seennewsKey, -1)) {
+                viewAdder.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(BookListActivity.this, "New! !" + getString(R.string.search_your_books) + "!", Toast.LENGTH_LONG).show();
+                    }
+                }, 3000);
+
+            }
+            data.edit().putInt(seennewsKey, seen).apply();
         }
-        data.edit().putInt(seennewsKey, seen).apply();
     }
 
     @Override
@@ -162,62 +211,6 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    private void update() {
-        String UPDATED = "UPDATE_DONE";
-        if (data.getBoolean(UPDATED, false)) return;
-
-        String NEXTID_KEY = "nextid";
-        String TITLE_ORDER_KEY = "title_order";
-        String AUTHOR_ORDER_KEY = "author_order";
-        String FILENAME_SUFF = ".filename";
-        String TITLE_SUFF = ".title";
-        String AUTHOR_SUFF = ".author";
-        String LASTREAD_SUFF = ".lastread";
-        String ID_KEY = ".id";
-        String BOOK_PREFIX = "book.";
-        //String LASTREAD_KEY = "lastread";
-
-
-        int nextid = data.getInt(NEXTID_KEY,0);
-
-        for (int i = 0; i < nextid; i++) {
-            String bookidstr = BOOK_PREFIX + i;
-            String filename = data.getString(bookidstr + FILENAME_SUFF, null);
-
-
-            if (filename!=null) {
-                //Log.d("Book", "Filename "  + filename);
-                Log.d("Book", "Updating Filename "  + filename);
-
-                String title = data.getString(bookidstr + TITLE_SUFF, null);
-                String author = data.getString(bookidstr + AUTHOR_SUFF, null);
-
-                int id = db.addBook(filename,title,author);
-
-                if (id>-1) {
-                    long lastread = data.getLong(bookidstr + LASTREAD_SUFF, Long.MIN_VALUE);
-
-                    if (lastread > 0) {
-                        db.updateLastRead(id, lastread);
-                    }
-
-                    data.edit()
-                            .remove(bookidstr + ID_KEY)
-                            .remove(bookidstr + TITLE_SUFF)
-                            .remove(bookidstr + AUTHOR_SUFF)
-                            .remove(bookidstr + FILENAME_SUFF)
-                            .remove(bookidstr + LASTREAD_SUFF)
-                       .apply();
-
-                }
-
-            }
-        }
-
-        data.edit().remove(TITLE_ORDER_KEY).remove(AUTHOR_ORDER_KEY).apply();
-
-        data.edit().putBoolean(UPDATED, true).apply();
-    }
 
     private void setSortOrder(SortOrder sortOrder) {
         data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
@@ -240,6 +233,7 @@ public class BookListActivity extends AppCompatActivity {
 
     private void populateBooks(int status) {
         showStatus = status;
+        data.edit().putInt("LastshowStatus", showStatus).apply();
         showingSearch = false;
         SortOrder sortorder = getSortOrder();
         final List<Integer> books = db.getBookIds(sortorder, status);
@@ -375,6 +369,18 @@ public class BookListActivity extends AppCompatActivity {
                 break;
         }
 
+        switch (data.getInt("startwith", STARTLASTREAD)) {
+            case STARTALL:
+                menu.findItem(R.id.menu_start_all_books).setChecked(true);
+                break;
+            case STARTOPEN:
+                menu.findItem(R.id.menu_start_open_books).setChecked(true);
+                break;
+            case STARTLASTREAD:
+                menu.findItem(R.id.menu_start_last_read).setChecked(true);
+                break;
+        }
+
         return true;
     }
 
@@ -476,6 +482,12 @@ public class BookListActivity extends AppCompatActivity {
                 pop = true;
                 status = BookDb.STATUS_ANY;
                 break;
+            case R.id.menu_start_all_books:
+                data.edit().putInt("startwith", STARTALL).apply(); break;
+            case R.id.menu_start_open_books:
+                data.edit().putInt("startwith", STARTOPEN).apply(); break;
+            case R.id.menu_start_last_read:
+                data.edit().putInt("startwith", STARTLASTREAD).apply(); break;
             default:
 
                 return super.onOptionsItemSelected(item);
@@ -604,9 +616,8 @@ public class BookListActivity extends AppCompatActivity {
                         }
                     }
 
-                    Intent main = new Intent(BookListActivity.this, ReaderActivity.class);
-                    main.putExtra(ReaderActivity.FILENAME, book.filename);
-                    startActivity(main);
+                    getReader(book,true);
+
 
                 }
             }, 300);
@@ -617,9 +628,8 @@ public class BookListActivity extends AppCompatActivity {
 
                     ShortcutManager shortcutManager = (ShortcutManager) getSystemService(Context.SHORTCUT_SERVICE);
                     if (shortcutManager!=null) {
-                        Intent readBook = new Intent(BookListActivity.this, ReaderActivity.class);
-                        readBook.putExtra(ReaderActivity.FILENAME, book.filename);
-                        readBook.setAction(Intent.ACTION_VIEW);
+                        Intent readBook = getReader(book,false);
+
 
                         ShortcutInfo readShortcut = new ShortcutInfo.Builder(this, "id1")
                                 .setShortLabel("Read latest")
@@ -639,6 +649,16 @@ public class BookListActivity extends AppCompatActivity {
 
 
         }
+    }
+
+    private Intent getReader(BookDb.BookRecord book, boolean start) {
+        Intent readBook = new Intent(BookListActivity.this, ReaderActivity.class);
+        readBook.putExtra(ReaderActivity.FILENAME, book.filename);
+        readBook.setAction(Intent.ACTION_VIEW);
+        if (start) {
+            startActivity(readBook);
+        }
+        return readBook;
     }
 
     private void updateBookStatus(View child, long time, int text) {

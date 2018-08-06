@@ -1,9 +1,9 @@
 package com.quaap.bookymcbookface;
 
-import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -283,9 +283,21 @@ public class ReaderActivity extends Activity {
         Intent intent = getIntent();
         String filename = intent.getStringExtra(FILENAME);
         if (filename!=null) {
-            loadFile(new File(filename));
+            //if the app crashes on this book,
+            // this flag will remain to let the booklist activity know not to auto start it again.
+            // it gets set to true in onPause.
+            if (getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean("readerexitednormally", false).commit()) {
+                loadFile(new File(filename));
+            }
         }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent main = new Intent(this, BookListActivity.class);
+        main.setAction(BookListActivity.ACTION_SHOW_LAST_STATUS);
+        startActivity(main);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -654,6 +666,7 @@ public class ReaderActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
         if (timer!=null) {
             timer.cancel();
         }
@@ -662,6 +675,8 @@ public class ReaderActivity extends Activity {
 
     @Override
     protected void onPause() {
+        getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean("readerexitednormally", true).apply();
+
         setNoAwake();
 
         if (timer!=null) {

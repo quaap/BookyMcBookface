@@ -72,6 +72,28 @@
     </item>
 
     <item
+        android:id="@+id/menu_start_options"
+        android:title="@string/start_options"
+        >
+        <menu>
+            <group
+                android:id="@+id/optionsgroup"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/menu_start_all_books"
+                    android:title="@string/book_status_any" />
+                <item
+                    android:id="@+id/menu_start_open_books"
+                    android:title="@string/book_status_started" />
+                <item
+                    android:id="@+id/menu_start_last_read"
+                    android:title="@string/last_read" />
+            </group>
+
+        </menu>
+
+    </item>
+    <item
         android:id="@+id/menu_about"
         android:title="@string/about" />
 </menu>
