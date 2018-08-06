@@ -7,6 +7,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
+import android.graphics.drawable.Icon;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,8 +34,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.RadioButton;
@@ -42,6 +43,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.List;
 
 import com.quaap.bookymcbookface.book.Book;
@@ -79,6 +81,8 @@ public class BookListActivity extends AppCompatActivity {
 
     private int showStatus = BookDb.STATUS_ANY;
 
+    public final String SHOW_STATUS = "showStatus";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,11 +108,24 @@ public class BookListActivity extends AppCompatActivity {
 
         recentread = db.getMostRecentlyRead();
 
+        int initShowStatus = BookDb.STATUS_ANY;
+        Intent intent = getIntent();
+        if (intent!=null) {
+            if (intent.getAction()!=null) {
+                if (intent.getAction().equals("com.quaap.bookymcbookface.SHOW_OPEN_BOOKS")) {
+                    initShowStatus = BookDb.STATUS_STARTED;
+                } else if (intent.getAction().equals("com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS")) {
+                    initShowStatus = BookDb.STATUS_NONE;
+                }
+            }
+        }
+
+        final int initShowStatusF = initShowStatus;
         listScroller.postDelayed(new Runnable() {
             @Override
             public void run() {
 
-                populateBooks();
+                populateBooks(initShowStatusF);
             }
         }, 100);
     }
@@ -593,6 +610,34 @@ public class BookListActivity extends AppCompatActivity {
 
                 }
             }, 300);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
+
+                try {
+
+                    ShortcutManager shortcutManager = (ShortcutManager) getSystemService(Context.SHORTCUT_SERVICE);
+                    if (shortcutManager!=null) {
+                        Intent readBook = new Intent(BookListActivity.this, ReaderActivity.class);
+                        readBook.putExtra(ReaderActivity.FILENAME, book.filename);
+                        readBook.setAction(Intent.ACTION_VIEW);
+
+                        ShortcutInfo readShortcut = new ShortcutInfo.Builder(this, "id1")
+                                .setShortLabel("Read latest")
+                                .setLongLabel(maxlen(book.title, 24))
+                                .setIcon(Icon.createWithResource(BookListActivity.this, R.mipmap.ic_launcher_round))
+                                .setIntent(readBook)
+                                .build();
+
+
+
+                        shortcutManager.setDynamicShortcuts(Collections.singletonList(readShortcut));
+                    }
+                } catch(Exception e) {
+                    Log.e("Booky", e.getMessage(), e);
+                }
+            }
+
+
         }
     }
 

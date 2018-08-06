@@ -1,0 +1,32 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="openbooks"
+        android:enabled="true"
+        android:icon="@drawable/icon"
+        android:shortcutShortLabel="@string/book_status_started"
+        android:shortcutLongLabel="@string/book_status_started"
+        android:shortcutDisabledMessage="@string/book_status_started">
+        <intent
+            android:action="com.quaap.bookymcbookface.SHOW_OPEN_BOOKS"
+            android:targetPackage="com.quaap.bookymcbookface"
+            android:targetClass="com.quaap.bookymcbookface.BookListActivity">
+
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="unreadbooks"
+        android:enabled="true"
+        android:icon="@drawable/icon"
+        android:shortcutShortLabel="@string/book_status_none"
+        android:shortcutLongLabel="@string/book_status_none"
+        android:shortcutDisabledMessage="@string/book_status_none">
+        <intent
+            android:action="com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS"
+            android:targetPackage="com.quaap.bookymcbookface"
+            android:targetClass="com.quaap.bookymcbookface.BookListActivity">
+
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>
