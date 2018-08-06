@@ -55,6 +55,7 @@ import com.quaap.bookymcbookface.book.Book;
 public class ReaderActivity extends Activity {
 
     private static final String TAG = "ReaderActivity";
+    public static final String READEREXITEDNORMALLY = "readerexitednormally";
 
     Book book;
 
@@ -286,7 +287,7 @@ public class ReaderActivity extends Activity {
             //if the app crashes on this book,
             // this flag will remain to let the booklist activity know not to auto start it again.
             // it gets set to true in onPause.
-            if (getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean("readerexitednormally", false).commit()) {
+            if (getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, false).commit()) {
                 loadFile(new File(filename));
             }
         }
@@ -675,7 +676,7 @@ public class ReaderActivity extends Activity {
 
     @Override
     protected void onPause() {
-        getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean("readerexitednormally", true).apply();
+        getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
 
         setNoAwake();
 

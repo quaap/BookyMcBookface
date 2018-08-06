@@ -143,7 +143,7 @@ public class BookListActivity extends AppCompatActivity {
             alreadyStarted = true;
             switch (data.getInt("startwith", STARTLASTREAD)) {
                 case STARTLASTREAD:
-                    if (recentread!=-1 && data.getBoolean("readerexitednormally", true)) openLastread = true;
+                    if (recentread!=-1 && data.getBoolean(ReaderActivity.READEREXITEDNORMALLY, true)) openLastread = true;
                     break;
                 case STARTOPEN:
                     initShowStatus = BookDb.STATUS_STARTED; break;
