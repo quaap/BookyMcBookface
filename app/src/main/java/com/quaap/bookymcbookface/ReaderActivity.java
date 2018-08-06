@@ -134,6 +134,7 @@ public class ReaderActivity extends Activity {
                         time = System.currentTimeMillis();
                         setAwake();
                         mkFull();
+                        hideMenu();
                         return false;
 
                     case MotionEvent.ACTION_MOVE:
@@ -263,6 +264,7 @@ public class ReaderActivity extends Activity {
                         new Runnable() {
                             @Override
                             public void run() {
+                                mkReg();
                                 hideMenu();
                             }
                         }, 500);
