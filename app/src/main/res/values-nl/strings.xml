@@ -68,6 +68,8 @@
     <string name="search_your_books">Doorzoek je boeken</string>
     <string name="start_options">Start options</string>
     <string name="last_read">Last read</string>
+    <string name="shortcut_latest">Continue reading</string>
+    <string name="shortcut_latest_title">Read %s</string>
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">
