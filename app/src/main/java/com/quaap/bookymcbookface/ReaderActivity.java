@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -15,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Display;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -78,6 +80,7 @@ public class ReaderActivity extends Activity {
 
     private ProgressBar progressBar;
 
+    private Point mScreenDim;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -87,7 +90,9 @@ public class ReaderActivity extends Activity {
 
         ActionBar ab = getActionBar();
         if (ab!=null) ab.hide();
-
+        Display display = getWindowManager().getDefaultDisplay();
+        mScreenDim = new Point();
+        display.getSize(mScreenDim);
 
         webView = findViewById(R.id.page_view);
 
@@ -134,8 +139,11 @@ public class ReaderActivity extends Activity {
                         y = motionEvent.getY();
                         time = System.currentTimeMillis();
                         setAwake();
-                        mkFull();
-                        hideMenu();
+                        if (y>mScreenDim.y/3 && x>mScreenDim.x/3 &&
+                                y<mScreenDim.y*2/3 && x<mScreenDim.x*2/3) {
+                            mkFull();
+                            hideMenu();
+                        }
                         return false;
 
                     case MotionEvent.ACTION_MOVE:
