@@ -329,13 +329,13 @@ public class ReaderActivity extends Activity {
         }
     };
     private void setFullscreenMode() {
-        if (book!=null) {
+        if (book!=null && book.hasDataDir()) {
             setFullscreen(book.getFlag("fullscreen", true));
         }
     }
 
     private void setFullscreen(boolean full) {
-        if (book!=null) book.setFlag("fullscreen", full);
+        if (book!=null && book.hasDataDir()) book.setFlag("fullscreen", full);
 
         fullscreenBox.setChecked(full);
     }
@@ -542,7 +542,7 @@ public class ReaderActivity extends Activity {
             try {
                 ract.progressBar.setVisibility(View.GONE);
 
-                if (ract.book != null) {
+                if (ract.book != null && ract.book.hasDataDir()) {
                     int fontsize = ract.book.getFontsize();
                     if (fontsize != -1) {
                         ract.setFontSize(fontsize);

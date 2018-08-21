@@ -88,6 +88,10 @@ public abstract class Book {
         restoreCurrentSectionID();
     }
 
+    public boolean hasDataDir() {
+        return data!=null;
+    }
+
     public Uri getFirstSection() {
         clearSectionOffset();
         currentSectionIDPos = 0;
