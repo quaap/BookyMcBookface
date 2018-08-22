@@ -88,6 +88,8 @@ public class BookListActivity extends AppCompatActivity {
 
     public final String SHOW_STATUS = "showStatus";
 
+    public final static String prefname = "booklist";
+
     private boolean openLastread = false;
     private static boolean alreadyStarted=false;
 
@@ -101,7 +103,7 @@ public class BookListActivity extends AppCompatActivity {
         tv = findViewById(R.id.progress_text);
         checkStorageAccess(false);
 
-        data = getSharedPreferences("booklist", Context.MODE_PRIVATE);
+        data = getSharedPreferences(prefname, Context.MODE_PRIVATE);
 
         viewAdder = new BookListAdderHandler(this);
 

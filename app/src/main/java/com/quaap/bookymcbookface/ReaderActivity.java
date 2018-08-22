@@ -60,6 +60,7 @@ public class ReaderActivity extends Activity {
 
     private static final String TAG = "ReaderActivity";
     public static final String READEREXITEDNORMALLY = "readerexitednormally";
+    private static final String FULLSCREEN = "fullscreen";
 
     private Book book;
 
@@ -84,7 +85,7 @@ public class ReaderActivity extends Activity {
 
     private Point mScreenDim;
 
-    private Exception exception;
+    private Throwable exception;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -295,7 +296,7 @@ public class ReaderActivity extends Activity {
             //if the app crashes on this book,
             // this flag will remain to let the booklist activity know not to auto start it again.
             // it gets set to true in onPause.
-            if (getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, false).commit()) {
+            if (getSharedPreferences(BookListActivity.prefname, Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, false).commit()) {
                 loadFile(new File(filename));
             }
         }
@@ -330,12 +331,12 @@ public class ReaderActivity extends Activity {
     };
     private void setFullscreenMode() {
         if (book!=null && book.hasDataDir()) {
-            setFullscreen(book.getFlag("fullscreen", true));
+            setFullscreen(book.getFlag(FULLSCREEN, true));
         }
     }
 
     private void setFullscreen(boolean full) {
-        if (book!=null && book.hasDataDir()) book.setFlag("fullscreen", full);
+        if (book!=null && book.hasDataDir()) book.setFlag(FULLSCREEN, full);
 
         fullscreenBox.setChecked(full);
     }
@@ -516,38 +517,39 @@ public class ReaderActivity extends Activity {
         @Override
         protected Book doInBackground(Void... voids) {
             ReaderActivity ract = ractref.get();
+            if (ract==null) return null;
             try {
-                if (ract!=null) {
-                    ract.book = Book.getBookHandler(ract, file.getPath());
-                    Log.d(TAG, "File " + file);
-                    if (ract.book!=null) {
-                        ract.book.load(file);
-                        return ract.book;
-                    }
-
-                    //publishProgress(1);
+                ract.book = Book.getBookHandler(ract, file.getPath());
+                Log.d(TAG, "File " + file);
+                if (ract.book!=null) {
+                    ract.book.load(file);
+                    return ract.book;
                 }
 
-            } catch (Exception e) {
+                //publishProgress(1);
+
+            } catch (Throwable e) {
                 ract.exception = e;
                 Log.e(TAG, e.getMessage(), e);
             }
             return null;
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         protected void onPostExecute(Book book) {
 
             ReaderActivity ract = ractref.get();
             if (ract==null) return;
 
+            String badtext = ract.getString(R.string.book_bug);
             try {
                 ract.progressBar.setVisibility(View.GONE);
 
                 if (book==null && ract.exception!=null) {
                     ract.webView.setOnTouchListener(null);
                     ract.webView.setWebViewClient(null);
-                    ract.webView.loadData(ract.exception.toString(),"text/plain", "utf-8");
+                    ract.webView.loadData(badtext + ract.exception.getLocalizedMessage(),"text/plain", "utf-8");
                     throw ract.exception;
                 }
                 if (book !=null && ract.book != null && ract.book.hasDataDir()) {
@@ -559,9 +561,9 @@ public class ReaderActivity extends Activity {
                     if (uri != null) {
                         ract.showUri(uri);
                     } else {
-                        Toast.makeText(ract, "Something went wrong (no sections). Please report this book as a bug", Toast.LENGTH_LONG).show();
+                        Toast.makeText(ract, badtext + " (no sections)", Toast.LENGTH_LONG).show();
                     }
-                    if (ract.book.getFlag("fullscreen", true)) {
+                    if (ract.book.getFlag(FULLSCREEN, true)) {
                         ract.mkFull();
                     } else {
                         ract.mkReg();
@@ -569,9 +571,9 @@ public class ReaderActivity extends Activity {
                     ract.setFullscreenMode();
                     ract.setAwake();
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 Log.e(TAG, e.getMessage(), e);
-                Toast.makeText(ract, "Something went wrong. Please report this book as a bug. " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ract, badtext + e.getMessage(), Toast.LENGTH_LONG).show();
             }
 
         }
@@ -655,7 +657,7 @@ public class ReaderActivity extends Activity {
 
     private void mkFull() {
 
-        if (book!=null && !book.getFlag("fullscreen", true)) return;
+        if (book==null || !book.getFlag(FULLSCREEN, true)) return;
 //        findViewById(R.id.fullscreen_no_button).setVisibility(View.VISIBLE);
 //        findViewById(R.id.fullscreen_button).setVisibility(View.GONE);
 
@@ -700,10 +702,8 @@ public class ReaderActivity extends Activity {
         }
 
         if (exception==null) {
-            getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
-
-
             saveScrollOffset();
+            getSharedPreferences(BookListActivity.prefname, Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
         }
         super.onPause();
     }

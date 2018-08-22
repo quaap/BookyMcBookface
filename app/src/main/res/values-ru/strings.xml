@@ -67,6 +67,7 @@
     <string name="last_read">Last read</string>
     <string name="shortcut_latest">Continue reading</string>
     <string name="shortcut_latest_title">Read %s</string>
+    <string name="book_bug">Something went wrong. Please report this book as a bug.</string>
 
 
     <!-- if your language/country has its own sites change or add them here -->
