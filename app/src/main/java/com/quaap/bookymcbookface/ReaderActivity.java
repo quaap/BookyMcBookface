@@ -170,46 +170,35 @@ public class ReaderActivity extends Activity {
         });
 
 
-        if (Build.VERSION.SDK_INT>=24) {
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    Uri uri = request.getUrl();
-                    if (uri.getScheme().equals("file")) {
-                        handleLink(uri.toString());
-                        return true;
-                    }
-                    return false;
-                }
+        webView.setWebViewClient(new WebViewClient() {
 
-                public void onPageFinished(WebView view, String url) {
-                    addEOCPadding();
-                    restoreBgColor();
-                    restoreScrollOffsetDelayed(100);
-                }
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Log.i("WebView", "Attempting to load URL: " + url);
 
-            });
-        } else {
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    Log.i("WebView", "Attempting to load URL: " + url);
+                handleLink(url);
+                return true;
+            }
 
-                    handleLink(url);
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                if (uri.getScheme().equals("file")) {
+                    handleLink(uri.toString());
                     return true;
                 }
-
-                public void onPageFinished(WebView view, String url) {
-                    addEOCPadding();
-                    restoreBgColor();
-                    restoreScrollOffsetDelayed(100);
-                }
+                return false;
+            }
 
 
+            public void onPageFinished(WebView view, String url) {
+               // addEOCPadding();
+                restoreBgColor();
+                restoreScrollOffsetDelayed(100);
+            }
 
-            });
+        });
 
-        }
 
         progressBar = findViewById(R.id.progressBar);
 
@@ -231,7 +220,7 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 showToc();
-                hideMenu();
+                //hideMenu();
             }
         });
 
@@ -239,14 +228,14 @@ public class ReaderActivity extends Activity {
             @Override
             public void onClick(View view) {
                 selectFontSize();
-                hideMenu();
+                //hideMenu();
             }
         });
         findViewById(R.id.brightness_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showBrightnessControl();
-                hideMenu();
+                //hideMenu();
             }
         });
 
