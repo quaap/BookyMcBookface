@@ -228,17 +228,17 @@ public abstract class Book {
     }
 
     private static String makeOldFName(File file) {
-        return file.getPath().replaceAll("/|\\\\","_");
+        return file.getPath().replaceAll("[/\\\\]","_");
     }
 
-    private static final String reservedChars = "?:\"'*|/\\<>+[]()";
+    private static final String reservedChars = "[/\\\\:?\"'*|<>+\\[\\]()]";
 
     private static String makeFName(File file) {
-        String fname = file.getPath().replaceAll("/|\\\\","_").replaceAll(Pattern.quote(reservedChars),"_");
-        if (fname.getBytes().length>120) {
+        String fname = file.getPath().replaceAll(reservedChars,"_");
+        if (fname.getBytes().length>60) {
             //for very long names, we take the first part and the last part and the crc.
             // should be unique.
-            int len = 60;
+            int len = 30;
             if (fname.length()<=len) {  //just in case I'm missing some utf bytes vs length weirdness here
                 len = fname.length()-1;
             }

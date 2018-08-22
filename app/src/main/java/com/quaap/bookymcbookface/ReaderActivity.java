@@ -84,6 +84,9 @@ public class ReaderActivity extends Activity {
 
     private Point mScreenDim;
 
+    private Exception exception;
+
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,7 +179,7 @@ public class ReaderActivity extends Activity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.i("WebView", "Attempting to load URL: " + url);
+                Log.i(TAG, "Attempting to load URL: " + url);
 
                 handleLink(url);
                 return true;
@@ -197,8 +200,12 @@ public class ReaderActivity extends Activity {
 
             public void onPageFinished(WebView view, String url) {
                // addEOCPadding();
-                restoreBgColor();
-                restoreScrollOffsetDelayed(100);
+                try {
+                    restoreBgColor();
+                    restoreScrollOffsetDelayed(100);
+                } catch (Throwable t) {
+                    Log.e(TAG, t.getMessage(), t);
+                }
             }
 
         });
@@ -447,7 +454,7 @@ public class ReaderActivity extends Activity {
         webView.computeScroll();
         if (spos>=0) {
             webView.scrollTo(0, spos);
-            Log.d("READER", "restoreScrollOffset " + spos);
+            Log.d(TAG, "restoreScrollOffset " + spos);
         } else if (isPagingUp){
             webView.pageDown(true);
             //webView.scrollTo(0,webView.getContentHeight());
@@ -467,7 +474,7 @@ public class ReaderActivity extends Activity {
     }
 
 
-    private static class LoaderTask extends  AsyncTask<Void,Integer,Void>  {
+    private static class LoaderTask extends  AsyncTask<Void,Integer,Book>  {
 
         private final File file;
         private final WeakReference<ReaderActivity> ractref;
@@ -507,27 +514,29 @@ public class ReaderActivity extends Activity {
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Book doInBackground(Void... voids) {
+            ReaderActivity ract = ractref.get();
             try {
-                ReaderActivity ract = ractref.get();
                 if (ract!=null) {
                     ract.book = Book.getBookHandler(ract, file.getPath());
-                    Log.d("Main", "File " + file);
+                    Log.d(TAG, "File " + file);
                     if (ract.book!=null) {
                         ract.book.load(file);
+                        return ract.book;
                     }
 
                     //publishProgress(1);
                 }
 
             } catch (Exception e) {
+                ract.exception = e;
                 Log.e(TAG, e.getMessage(), e);
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(Book book) {
 
             ReaderActivity ract = ractref.get();
             if (ract==null) return;
@@ -535,7 +544,13 @@ public class ReaderActivity extends Activity {
             try {
                 ract.progressBar.setVisibility(View.GONE);
 
-                if (ract.book != null && ract.book.hasDataDir()) {
+                if (book==null && ract.exception!=null) {
+                    ract.webView.setOnTouchListener(null);
+                    ract.webView.setWebViewClient(null);
+                    ract.webView.loadData(ract.exception.toString(),"text/plain", "utf-8");
+                    throw ract.exception;
+                }
+                if (book !=null && ract.book != null && ract.book.hasDataDir()) {
                     int fontsize = ract.book.getFontsize();
                     if (fontsize != -1) {
                         ract.setFontSize(fontsize);
@@ -565,7 +580,7 @@ public class ReaderActivity extends Activity {
 
     private void showUri(Uri uri) {
         if (uri !=null) {
-            Log.d("Main", "trying to load " + uri);
+            Log.d(TAG, "trying to load " + uri);
 
             //book.clearSectionOffset();
             webView.loadUrl(uri.toString());
@@ -574,7 +589,7 @@ public class ReaderActivity extends Activity {
 
     private void handleLink(String clickedLink) {
         if (clickedLink!=null) {
-            Log.d("Main", "clicked on " + clickedLink);
+            Log.d(TAG, "clicked on " + clickedLink);
             showUri(book.handleClickedLink(clickedLink));
         }
 
@@ -607,7 +622,7 @@ public class ReaderActivity extends Activity {
         final float scale = getResources().getDisplayMetrics().density;
 
 
-       // Log.d("READER", "def " + defsize + " " + scale);
+       // Log.d(TAG, "def " + defsize + " " + scale);
         final PopupMenu sizemenu = new PopupMenu(this, findViewById(R.id.zoom_button));
         for (int size=minsize; size<=36; size+=2) {
             final int s = size;
@@ -619,9 +634,9 @@ public class ReaderActivity extends Activity {
             mi.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
-                    Log.d("READER", "def " + (defsize-s));
+                    Log.d(TAG, "def " + (defsize-s));
                     int scrolloffset = (int)(-webView.getScrollY()*(defsize - s)/scale/2.7);
-                    Log.d("READER", "scrollby " + scrolloffset);
+                    Log.d(TAG, "scrollby " + scrolloffset);
 
                     setFontSize(s);
 
@@ -677,16 +692,19 @@ public class ReaderActivity extends Activity {
 
     @Override
     protected void onPause() {
-        getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
-
         setNoAwake();
-
-        if (timer!=null) {
+        if (timer != null) {
             timer.cancel();
             timer.purge();
             timer = null;
         }
-        saveScrollOffset();
+
+        if (exception==null) {
+            getSharedPreferences("booklist", Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
+
+
+            saveScrollOffset();
+        }
         super.onPause();
     }
 
@@ -741,7 +759,7 @@ public class ReaderActivity extends Activity {
                     nowakeTask.cancel();
                     if (timer==null)  {
                         timer = new Timer();
-                        Log.d("Reader", "timer was null?");
+                        Log.d(TAG, "timer was null?");
                     }
                     timer.purge();
                 }
@@ -753,7 +771,7 @@ public class ReaderActivity extends Activity {
                             public void run() {
                                 try {
                                     setNoAwake();
-                                    Log.d("Reader", "Clear FLAG_KEEP_SCREEN_ON");
+                                    Log.d(TAG, "Clear FLAG_KEEP_SCREEN_ON");
                                 } catch (Throwable t) {
                                     Log.e(TAG, t.getMessage(), t);
                                 }
@@ -884,7 +902,7 @@ public class ReaderActivity extends Activity {
             webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
             webView.getSettings().setJavaScriptEnabled(false);
         } catch (Throwable t) {
-            Log.e("Booky", t.getMessage(), t);
+            Log.e(TAG, t.getMessage(), t);
             Toast.makeText(this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
     }
