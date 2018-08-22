@@ -34,12 +34,12 @@ import java.util.Map;
  */
 public class GetBooksActivity extends Activity implements View.OnClickListener, View.OnLongClickListener{
 
-    EditText nameBox;
-    EditText urlBox;
+    private EditText nameBox;
+    private EditText urlBox;
 
-    LinearLayout list;
+    private LinearLayout list;
 
-    BookDb db;
+    private BookDb db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

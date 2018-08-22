@@ -34,7 +34,7 @@ public class HtmlBook extends Book {
     private static final String ORDERCOUNT = "ordercount";
     private static final String TOC_LABEL = "toc.label.";
     private static final String TOC_CONTENT = "toc.content.";
-    private List<String> l = new ArrayList<>();
+    private final List<String> l = new ArrayList<>();
     private Map<String,String> toc;
 
     public HtmlBook(Context context) {

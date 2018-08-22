@@ -32,9 +32,9 @@ import java.util.regex.Pattern;
  */
 
 public class TxtBook extends Book {
-    List<String> l = new ArrayList<>();
+    private final List<String> l = new ArrayList<>();
 
-    Map<String,String> toc = new LinkedHashMap<>();
+    private final Map<String,String> toc = new LinkedHashMap<>();
 
     public TxtBook(Context context) {
         super(context);

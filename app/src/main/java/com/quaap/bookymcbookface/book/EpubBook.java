@@ -176,10 +176,10 @@ public class EpubBook extends Book {
 
 
     private Map<String,String> metadata = new HashMap<>();
-    private Map<String,String> docFiles = new LinkedHashMap<>();
-    private List<String> docFileOrder = new ArrayList<>();
+    private final Map<String,String> docFiles = new LinkedHashMap<>();
+    private final List<String> docFileOrder = new ArrayList<>();
 
-    private Map<String,String> tocPoints = new LinkedHashMap<>();
+    private final Map<String,String> tocPoints = new LinkedHashMap<>();
 
 
     private void loadEpub() throws FileNotFoundException {
@@ -462,7 +462,7 @@ public class EpubBook extends Book {
     }
 
 
-    private static NamespaceContext tocnsc = new NamespaceContext() {
+    private static final NamespaceContext tocnsc = new NamespaceContext() {
         @Override
         public String getNamespaceURI(String s) {
             return "http://www.daisy.org/z3986/2005/ncx/";
@@ -479,7 +479,7 @@ public class EpubBook extends Book {
         }
     };
 
-    private static NamespaceContext packnsc = new NamespaceContext() {
+    private static final NamespaceContext packnsc = new NamespaceContext() {
         @Override
         public String getNamespaceURI(String s) {
             if (s!=null && s.equals("dc")) {

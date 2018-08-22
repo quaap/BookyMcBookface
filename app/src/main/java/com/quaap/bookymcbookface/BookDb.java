@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class BookDb extends SQLiteOpenHelper {
 
-    public final static String DBNAME = "bookdb";
+    private final static String DBNAME = "bookdb";
     private final static int DBVERSION = 2;
 
     private final static String BOOK_TABLE = "book";
@@ -48,10 +48,10 @@ public class BookDb extends SQLiteOpenHelper {
     private final static String WEBS_NAME = "name";
     private final static String WEBS_URL = "url";
 
-    private Context context;
+    private final Context context;
 
-    private Pattern authorRX;
-    private Pattern titleRX;
+    private final Pattern authorRX;
+    private final Pattern titleRX;
 
     public final static int STATUS_DONE = 128;
     public final static int STATUS_LATER = 32;
@@ -413,7 +413,7 @@ public class BookDb extends SQLiteOpenHelper {
         return addWebsite(db, name, url);
     }
 
-    public int addWebsite(SQLiteDatabase db, String name, String url) {
+    private int addWebsite(SQLiteDatabase db, String name, String url) {
 
 
         ContentValues data = new ContentValues();

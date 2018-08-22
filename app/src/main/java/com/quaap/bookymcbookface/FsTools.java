@@ -42,13 +42,13 @@ import java.util.zip.ZipOutputStream;
 
 public class FsTools {
 
-    private Context mContext;
+    private final Context mContext;
 
     public FsTools(Context context) {
         mContext = context;
     }
 
-    public  Map<File,String> getDrives() {
+    private Map<File,String> getDrives() {
         List<File> roots = new ArrayList<>();
         roots.add(new File("/storage"));
         //roots.add(new File("/mnt"));
@@ -198,7 +198,7 @@ public class FsTools {
     }
 
 
-    public void selectExternalLocation(final SelectionMadeListener listener, final String title, final String startdir, final boolean chooseDir, final String matchRE) {
+    private void selectExternalLocation(final SelectionMadeListener listener, final String title, final String startdir, final boolean chooseDir, final String matchRE) {
 
         String dname = startdir==null ? "" : startdir;
 
@@ -284,7 +284,7 @@ public class FsTools {
         return copyFile(srcFile, new File(destDir,srcFile.getName()));
     }
 
-    public static File copyFile(File srcFile, File destFile) {
+    private static File copyFile(File srcFile, File destFile) {
         return copyFile(srcFile, destFile, false, false);
     }
 
@@ -299,7 +299,7 @@ public class FsTools {
 
 
 
-    public static File copyFile(File srcFile, File destFile, boolean compress, boolean decompress){
+    private static File copyFile(File srcFile, File destFile, boolean compress, boolean decompress){
         if (destFile.exists() && !destFile.isFile()) throw new IllegalArgumentException("Destination must be a normal file");
         try {
 

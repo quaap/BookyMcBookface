@@ -1,6 +1,7 @@
 package com.quaap.bookymcbookface;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Display;
 import android.view.MenuItem;
@@ -59,7 +61,7 @@ public class ReaderActivity extends Activity {
     private static final String TAG = "ReaderActivity";
     public static final String READEREXITEDNORMALLY = "readerexitednormally";
 
-    Book book;
+    private Book book;
 
     private WebView webView;
 
@@ -74,7 +76,7 @@ public class ReaderActivity extends Activity {
 
     private volatile int scrollDir;
 
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
 
     private CheckBox fullscreenBox;
 
@@ -180,6 +182,8 @@ public class ReaderActivity extends Activity {
                 return true;
             }
 
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
@@ -306,7 +310,7 @@ public class ReaderActivity extends Activity {
         webView.getSettings().setJavaScriptEnabled(false);
     }
 
-    private View.OnClickListener morelessControls = new View.OnClickListener() {
+    private final View.OnClickListener morelessControls = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             View v = findViewById(R.id.slide_menu);
@@ -376,8 +380,8 @@ public class ReaderActivity extends Activity {
         }
     }
 
-    boolean isPagingDown;
-    boolean isPagingUp;
+    private boolean isPagingDown;
+    private boolean isPagingUp;
 
     private void prevPage() {
         isPagingDown = false;
@@ -465,8 +469,8 @@ public class ReaderActivity extends Activity {
 
     private static class LoaderTask extends  AsyncTask<Void,Integer,Void>  {
 
-        private File file;
-        private WeakReference<ReaderActivity> ractref;
+        private final File file;
+        private final WeakReference<ReaderActivity> ractref;
 
         LoaderTask(ReaderActivity ract, File file) {
             this.file = file;
@@ -702,7 +706,7 @@ public class ReaderActivity extends Activity {
 //        //if (hasFocus) mkFull();
 //    }
 
-    protected void showToc() {
+    private void showToc() {
         Map<String,String> tocmap = book.getToc();
         PopupMenu tocmenu = new PopupMenu(this, findViewById(R.id.contents_button));
         for (final String point: tocmap.keySet()) {
@@ -887,7 +891,12 @@ public class ReaderActivity extends Activity {
 
     private void setDimLevel(View button, int color) {
         button.setBackground(null);
-        Drawable btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
+        Drawable btn = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
+        } else {
+            btn = getResources().getDrawable(android.R.drawable.btn_default).mutate();
+        }
         btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
         button.setBackground(btn);
         if (button instanceof ImageButton) {

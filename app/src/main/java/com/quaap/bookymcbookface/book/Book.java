@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,13 +36,13 @@ public abstract class Book {
     private static final String FONTSIZE = "fontsize";
     private static final String SECTION_ID_OFFSET = "sectionIDOffset";
     private static final String SECTION_ID = "sectionID";
-    public static final String BG_COLOR = "BG_COLOR";
+    private static final String BG_COLOR = "BG_COLOR";
     private String title;
     private File file;
 
-    private File dataDir;
+    private final File dataDir;
     private SharedPreferences data;
-    private Context context;
+    private final Context context;
 
     private List<String> sectionIDs;
     private int currentSectionIDPos = 0;
@@ -51,7 +50,7 @@ public abstract class Book {
     private String subbook;
     private File thisBookDir;
 
-    public Book(Context context) {
+    Book(Context context) {
         this.dataDir = context.getFilesDir();
         this.context = context;
         sectionIDs = new ArrayList<>();
@@ -137,7 +136,7 @@ public abstract class Book {
         return data.getInt(SECTION_ID_OFFSET, -1);
     }
 
-    public void clearSectionOffset() {
+    private void clearSectionOffset() {
         data.edit().remove(SECTION_ID_OFFSET).apply();
     }
 
@@ -192,7 +191,7 @@ public abstract class Book {
         return null;
     }
 
-    public Uri gotoSectionID(String id) {
+    private Uri gotoSectionID(String id) {
         try {
             int pos = sectionIDs.indexOf(id);
             if (pos > -1 && pos < sectionIDs.size()) {
@@ -248,7 +247,7 @@ public abstract class Book {
         return fname;
     }
 
-    public static long crc32(String input) {
+    private static long crc32(String input) {
         byte[] bytes = input.getBytes();
         Checksum checksum = new CRC32();
         checksum.update(bytes, 0, bytes.length);
@@ -279,7 +278,7 @@ public abstract class Book {
         return new File(context.getFilesDir(), subbook);
     }
 
-    public static SharedPreferences getStorage(Context context, File file) {
+    private static SharedPreferences getStorage(Context context, File file) {
         String fname = getProperFName(context, file);
         return context.getSharedPreferences(fname, Context.MODE_PRIVATE);
     }
@@ -304,7 +303,7 @@ public abstract class Book {
         return data.edit().clear().commit();
     }
 
-    public File getThisBookDir() {
+    File getThisBookDir() {
         return thisBookDir;
     }
 
@@ -316,11 +315,11 @@ public abstract class Book {
         this.title = title;
     }
 
-    public File getFile() {
+    File getFile() {
         return file;
     }
 
-    protected void setFile(File file) {
+    private void setFile(File file) {
         this.file = file;
     }
 
@@ -333,7 +332,7 @@ public abstract class Book {
         return context;
     }
 
-    protected SharedPreferences getSharedPreferences() {
+    SharedPreferences getSharedPreferences() {
         return data;
     }
 
@@ -370,23 +369,23 @@ public abstract class Book {
 
     }
 
-    public class ReadPoint {
+    protected class ReadPoint {
         private String id;
         private Uri point;
 
-        public String getId() {
+        String getId() {
             return id;
         }
 
-        public void setId(String id) {
+        void setId(String id) {
             this.id = id;
         }
 
-        public Uri getPoint() {
+        Uri getPoint() {
             return point;
         }
 
-        public void setPoint(Uri point) {
+        void setPoint(Uri point) {
             this.point = point;
         }
     }

@@ -68,8 +68,8 @@ public class BookListActivity extends AppCompatActivity {
     private static final int STARTLASTREAD = 1;
     private static final int STARTOPEN = 2;
     private static final int STARTALL = 3;
-    public static final String ACTION_SHOW_OPEN = "com.quaap.bookymcbookface.SHOW_OPEN_BOOKS";
-    public static final String ACTION_SHOW_UNREAD = "com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS";
+    private static final String ACTION_SHOW_OPEN = "com.quaap.bookymcbookface.SHOW_OPEN_BOOKS";
+    private static final String ACTION_SHOW_UNREAD = "com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS";
     public static final String ACTION_SHOW_LAST_STATUS = "com.quaap.bookymcbookface.SHOW_LAST_STATUS";
     private SharedPreferences data;
 
@@ -125,15 +125,19 @@ public class BookListActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             if (intent.getAction() != null) {
-                if (intent.getAction().equals(ACTION_SHOW_OPEN)) {
-                    initShowStatus = BookDb.STATUS_STARTED;
-                    hadSpecialOpen = true;
-                } else if (intent.getAction().equals(ACTION_SHOW_UNREAD)) {
-                    initShowStatus = BookDb.STATUS_NONE;
-                    hadSpecialOpen = true;
-                } else if (intent.getAction().equals(ACTION_SHOW_LAST_STATUS)) {
-                    initShowStatus = data.getInt("LastshowStatus", BookDb.STATUS_ANY);
-                    hadSpecialOpen = true;
+                switch (intent.getAction()) {
+                    case ACTION_SHOW_OPEN:
+                        initShowStatus = BookDb.STATUS_STARTED;
+                        hadSpecialOpen = true;
+                        break;
+                    case ACTION_SHOW_UNREAD:
+                        initShowStatus = BookDb.STATUS_NONE;
+                        hadSpecialOpen = true;
+                        break;
+                    case ACTION_SHOW_LAST_STATUS:
+                        initShowStatus = data.getInt("LastshowStatus", BookDb.STATUS_ANY);
+                        hadSpecialOpen = true;
+                        break;
                 }
 
             }
@@ -295,8 +299,8 @@ public class BookListActivity extends AppCompatActivity {
 
     private static class DisplayBooksTask extends  AsyncTask<Void,Void,Void> {
 
-        private WeakReference<BookListActivity> blactref;
-        private List<Integer> books;
+        private final WeakReference<BookListActivity> blactref;
+        private final List<Integer> books;
 
         DisplayBooksTask(BookListActivity blact, List<Integer> books) {
             blactref = new WeakReference<>(blact);
@@ -771,8 +775,8 @@ public class BookListActivity extends AppCompatActivity {
     private static class AddDirTask extends  AsyncTask<File,Void,Void> {
 
         int added=0;
-        private WeakReference<BookListActivity> blactref;
-        private File dir;
+        private final WeakReference<BookListActivity> blactref;
+        private final File dir;
 
 
         AddDirTask(BookListActivity blact,  File dir) {
@@ -966,7 +970,7 @@ public class BookListActivity extends AppCompatActivity {
         }
     }
 
-    public static void showMsg(Context context, String title, String message) {
+    private static void showMsg(Context context, String title, String message) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
 
@@ -992,7 +996,7 @@ public class BookListActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void showSearch() {
+    private void showSearch() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setTitle(android.R.string.search_go);
