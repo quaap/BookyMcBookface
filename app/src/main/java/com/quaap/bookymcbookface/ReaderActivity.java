@@ -305,6 +305,7 @@ public class ReaderActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        finish();
         Intent main = new Intent(this, BookListActivity.class);
         main.setAction(BookListActivity.ACTION_SHOW_LAST_STATUS);
         startActivity(main);
@@ -686,23 +687,31 @@ public class ReaderActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        if (timer!=null) {
-            timer.cancel();
+        synchronized (timerSync) {
+            if (timer != null) {
+                timer.cancel();
+            }
+            timer = new Timer();
         }
-        timer = new Timer();
     }
 
     @Override
     protected void onPause() {
         setNoAwake();
-        if (timer != null) {
-            timer.cancel();
-            timer.purge();
-            timer = null;
+        synchronized (timerSync) {
+            if (timer != null) {
+                timer.cancel();
+                timer.purge();
+                timer = null;
+            }
         }
 
         if (exception==null) {
-            saveScrollOffset();
+            try {
+                saveScrollOffset();
+            } catch (Throwable t) {
+                Log.e(TAG, t.getMessage(), t);
+            }
             getSharedPreferences(BookListActivity.prefname, Context.MODE_PRIVATE).edit().putBoolean(READEREXITEDNORMALLY, true).apply();
         }
         super.onPause();
