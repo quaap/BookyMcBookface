@@ -70,7 +70,10 @@ public class FsTools {
                         try {
                             Log.d("storage", e.getPath() + " " + e.isDirectory());
                             if (e.isDirectory()) { // && !e.getName().equals("emulated") && !e.getName().equals("self")) {
-                                boolean removable = Environment.isExternalStorageRemovable(e);
+                                boolean removable = false;
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                                    removable = Environment.isExternalStorageRemovable(e);
+                                }
                                 String name = "SD";
                                 if (sd++ > 1) name += sd;
                                 files.put(e, removable ? name : e.getName());

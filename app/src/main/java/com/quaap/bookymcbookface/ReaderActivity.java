@@ -1,7 +1,6 @@
 package com.quaap.bookymcbookface;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
