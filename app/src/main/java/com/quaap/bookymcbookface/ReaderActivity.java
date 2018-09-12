@@ -413,7 +413,7 @@ public class ReaderActivity extends Activity {
             //webView.scrollBy(0,webView.getHeight()-14);
         } else {
             isPagingDown = true;
-            showUri(book.getNextSection());
+            if (book!=null) showUri(book.getNextSection());
 
 
         }

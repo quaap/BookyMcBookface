@@ -575,6 +575,7 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private long updateBookDisplay(BookDb.BookRecord book, View listEntry) {
+        if (book==null) return -1;
         long lastread = book.lastread;
 
         if (book.status==BookDb.STATUS_DONE) {
