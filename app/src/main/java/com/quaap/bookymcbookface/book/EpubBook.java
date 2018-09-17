@@ -342,19 +342,25 @@ public class EpubBook extends Book {
                 NodeList metas = (NodeList) metaPaths.evaluate("metadata/*", root, XPathConstants.NODESET);
                 for (int i = 0; i < metas.getLength(); i++) {
                     Node node = metas.item(i);
-                    String key;
-                    String value;
-                    if (node.getNodeName().equals("meta")) {
-                        NamedNodeMap attrs = node.getAttributes();
-                        key  = attrs.getNamedItem("name").getNodeValue();
-                        value = attrs.getNamedItem("content").getNodeValue();
+                    if (node == null) continue;
+                    //Log.d("FFFF", node.getNodeName() + " " + node.getNodeValue());
+                    String key=null;
+                    String value = null;
+                    NamedNodeMap attrs = node.getAttributes();
+                    if (node.getNodeName().equals("meta") && attrs!=null) {
+                        Node kn = attrs.getNamedItem("name");
+                        if (kn!=null) key  = kn.getNodeValue();
+                        Node kc = attrs.getNamedItem("content");
+                        if (kc!=null) value = kc.getNodeValue();
                     } else {
                         key = node.getNodeName();
                         value = node.getTextContent();
                     }
                     //Log.d("EPB", "metadata: " + key+"="+value);
                     //metadata.put(key,value);
-                    bookdat.put(META_PREFIX +key,value);
+                    if (key!=null) {
+                        bookdat.put(META_PREFIX + key, value);
+                    }
                 }
             }
 
