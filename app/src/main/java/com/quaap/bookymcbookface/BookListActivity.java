@@ -46,6 +46,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -101,8 +102,6 @@ public class BookListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_list);
 
-        listHolder = findViewById(R.id.book_list_holder);
-
         tv = findViewById(R.id.progress_text);
         checkStorageAccess(false);
 
@@ -121,6 +120,27 @@ public class BookListActivity extends AppCompatActivity {
         //getApplicationContext().deleteDatabase(BookDb.DBNAME);
 
         db = BookyApp.getDB(this);
+
+        listHolder = findViewById(R.id.book_list_holder);
+        listHolder.setLayoutManager(new LinearLayoutManager(this));
+        listHolder.setItemAnimator(new DefaultItemAnimator());
+
+        bookAdapter = new BookAdapter(this, db, new ArrayList<Integer>());
+        bookAdapter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                readBook((int)view.getTag());
+            }
+        });
+        bookAdapter.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                longClickBook(view);
+                return false;
+            }
+        });
+
+        listHolder.setAdapter(bookAdapter);
 
         recentread = db.getMostRecentlyRead();
 
@@ -184,7 +204,7 @@ public class BookListActivity extends AppCompatActivity {
                     try {
                         BookDb.BookRecord book = db.getBookRecord(recentread);
                         getReader(book, true);
-                        finish();
+                        //finish();
                     } catch (Exception e) {
                         data.edit().putInt("startwith", STARTALL).apply();
                     }
@@ -273,6 +293,8 @@ public class BookListActivity extends AppCompatActivity {
 
     private void populateBooks(final List<Integer> books, boolean showRecent) {
 
+        Thread.dumpStack();
+
         if (showRecent) {
             recentread = db.getMostRecentlyRead();
             if (recentread >= 0) {
@@ -282,36 +304,12 @@ public class BookListActivity extends AppCompatActivity {
             }
         }
 
-
-//        showProgress(0);
-        RecyclerView recyclerView = findViewById(R.id.book_list_holder);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        bookAdapter = new BookAdapter(this,db,books);
-        bookAdapter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                readBook((int)view.getTag());
-            }
-        });
-        bookAdapter.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                longClickBook(view);
-                return false;
-            }
-        });
-
-        recyclerView.setAdapter(bookAdapter);
+        bookAdapter.setBooks(books);
     }
 
 
     private void updateViewTimes() {
-
-        if (bookAdapter!=null) {
-            bookAdapter.notifyItemRangeChanged(0, bookAdapter.getItemCount());
-        }
+        bookAdapter.notifyItemRangeChanged(0, bookAdapter.getItemCount());
     }
 
     @Override
@@ -461,7 +459,7 @@ public class BookListActivity extends AppCompatActivity {
 
         final int statusf = status;
         if (pop) {
-            listHolder.postDelayed(new Runnable() {
+            viewAdder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                    populateBooks(statusf);
@@ -538,6 +536,7 @@ public class BookListActivity extends AppCompatActivity {
         readBook.putExtra(ReaderActivity.FILENAME, book.filename);
         readBook.setAction(Intent.ACTION_VIEW);
         if (start) {
+            bookAdapter.notifyItemIdChanged(book.id);
             startActivity(readBook);
         }
         return readBook;

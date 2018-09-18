@@ -69,6 +69,14 @@ public class BookAdapter extends  RecyclerView.Adapter<BookAdapter.BookViewHolde
 
     }
 
+    public void setBooks(List<Integer> bookIds) {
+        int size = mBookIds.size();
+        mBookIds.clear();
+        notifyItemRangeRemoved(0, size);
+        mBookIds.addAll(bookIds);
+        notifyItemRangeInserted(0, mBookIds.size());
+
+    }
 
     @Override
     public long getItemId(int position) {
