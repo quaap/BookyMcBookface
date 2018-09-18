@@ -293,8 +293,6 @@ public class BookListActivity extends AppCompatActivity {
 
     private void populateBooks(final List<Integer> books, boolean showRecent) {
 
-        Thread.dumpStack();
-
         if (showRecent) {
             recentread = db.getMostRecentlyRead();
             if (recentread >= 0) {
