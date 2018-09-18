@@ -305,9 +305,10 @@ public class ReaderActivity extends Activity {
     @Override
     public void onBackPressed() {
         finish();
-        //Intent main = new Intent(this, BookListActivity.class);
-        //main.setAction(BookListActivity.ACTION_SHOW_LAST_STATUS);
-        //startActivity(main);
+        Intent main = new Intent(this, BookListActivity.class);
+        main.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        main.setAction(BookListActivity.ACTION_SHOW_LAST_STATUS);
+        startActivity(main);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
