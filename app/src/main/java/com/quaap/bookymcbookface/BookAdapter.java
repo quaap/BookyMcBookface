@@ -39,6 +39,7 @@ public class BookAdapter extends  RecyclerView.Adapter<BookAdapter.BookViewHolde
         mContext = context;
         mBookIds = bookIds;
         mDB = db;
+        setHasStableIds(true);
     }
 
 
@@ -48,7 +49,16 @@ public class BookAdapter extends  RecyclerView.Adapter<BookAdapter.BookViewHolde
 
     public void setOnLongClickListener(View.OnLongClickListener onLongClickListener) {
         mOnLongClickListener = onLongClickListener;
+
     }
+
+    public void notifyItemIdRemoved(long id) {
+        int pos = mBookIds.indexOf((int)id);
+        if (pos>=0) {
+            notifyItemRemoved(pos);
+        }
+    }
+
 
 
     // Create new views (invoked by the layout manager)
