@@ -55,11 +55,25 @@ public class BookAdapter extends  RecyclerView.Adapter<BookAdapter.BookViewHolde
     public void notifyItemIdRemoved(long id) {
         int pos = mBookIds.indexOf((int)id);
         if (pos>=0) {
+            mBookIds.remove(pos);
             notifyItemRemoved(pos);
         }
+
+    }
+
+    public void notifyItemIdChanged(long id) {
+        int pos = mBookIds.indexOf((int)id);
+        if (pos>=0) {
+            notifyItemChanged(pos);
+        }
+
     }
 
 
+    @Override
+    public long getItemId(int position) {
+        return mBookIds.get(position);
+    }
 
     // Create new views (invoked by the layout manager)
     @NonNull

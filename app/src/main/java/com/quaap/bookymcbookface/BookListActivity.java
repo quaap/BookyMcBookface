@@ -192,20 +192,6 @@ public class BookListActivity extends AppCompatActivity {
             }, 200);
         } else {
             updateViewTimes();
-
-            int seen = 40;
-            String seennewsKey = "seennews";
-
-            if (recentread > 0 && seen > data.getInt(seennewsKey, -1)) {
-                viewAdder.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(BookListActivity.this, "New! !" + getString(R.string.search_your_books) + "!", Toast.LENGTH_LONG).show();
-                    }
-                }, 3000);
-
-            }
-            data.edit().putInt(seennewsKey, seen).apply();
         }
     }
 
@@ -219,7 +205,6 @@ public class BookListActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
 
     private void setSortOrder(SortOrder sortOrder) {
         data.edit().putString(SORTORDER_KEY,sortOrder.name()).apply();
@@ -300,7 +285,6 @@ public class BookListActivity extends AppCompatActivity {
 
 //        showProgress(0);
         RecyclerView recyclerView = findViewById(R.id.book_list_holder);
-        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
@@ -562,7 +546,6 @@ public class BookListActivity extends AppCompatActivity {
 
     private void removeBook(int bookid, boolean delete) {
         BookDb.BookRecord book = db.getBookRecord(bookid);
-        if (bookAdapter!=null) bookAdapter.notifyItemIdRemoved(bookid);
         if (book==null) {
             Toast.makeText(this, "Bug? The book doesn't seem to be in the database",Toast.LENGTH_LONG).show();
             return;
@@ -572,6 +555,7 @@ public class BookListActivity extends AppCompatActivity {
         }
         if (delete) {
             db.removeBook(bookid);
+            if (bookAdapter!=null) bookAdapter.notifyItemIdRemoved(bookid);
         }
 //        else if (status!=BookDb.STATUS_ANY) {
 //            //db.updateLastRead(bookid, -1);
@@ -795,8 +779,7 @@ public class BookListActivity extends AppCompatActivity {
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     removeBook(bookid, false);
                     updateBookStatus(bookid, view, BookDb.STATUS_NONE);
-                    updateViewTimes();
-                    listHolder.invalidate();
+                    //updateViewTimes();
                     return false;
                 }
             });
@@ -806,7 +789,7 @@ public class BookListActivity extends AppCompatActivity {
         menu.getMenu().add(R.string.remove_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                ((ViewGroup)view.getParent()).removeView(view);
+                //((ViewGroup)view.getParent()).removeView(view);
                 removeBook(bookid, true);
                 return false;
             }
@@ -816,10 +799,10 @@ public class BookListActivity extends AppCompatActivity {
 
     private void updateBookStatus(int bookid, View view, int status) {
         db.updateStatus(bookid, status);
+        if (bookAdapter!=null) bookAdapter.notifyItemIdChanged(bookid);
 //        listHolder.removeView(view);
 //        listHolder.addView(view);
-        updateViewTimes();
-        listHolder.invalidate();
+ //       updateViewTimes();
     }
 
     private boolean checkStorageAccess(boolean yay) {
