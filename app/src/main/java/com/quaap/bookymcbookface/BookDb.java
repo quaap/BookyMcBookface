@@ -58,6 +58,7 @@ public class BookDb extends SQLiteOpenHelper {
     public final static int STATUS_STARTED = 8;
     public final static int STATUS_NONE = 0;
     public final static int STATUS_ANY = -1;
+    public final static int STATUS_SEARCH = -2;
 
 
 
@@ -326,7 +327,7 @@ public class BookDb extends SQLiteOpenHelper {
         List<Integer> books = new ArrayList<>();
 
         String where = null;
-        if (status!=STATUS_ANY) {
+        if (status>=0) {
             where = BOOK_STATUS + "=" + status;
         }
         //System.out.println("where: " + where);

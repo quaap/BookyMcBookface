@@ -19,7 +19,8 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".BookListActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,10 +31,12 @@
         </activity>
         <activity
             android:name=".ReaderActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".BookListActivity" />
         <activity
             android:name=".GetBooksActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".BookListActivity" />
     </application>
 
 </manifest>

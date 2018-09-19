@@ -6,22 +6,18 @@
     tools:context="com.quaap.bookymcbookface.BookListActivity">
 
 
-    <ScrollView
-        android:id="@+id/book_list_scroller"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/book_list_holder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true">
+        android:layout_margin="8dp"
+        android:orientation="vertical"
+        android:scrollbars="vertical">
 
-        <LinearLayout
-            android:id="@+id/book_list_holder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="vertical" />
+    </android.support.v7.widget.RecyclerView>
 
-
-    </ScrollView>
 
     <TextView
         android:id="@+id/progress_text"
@@ -37,4 +33,5 @@
         android:textColor="@android:color/black"
         android:textSize="24sp"
         android:visibility="gone" />
+
 </RelativeLayout>
