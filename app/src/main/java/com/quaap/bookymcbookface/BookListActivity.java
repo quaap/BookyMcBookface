@@ -34,13 +34,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.RadioButton;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,16 +67,19 @@ import com.quaap.bookymcbookface.book.BookMetadata;
 public class BookListActivity extends AppCompatActivity {
 
     private static final String SORTORDER_KEY = "sortorder";
+    private static final String LASTSHOW_STATUS_KEY = "LastshowStatus";
+    private static final String STARTWITH_KEY = "startwith";
+
     private static final int STARTLASTREAD = 1;
     private static final int STARTOPEN = 2;
     private static final int STARTALL = 3;
+
     private static final String ACTION_SHOW_OPEN = "com.quaap.bookymcbookface.SHOW_OPEN_BOOKS";
     private static final String ACTION_SHOW_UNREAD = "com.quaap.bookymcbookface.SHOW_UNREAD_BOOKS";
     public static final String ACTION_SHOW_LAST_STATUS = "com.quaap.bookymcbookface.SHOW_LAST_STATUS";
+
     private SharedPreferences data;
 
-
-    private RecyclerView listHolder;
     private BookAdapter bookAdapter;
 
     private BookListAdderHandler viewAdder;
@@ -109,10 +110,6 @@ public class BookListActivity extends AppCompatActivity {
 
         viewAdder = new BookListAdderHandler(this);
 
-        int initShowStatus = BookDb.STATUS_ANY;
-
-
-
         if (!data.contains(SORTORDER_KEY)) {
             setSortOrder(SortOrder.Default);
         }
@@ -121,7 +118,7 @@ public class BookListActivity extends AppCompatActivity {
 
         db = BookyApp.getDB(this);
 
-        listHolder = findViewById(R.id.book_list_holder);
+        RecyclerView listHolder = findViewById(R.id.book_list_holder);
         listHolder.setLayoutManager(new LinearLayoutManager(this));
         listHolder.setItemAnimator(new DefaultItemAnimator());
 
@@ -142,25 +139,42 @@ public class BookListActivity extends AppCompatActivity {
 
         listHolder.setAdapter(bookAdapter);
 
+        processIntent(getIntent());
+
+        //Log.d("BOOKLIST", "onCreate end");
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        //Log.d("BOOKLIST", "onNewIntent");
+        super.onNewIntent(intent);
+        processIntent(intent);
+    }
+
+    private void processIntent(Intent intent) {
+
         recentread = db.getMostRecentlyRead();
+
+        showStatus = BookDb.STATUS_ANY;
 
         openLastread = false;
 
         boolean hadSpecialOpen = false;
-        Intent intent = getIntent();
+        //Intent intent = getIntent();
         if (intent != null) {
             if (intent.getAction() != null) {
                 switch (intent.getAction()) {
                     case ACTION_SHOW_OPEN:
-                        initShowStatus = BookDb.STATUS_STARTED;
+                        showStatus = BookDb.STATUS_STARTED;
                         hadSpecialOpen = true;
                         break;
                     case ACTION_SHOW_UNREAD:
-                        initShowStatus = BookDb.STATUS_NONE;
+                        showStatus = BookDb.STATUS_NONE;
                         hadSpecialOpen = true;
                         break;
                     case ACTION_SHOW_LAST_STATUS:
-                        initShowStatus = data.getInt("LastshowStatus", BookDb.STATUS_ANY);
+                        showStatus = data.getInt(LASTSHOW_STATUS_KEY, BookDb.STATUS_ANY);
                         hadSpecialOpen = true;
                         break;
                 }
@@ -168,36 +182,28 @@ public class BookListActivity extends AppCompatActivity {
             }
         }
 
-        if (!hadSpecialOpen && !alreadyStarted){
-            alreadyStarted = true;
-            switch (data.getInt("startwith", STARTLASTREAD)) {
+        if (!hadSpecialOpen){
+
+            switch (data.getInt(STARTWITH_KEY, STARTLASTREAD)) {
                 case STARTLASTREAD:
                     if (recentread!=-1 && data.getBoolean(ReaderActivity.READEREXITEDNORMALLY, true)) openLastread = true;
                     break;
                 case STARTOPEN:
-                    initShowStatus = BookDb.STATUS_STARTED; break;
+                    showStatus = BookDb.STATUS_STARTED; break;
                 case STARTALL:
-                    initShowStatus = BookDb.STATUS_ANY;
+                    showStatus = BookDb.STATUS_ANY;
             }
         }
 
-        if (!openLastread) {
-            final int initShowStatusF = initShowStatus;
-            viewAdder.postDelayed(new Runnable() {
-                @Override
-                public void run() {
 
-                    populateBooks(initShowStatusF);
-                }
-            }, 100);
-        }
     }
-
 
     @Override
     protected void onResume() {
+        //Log.d("BOOKLIST", "onResume");
         super.onResume();
         if (openLastread) {
+            openLastread = false;
             viewAdder.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -206,12 +212,12 @@ public class BookListActivity extends AppCompatActivity {
                         getReader(book, true);
                         //finish();
                     } catch (Exception e) {
-                        data.edit().putInt("startwith", STARTALL).apply();
+                        data.edit().putInt(STARTWITH_KEY, STARTALL).apply();
                     }
                 }
             }, 200);
         } else {
-            updateViewTimes();
+            populateBooks(showStatus);
         }
     }
 
@@ -246,35 +252,47 @@ public class BookListActivity extends AppCompatActivity {
     }
 
     private void populateBooks(int status) {
+        //Log.d("BOOKLIST", "populateBooks " + status);
         showStatus = status;
-        data.edit().putInt("LastshowStatus", showStatus).apply();
-        showingSearch = false;
-        SortOrder sortorder = getSortOrder();
+        data.edit().putInt(LASTSHOW_STATUS_KEY, showStatus).apply();
 
         boolean showRecent = false;
         int title = R.string.app_name;
         switch (status) {
+            case BookDb.STATUS_SEARCH:
+                String lastSearch = data.getString("__LAST_SEARCH_STR__","");
+                if (!lastSearch.trim().isEmpty()) {
+                    Boolean stitle = data.getBoolean("__LAST_TITLE__", true);
+                    Boolean sauthor = data.getBoolean("__LAST_AUTHOR__", true);
+                    searchBooks(lastSearch, stitle, sauthor);
+                    return;
+                }
             case BookDb.STATUS_ANY:
                 title = R.string.book_status_any;
                 showRecent = true;
+                showingSearch = false;
                 break;
             case BookDb.STATUS_NONE:
                 title = R.string.book_status_none;
+                showingSearch = false;
                 break;
             case BookDb.STATUS_STARTED:
                 title = R.string.book_status_started;
                 showRecent = true;
+                showingSearch = false;
                 break;
             case BookDb.STATUS_DONE:
                 title = R.string.book_status_completed2;
+                showingSearch = false;
                 break;
             case BookDb.STATUS_LATER:
                 title = R.string.book_status_later2;
+                showingSearch = false;
                 break;
-
         }
         BookListActivity.this.setTitle(title);
 
+        SortOrder sortorder = getSortOrder();
         final List<Integer> books = db.getBookIds(sortorder, status);
         populateBooks(books,  showRecent);
 
@@ -283,7 +301,8 @@ public class BookListActivity extends AppCompatActivity {
 
 
     private void searchBooks(String searchfor, boolean stitle, boolean sauthor) {
-        showStatus = BookDb.STATUS_ANY;
+        showStatus = BookDb.STATUS_SEARCH;
+        data.edit().putInt(LASTSHOW_STATUS_KEY, showStatus).apply();
         List<Integer> books = db.searchBooks(searchfor, stitle, sauthor);
         populateBooks(books, false);
         BookListActivity.this.setTitle(getString(R.string.search_res_title, searchfor, books.size()));
@@ -330,7 +349,7 @@ public class BookListActivity extends AppCompatActivity {
                 break;
         }
 
-        switch (data.getInt("startwith", STARTLASTREAD)) {
+        switch (data.getInt(STARTWITH_KEY, STARTLASTREAD)) {
             case STARTALL:
                 menu.findItem(R.id.menu_start_all_books).setChecked(true);
                 break;
@@ -444,11 +463,11 @@ public class BookListActivity extends AppCompatActivity {
                 status = BookDb.STATUS_ANY;
                 break;
             case R.id.menu_start_all_books:
-                data.edit().putInt("startwith", STARTALL).apply(); break;
+                data.edit().putInt(STARTWITH_KEY, STARTALL).apply(); break;
             case R.id.menu_start_open_books:
-                data.edit().putInt("startwith", STARTOPEN).apply(); break;
+                data.edit().putInt(STARTWITH_KEY, STARTOPEN).apply(); break;
             case R.id.menu_start_last_read:
-                data.edit().putInt("startwith", STARTLASTREAD).apply(); break;
+                data.edit().putInt(STARTWITH_KEY, STARTLASTREAD).apply(); break;
             default:
 
                 return super.onOptionsItemSelected(item);
@@ -878,15 +897,15 @@ public class BookListActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String searchfor = editText.getText().toString();
-                data.edit()
-                        .putString("__LAST_SEARCH_STR__", searchfor)
-                        .putBoolean("__LAST_TITLE__", title.isChecked())
-                        .putBoolean("__LAST_AUTHOR__", author.isChecked())
-                        .apply();
 
                 if (!searchfor.trim().isEmpty()) {
                     boolean stitle = title.isChecked() || authortitle.isChecked();
                     boolean sauthor = author.isChecked() || authortitle.isChecked();
+                    data.edit()
+                            .putString("__LAST_SEARCH_STR__", searchfor)
+                            .putBoolean("__LAST_TITLE__", stitle)
+                            .putBoolean("__LAST_AUTHOR__", sauthor)
+                            .apply();
 
                     searchBooks(searchfor, stitle, sauthor);
                 } else {
