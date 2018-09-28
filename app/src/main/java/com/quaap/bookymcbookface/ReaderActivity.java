@@ -875,7 +875,7 @@ public class ReaderActivity extends Activity {
                                     }
                                     Log.d(TAG, "lightval " + lux + " grey " + col);
 
-                                    if (Math.abs(lastCol - col) > 1) {
+                                    if (Math.abs(lastCol - col) > 1*multfac) {
 
                                         lastCol = col;
                                         int color = Color.argb(255, col + 15, col + 10, (int)(col + Math.min(lux/luxThreshold*10, 10)));
@@ -888,7 +888,7 @@ public class ReaderActivity extends Activity {
 
                             }
                         };
-                        handler.postDelayed(changer,2000);
+                        handler.postDelayed(changer,3000);
 
                     }
                 }
@@ -935,7 +935,7 @@ public class ReaderActivity extends Activity {
                 unlistenLight();
                 saveScrollOffset();
                 book.clearBackgroundColor();
-                applyColor(Color.argb(255,240,240,240), true);
+                resetColor();
                 webView.reload();
                 return true;
             }
@@ -1002,16 +1002,15 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreBgColor() {
-        Book b = book;
-        if (b!=null) {
-            int bgcolor = b.getBackgroundColor();
+        if (book!=null && book.hasDataDir()) {
+            int bgcolor = book.getBackgroundColor();
             switch (bgcolor) {
                 case Color.TRANSPARENT:
                     listenLight();
                     break;
                 case Integer.MAX_VALUE:
                     unlistenLight();
-                    applyColor(Color.argb(255,240,240,240), true);
+                    resetColor();
                     //book.clearBackgroundColor();
                     //webView.reload();
                     break;
@@ -1024,6 +1023,10 @@ public class ReaderActivity extends Activity {
 
     private void applyColor(int color) {
         applyColor(color, false);
+    }
+
+    private void resetColor() {
+        applyColor(Color.argb(255,245,245,245), true);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
