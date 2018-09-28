@@ -10,6 +10,10 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -36,9 +40,12 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.quaap.bookymcbookface.book.Book;
 
@@ -86,6 +93,7 @@ public class ReaderActivity extends Activity {
 
     private Throwable exception;
 
+    private boolean hasLightSensor = false;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -98,6 +106,12 @@ public class ReaderActivity extends Activity {
         Display display = getWindowManager().getDefaultDisplay();
         mScreenDim = new Point();
         display.getSize(mScreenDim);
+
+        SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        Sensor lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        if (lightSensor != null) {
+            hasLightSensor = true;
+        }
 
         webView = findViewById(R.id.page_view);
 
@@ -692,11 +706,13 @@ public class ReaderActivity extends Activity {
             }
             timer = new Timer();
         }
+        restoreBgColor();
     }
 
     @Override
     protected void onPause() {
         setNoAwake();
+        unlistenLight();
         synchronized (timerSync) {
             if (timer != null) {
                 timer.cancel();
@@ -813,6 +829,92 @@ public class ReaderActivity extends Activity {
         }
     }
 
+    private SensorEventListener lightSensorListener;
+
+
+    private void listenLight() {
+
+        unlistenLight();
+
+        SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        Sensor lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        if (lightSensor != null) {
+
+            lightSensorListener = new SensorEventListener() {
+
+                private final AtomicInteger currentLux = new AtomicInteger(0);
+                private int lastCol = 0;
+
+                private final int mincol = 30;
+                private final int maxcol = 240;
+                private final double luxThreshold = 50;
+                private final double multfac = (maxcol-mincol)/luxThreshold;
+
+                private Runnable changer;
+
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+
+                    currentLux.set((int)event.values[0]);
+
+                    if (changer==null) {
+                        changer = new Runnable() {
+                            @Override
+                            public void run() {
+                                changer = null;
+                                try {
+                                    float lux = currentLux.get();
+
+                                    int col = maxcol;
+                                    if (lux < luxThreshold) {
+
+                                        col = (int)(lux*multfac + mincol);
+                                        if (col < mincol) col = mincol;
+                                        if (col > maxcol) col = maxcol;
+
+                                    }
+                                    Log.d(TAG, "lightval " + lux + " grey " + col);
+
+                                    if (Math.abs(lastCol - col) > 1) {
+
+                                        lastCol = col;
+                                        int color = Color.argb(255, col + 15, col + 10, (int)(col + Math.min(lux/luxThreshold*10, 10)));
+
+                                        applyColor(color);
+                                    }
+                                } catch (Throwable t) {
+                                    Log.e(TAG, t.getMessage(), t);
+                                }
+
+                            }
+                        };
+                        handler.postDelayed(changer,2000);
+
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            };
+
+            sensorManager.registerListener(
+                    lightSensorListener,
+                    lightSensor,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+    }
+
+    private void unlistenLight() {
+        if (lightSensorListener!=null) {
+            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            sensorManager.unregisterListener(lightSensorListener);
+            lightSensorListener = null;
+        }
+    }
+
 
     private void showBrightnessControl() {
         if (book==null) return;
@@ -830,19 +932,39 @@ public class ReaderActivity extends Activity {
         norm.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                unlistenLight();
                 saveScrollOffset();
-                applyColor(Color.WHITE);
                 book.clearBackgroundColor();
+                applyColor(Color.argb(255,240,240,240), true);
                 webView.reload();
-                //restoreScrollOffsetDelayed(100);
                 return true;
             }
         });
 
 
+        if (hasLightSensor) {
+            MenuItem auto = bmenu.getMenu().add("Auto");
+
+            if (bg == Color.TRANSPARENT) {
+                auto.setCheckable(true);
+                auto.setChecked(true);
+            }
+
+            auto.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    book.setBackgroundColor(Color.TRANSPARENT);
+                    restoreBgColor();
+                    return true;
+                }
+            });
+
+        }
+
+
         for (int i = 0; i<7; i++) {
             int b = i*33;
-            final int color = Color.argb(255, 255-b, 250-b, 240-b);
+            final int color = Color.argb(255, 255-b, 250-b, 250-i-b);
             String strcolor;
             switch (i) {
                 case 0:
@@ -869,8 +991,9 @@ public class ReaderActivity extends Activity {
             m.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
+                    unlistenLight();
                     book.setBackgroundColor(color);
-                    applyColor(color);
+                    restoreBgColor();
                     return true;
                 }
             });
@@ -879,18 +1002,33 @@ public class ReaderActivity extends Activity {
     }
 
     private void restoreBgColor() {
-        if (book!=null) {
-            int bgcolor = book.getBackgroundColor();
-            if (bgcolor != Integer.MAX_VALUE) applyColor(bgcolor);
+        Book b = book;
+        if (b!=null) {
+            int bgcolor = b.getBackgroundColor();
+            switch (bgcolor) {
+                case Color.TRANSPARENT:
+                    listenLight();
+                    break;
+                case Integer.MAX_VALUE:
+                    unlistenLight();
+                    applyColor(Color.argb(255,240,240,240), true);
+                    //book.clearBackgroundColor();
+                    //webView.reload();
+                    break;
+                default:
+                    unlistenLight();
+                    applyColor(bgcolor);
+            }
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
     private void applyColor(int color) {
+        applyColor(color, false);
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void applyColor(int color, boolean controlsonly) {
         try {
-            ReaderActivity.this.getWindow().setBackgroundDrawable(null);
-            webView.setBackgroundColor(color);
-            ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
 
             ViewGroup controls = findViewById(R.id.controls_layout);
             setDimLevel(controls, color);
@@ -905,10 +1043,16 @@ public class ReaderActivity extends Activity {
                 setDimLevel(button, color);
             }
 
-            //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
-            webView.getSettings().setJavaScriptEnabled(true);
-            webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
-            webView.getSettings().setJavaScriptEnabled(false);
+            ReaderActivity.this.getWindow().setBackgroundDrawable(null);
+            webView.setBackgroundColor(color);
+            ReaderActivity.this.getWindow().setBackgroundDrawable(new ColorDrawable(color));
+
+            if (!controlsonly) {
+                //Log.d("GG", String.format("#%6X", color & 0xFFFFFF));
+                webView.getSettings().setJavaScriptEnabled(true);
+                webView.evaluateJavascript("(function(){var newSS, styles='* { background: " + String.format("#%6X", color & 0xFFFFFF) + " ! important; color: black !important } :link, :link * { color: #000088 !important } :visited, :visited * { color: #44097A !important }'; if(document.createStyleSheet) {document.createStyleSheet(\"javascript:'\"+styles+\"'\");} else { newSS=document.createElement('link'); newSS.rel='stylesheet'; newSS.href='data:text/css,'+escape(styles); document.getElementsByTagName(\"head\")[0].appendChild(newSS); } })();", null);
+                webView.getSettings().setJavaScriptEnabled(false);
+            }
         } catch (Throwable t) {
             Log.e(TAG, t.getMessage(), t);
             Toast.makeText(this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
