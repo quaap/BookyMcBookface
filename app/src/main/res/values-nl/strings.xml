@@ -41,7 +41,7 @@
         ]]>
     </string>
     <string name="sort">Sortering</string>
-    <string name="sort_by_added_date">Standaardsortering</string>
+    <string name="sort_by_added_date">Sort by added</string>
     <string name="sort_by_title">Sorteren op titel</string>
     <string name="sort_by_author">Sorteren op auteur</string>
     <string name="books_added">%d boeken toegevoegd</string>
@@ -82,6 +82,7 @@
         <item>http://m.gutenberg.org/</item>
         <item>https://archive.org/details/texts</item>
     </string-array>
+    <string name="sort_by_default">Standaardsortering</string>
 
 
 </resources>

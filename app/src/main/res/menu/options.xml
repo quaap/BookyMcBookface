@@ -60,13 +60,16 @@
                 android:checkableBehavior="single">
                 <item
                     android:id="@+id/menu_sort_default"
-                    android:title="@string/sort_by_added_date" />
+                    android:title="@string/sort_by_default" />
                 <item
                     android:id="@+id/menu_sort_title"
                     android:title="@string/sort_by_title" />
                 <item
                     android:id="@+id/menu_sort_author"
                     android:title="@string/sort_by_author" />
+                <item
+                    android:id="@+id/menu_sort_added"
+                    android:title="@string/sort_by_added_date" />
             </group>
         </menu>
     </item>

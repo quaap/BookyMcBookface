@@ -38,7 +38,7 @@
         ]]>
     </string>
     <string name="sort">Сортировать</string>
-    <string name="sort_by_added_date">По умолчанию</string>
+    <string name="sort_by_added_date">Sort by added</string>
     <string name="sort_by_title">По названию</string>
     <string name="sort_by_author">По автору</string>
 
@@ -79,5 +79,6 @@
         <item>http://m.gutenberg.org/</item>
         <item>https://archive.org/details/texts</item>
     </string-array>
+    <string name="sort_by_default">По умолчанию</string>
 
 </resources>

@@ -13,4 +13,4 @@ package com.quaap.bookymcbookface;
  * See the GNU General Public License for more details.
  */
 
-public enum SortOrder {Default, Title, Author}
+public enum SortOrder {Default, Title, Author, Added }

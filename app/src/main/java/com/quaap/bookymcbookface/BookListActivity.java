@@ -347,6 +347,9 @@ public class BookListActivity extends AppCompatActivity {
             case Title:
                 menu.findItem(R.id.menu_sort_title).setChecked(true);
                 break;
+            case Added:
+                menu.findItem(R.id.menu_sort_added).setChecked(true);
+                break;
         }
 
         switch (data.getInt(STARTWITH_KEY, STARTLASTREAD)) {
@@ -433,6 +436,11 @@ public class BookListActivity extends AppCompatActivity {
             case R.id.menu_sort_title:
                 item.setChecked(true);
                 setSortOrder(SortOrder.Title);
+                pop = true;
+                break;
+            case R.id.menu_sort_added:
+                item.setChecked(true);
+                setSortOrder(SortOrder.Added);
                 pop = true;
                 break;
             case R.id.menu_get_books:

@@ -43,7 +43,8 @@
         ]]>
     </string>
     <string name="sort">Sort</string>
-    <string name="sort_by_added_date">Default sort</string>
+    <string name="sort_by_default">Default sort</string>
+    <string name="sort_by_added_date">Sort by added</string>
     <string name="sort_by_title">Sort by title</string>
     <string name="sort_by_author">Sort by author</string>
     <string translatable="false" name="prev_text">&lt;&lt;</string>

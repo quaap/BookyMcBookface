@@ -332,13 +332,14 @@ public class BookDb extends SQLiteOpenHelper {
         }
         //System.out.println("where: " + where);
 
-        String orderby = BOOK_STATUS + ", " + "2 desc, " + BOOK_LIB_TITLE + " asc";
+        String orderby = BOOK_STATUS + ", 2 desc, " + BOOK_LIB_TITLE + " asc";
         switch (sortOrder) {
-            case Title: orderby = BOOK_LIB_TITLE; break;
-            case Author: orderby = BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE; break;
+            case Title: orderby = BOOK_LIB_TITLE + ", 2 desc"; break;
+            case Author: orderby = BOOK_LIB_AUTHOR + ", " + BOOK_LIB_TITLE + ", 2 desc"; break;
+            case Added: orderby = BOOK_ADDED + " desc, " + BOOK_LIB_TITLE + ", " + BOOK_LIB_AUTHOR ; break;
         }
 
-        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/90000"}, where, null, null, null, orderby)) {
+        try (Cursor bookscursor = db.query(BOOK_TABLE,new String[] {BOOK_ID, BOOK_ADDED + "/80000"}, where, null, null, null, orderby)) {
 
             while (bookscursor.moveToNext()) {
                 books.add(bookscursor.getInt(bookscursor.getColumnIndex(BOOK_ID)));
