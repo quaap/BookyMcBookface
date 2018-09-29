@@ -943,7 +943,7 @@ public class ReaderActivity extends Activity {
 
 
         if (hasLightSensor) {
-            MenuItem auto = bmenu.getMenu().add("Auto");
+            MenuItem auto = bmenu.getMenu().add(getString(R.string.auto_bright));
 
             if (bg == Color.TRANSPARENT) {
                 auto.setCheckable(true);
