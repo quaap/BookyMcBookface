@@ -93,6 +93,8 @@ public class ReaderActivity extends Activity {
 
     private Throwable exception;
 
+    private int currentDimColor = Color.TRANSPARENT;
+
     private boolean hasLightSensor = false;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -112,6 +114,8 @@ public class ReaderActivity extends Activity {
         if (lightSensor != null) {
             hasLightSensor = true;
         }
+
+        final ImageButton showMore = findViewById(R.id.control_view_more);
 
         webView = findViewById(R.id.page_view);
 
@@ -162,6 +166,16 @@ public class ReaderActivity extends Activity {
                                 y<mScreenDim.y*2/3 && x<mScreenDim.x*2/3) {
                             mkFull();
                             hideMenu();
+
+                            if (currentDimColor!=Color.TRANSPARENT) {
+                                setDimLevel(showMore, Color.LTGRAY);
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        setDimLevel(showMore, currentDimColor);
+                                    }
+                                }, 2000);
+                            }
                         }
                         return false;
 
@@ -264,7 +278,7 @@ public class ReaderActivity extends Activity {
             }
         });
 
-        findViewById(R.id.control_view_more).setOnClickListener(morelessControls);
+        showMore.setOnClickListener(morelessControls);
         findViewById(R.id.control_view_less).setOnClickListener(morelessControls);
 
         fullscreenBox = findViewById(R.id.fullscreen_box);
@@ -413,7 +427,6 @@ public class ReaderActivity extends Activity {
         } else {
             isPagingUp = true;
             showUri(book.getPreviousSection());
-
         }
         //saveScrollOffsetDelayed(1500);
         hideMenu();
@@ -1031,6 +1044,7 @@ public class ReaderActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void applyColor(int color, boolean controlsonly) {
+        currentDimColor = color;
         try {
 
             ViewGroup controls = findViewById(R.id.controls_layout);
@@ -1040,11 +1054,11 @@ public class ReaderActivity extends Activity {
                 setDimLevel(button, color);
             }
 
-            ViewGroup extracontrols = findViewById(R.id.slide_menu);
-            for (int i = 0; i < extracontrols.getChildCount(); i++) {
-                View button = extracontrols.getChildAt(i);
-                setDimLevel(button, color);
-            }
+//            ViewGroup extracontrols = findViewById(R.id.slide_menu);
+//            for (int i = 0; i < extracontrols.getChildCount(); i++) {
+//                View button = extracontrols.getChildAt(i);
+//                setDimLevel(button, color);
+//            }
 
             ReaderActivity.this.getWindow().setBackgroundDrawable(null);
             webView.setBackgroundColor(color);
@@ -1073,7 +1087,7 @@ public class ReaderActivity extends Activity {
         btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
         button.setBackground(btn);
         if (button instanceof ImageButton) {
-            ((ImageButton)button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            ((ImageButton) button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
         }
     }
 }
