@@ -868,41 +868,46 @@ public class ReaderActivity extends Activity {
                 @Override
                 public void onSensorChanged(SensorEvent event) {
 
-                    currentLux.set((int)event.values[0]);
+                    try {
+                        currentLux.set((int) event.values[0]);
 
-                    if (changer==null) {
-                        changer = new Runnable() {
-                            @Override
-                            public void run() {
-                                changer = null;
-                                try {
-                                    float lux = currentLux.get();
+                        if (changer == null) {
+                            changer = new Runnable() {
+                                @Override
+                                public void run() {
+                                    changer = null;
+                                    try {
+                                        float lux = currentLux.get();
 
-                                    int col = maxcol;
-                                    if (lux < luxThreshold) {
+                                        int col = maxcol;
+                                        if (lux < luxThreshold) {
 
-                                        col = (int)(lux*multfac + mincol);
-                                        if (col < mincol) col = mincol;
-                                        if (col > maxcol) col = maxcol;
+                                            col = (int) (lux * multfac + mincol);
+                                            if (col < mincol) col = mincol;
+                                            if (col > maxcol) col = maxcol;
 
+                                        }
+                                        Log.d(TAG, "lightval " + lux + " grey " + col);
+
+                                        if (Math.abs(lastCol - col) > 1 * multfac) {
+
+                                            lastCol = col;
+                                            int color = Color.argb(255, col + 15, col + 10, (int) (col + Math.min(lux / luxThreshold * 10, 10)));
+
+                                            applyColor(color);
+                                        }
+                                    } catch (Throwable t) {
+                                        Log.e(TAG, t.getMessage(), t);
                                     }
-                                    Log.d(TAG, "lightval " + lux + " grey " + col);
 
-                                    if (Math.abs(lastCol - col) > 1*multfac) {
-
-                                        lastCol = col;
-                                        int color = Color.argb(255, col + 15, col + 10, (int)(col + Math.min(lux/luxThreshold*10, 10)));
-
-                                        applyColor(color);
-                                    }
-                                } catch (Throwable t) {
-                                    Log.e(TAG, t.getMessage(), t);
                                 }
+                            };
+                            handler.postDelayed(changer, 3000);
 
-                            }
-                        };
-                        handler.postDelayed(changer,3000);
 
+                        }
+                    } catch (Throwable t) {
+                        Log.e(TAG, t.getMessage(), t);
                     }
                 }
 
