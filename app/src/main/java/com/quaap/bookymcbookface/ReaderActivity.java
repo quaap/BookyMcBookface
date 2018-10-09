@@ -40,8 +40,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -926,10 +924,14 @@ public class ReaderActivity extends Activity {
     }
 
     private void unlistenLight() {
-        if (lightSensorListener!=null) {
-            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            sensorManager.unregisterListener(lightSensorListener);
-            lightSensorListener = null;
+        try {
+            if (lightSensorListener != null) {
+                SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+                sensorManager.unregisterListener(lightSensorListener);
+                lightSensorListener = null;
+            }
+        }  catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
         }
     }
 
@@ -1082,17 +1084,21 @@ public class ReaderActivity extends Activity {
     }
 
     private void setDimLevel(View button, int color) {
-        button.setBackground(null);
-        Drawable btn = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            btn = getResources().getDrawable(android.R.drawable.btn_default,null).mutate();
-        } else {
-            btn = getResources().getDrawable(android.R.drawable.btn_default).mutate();
-        }
-        btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-        button.setBackground(btn);
-        if (button instanceof ImageButton) {
-            ((ImageButton) button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+        try {
+            button.setBackground(null);
+            Drawable btn = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                btn = getResources().getDrawable(android.R.drawable.btn_default, null).mutate();
+            } else {
+                btn = getResources().getDrawable(android.R.drawable.btn_default).mutate();
+            }
+            btn.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            button.setBackground(btn);
+            if (button instanceof ImageButton) {
+                ((ImageButton) button).getDrawable().mutate().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
         }
     }
 }
