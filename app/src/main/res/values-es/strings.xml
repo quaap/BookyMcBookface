@@ -1,0 +1,93 @@
+<resources>
+    <string name="app_name">Booky McBookface</string>
+    <string name="book_viewed_on">Visto %s</string>
+    <string name="book_added_on">Añadido %s</string>
+
+    <string name="book_status_completed">Completado %s</string>
+    <string name="book_status_later">Para después (%s)</string>
+    <string name="book_status_later2">Libros marcados \'Para después\'</string>
+    <string name="book_status_completed2">Libros marcados \'Completado\'</string>
+    <string name="book_status_any">Todos los libros</string>
+    <string name="book_status_started">Abrir libros</string>
+    <string name="book_status_none">Libros no leidos</string>
+    <string name="mark">Mostrar…</string>
+
+    <string name="un_mark">Remover marca</string>
+    <string name="mark_later">Marcar \'Para después\'</string>
+    <string name="mark_completed">Marcar \'Completado\'</string>
+
+    <string name="add">Añadir libro</string>
+    <string name="add_dir">Añadir libros de carpeta</string>
+    <string name="contents">Contenidos</string>
+    <string name="zoom">zoom</string>
+    <string name="already_added">Archivo \"%s\" ya esta añadido</string>
+    <string name="select_thisfolder">Seleccionar esta carpeta</string>
+    <string name="cancel">Cancelar</string>
+    <string name="find_folder">Buscar carpeta</string>
+    <string name="find_book">Buscar libro</string>
+    <string name="open_book">Abrir libro</string>
+    <string name="close_book">Cerrar libro</string>
+    <string name="remove_book">Remover libro</string>
+    <string name="coulndt_add_book">No se pudo añadir \"%s\"</string>
+
+    <string name="about">Acerca de</string>
+    <string name="about_app">
+        <![CDATA[
+
+        Booky McBookface es un software de codigo abierto licenciado bajo GPLv3.\n\n
+
+        Consigue ayuda y ve el la licencia y el codigo completo en \n
+        https://github.com/quaap/BookyMcBookface\n\n
+
+        Este programa fue escrito por Tom Kliethermes.
+        ]]>
+    </string>
+    <string name="sort">Ordenar por</string>
+    <string name="sort_by_default">Orden por defecto</string>
+    <string name="sort_by_added_date">Ordenar por fecha agregado</string>
+    <string name="sort_by_title">Ordenar por titulo</string>
+    <string name="sort_by_author">Ordenar por autor</string>
+    <string translatable="false" name="prev_text">&lt;&lt;</string>
+    <string translatable="false" name="next_text">&gt;&gt;</string>
+    <string name="books_added">%d libros añadidos</string>
+    <string name="bright">Claro</string>
+    <string name="dim">Oscuro</string>
+    <string name="bright_medium">Medio</string>
+    <string name="book_default">Por defecto</string>
+    <string name="no_toc_found">No se encontró una tabla de contenidos</string>
+    <string name="added_numbooks">Añadidos %d</string>
+    <string name="loading">Cargando</string>
+    <string name="find_books_online">Busca libros en línea</string>
+    <string name="source_name">Nombre de fuente</string>
+    <string name="web_url">URL</string>
+    <string name="web_add">Añadir</string>
+    <string name="getbooks_desc">The links below will open in your web browser. Downloaded books will be placed in the web browser\'s default download location.</string>
+    <string name="getbooks_desc">Los siguientes enlaces se abreran en tu navegador web. Los libros descargados seran puestos en la carpeta de descarga del navegador.</string>
+    <string name="new_websrc">Nuevo</string>
+    <string translatable="false" name="web_url_hint">http://www.</string>
+    <string name="search_res_title">Busqueda para \'%1$s\' (%2$d)</string>
+    <string name="search_for">Busqueda para:</string>
+    <string name="hint_search_text">Little Women</string>
+    <string name="title">Titulo</string>
+    <string name="author">Autor</string>
+    <string name="both">Los dos</string>
+    <string name="search_your_books">Busca tus libros</string>
+    <string name="start_options">Opciones de inicio</string>
+    <string name="last_read">Última vez leído</string>
+    <string name="shortcut_latest">Seguir leyendo</string>
+    <string name="shortcut_latest_title">Leer %s</string>
+    <string name="book_bug">Algo salió mal. Por favor reporte este libro como un error.</string>
+    <string name="auto_bright">Auto</string>
+
+
+    <!-- if your language/country has its own sites change or add them here -->
+    <string-array name="getbook_names">
+        <item>Project Gutenberg</item>
+        <item>Archive.org</item>
+    </string-array>
+    <string-array name="getbook_urls">
+        <item>http://m.gutenberg.org/</item>
+        <item>https://archive.org/details/texts</item>
+    </string-array>
+
+</resources>
