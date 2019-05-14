@@ -121,86 +121,6 @@ public class ReaderActivity extends Activity {
         webView.getSettings().setDefaultFixedFontSize(18);
 
         webView.setNetworkAvailable(false);
-        //webView.setScrollContainer(false);
-        webView.setOnTouchListener(new View.OnTouchListener() {
-            float x,y;
-            long time;
-            final long TIMEALLOWED = 300;
-            final int MINSWIPE = 150;
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                float diffx = 0;
-                float diffy = 0;
-                switch (motionEvent.getAction()) {
-
-                    case MotionEvent.ACTION_UP:
-
-                        cancelScrollTask();
-                        //Log.d("TIME", "t " + (System.currentTimeMillis() - time));
-                        if (System.currentTimeMillis() - time >TIMEALLOWED) return false;
-
-                        diffx = motionEvent.getX() - x;
-                        diffy = motionEvent.getY() - y;
-                        float absdiffx = Math.abs(diffx);
-                        float absdiffy = Math.abs(diffy);
-
-
-                        if ((absdiffx>absdiffy && diffx>MINSWIPE) || (absdiffy>absdiffx && diffy>MINSWIPE)) {
-                            prevPage();
-                        } else if ((absdiffx>absdiffy && diffx<-MINSWIPE) || (absdiffy>absdiffx && diffy<-MINSWIPE)) {
-                            nextPage();
-                        } else {
-                            return false;
-                        }
-
-
-                    case MotionEvent.ACTION_DOWN:
-                        cancelScrollTask();
-                        x = motionEvent.getX();
-                        y = motionEvent.getY();
-                        time = System.currentTimeMillis();
-                        setAwake();
-                        if (y>mScreenDim.y/3 && x>mScreenDim.x/3 &&
-                                y<mScreenDim.y*2/3 && x<mScreenDim.x*2/3) {
-                            mkFull();
-                            hideMenu();
-
-                            if (currentDimColor!=Color.TRANSPARENT) {
-                                setDimLevel(showMore, Color.LTGRAY);
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        setDimLevel(showMore, currentDimColor);
-                                    }
-                                }, 2000);
-                            }
-                        }
-                        return false;
-
-                    case MotionEvent.ACTION_MOVE:
-                        diffy = motionEvent.getY() - y;
-                        if (Math.abs(diffy) > 30) {
-                            if (System.currentTimeMillis() - time > TIMEALLOWED*1.5) {
-                                scrollDir = (int) ((-diffy/webView.getHeight())*webView.getSettings().getDefaultFontSize()*5);
-                                startScrollTask();
-                                webView.clearMatches();
-                            }
-                        } else {
-                            cancelScrollTask();
-                        }
-                        return true;
-
-                }
-
-
-                return true;
-            }
-
-
-
-        });
-
-
         webView.setWebViewClient(new WebViewClient() {
 
             @Override
@@ -383,6 +303,8 @@ public class ReaderActivity extends Activity {
         mkFull();
     }
 
+    int scrollTaskCounter = 0;
+
     private void startScrollTask() {
         synchronized (timerSync) {
             if (scrollTask == null) {
@@ -398,6 +320,7 @@ public class ReaderActivity extends Activity {
                     }
                 };
                 try {
+                    Log.d(TAG, "startScrollTask: "+ scrollTaskCounter++);
                     timer.schedule(scrollTask, 0, 100);
                 } catch(IllegalStateException e) {
                     Log.d(TAG, e.getMessage(), e);
