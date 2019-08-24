@@ -93,10 +93,31 @@
                     android:title="@string/last_read" />
             </group>
 
+
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/menu_extra_options"
+        android:title="@string/options"
+        >
+        <menu>
+            <item
+                android:id="@+id/menu_enable_screen_paging"
+                android:title="@string/enable_screen_paging"
+                android:checkable="true"
+                />
+            <item
+                android:id="@+id/menu_enable_scroll"
+                android:title="@string/enable_scroll"
+                android:checkable="true"
+                />
         </menu>
 
     </item>
+
     <item
         android:id="@+id/menu_about"
         android:title="@string/about" />
+
 </menu>

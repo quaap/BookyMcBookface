@@ -36,7 +36,11 @@ public class Zip {
             try {
                 ZipEntry zipEntry;
                 while ((zipEntry = zipInputStream.getNextEntry()) !=null) {
-                    File destFile = new File(destDir, zipEntry.getName());
+                    File destFile = new File(destDir.getCanonicalPath(), zipEntry.getName());
+                    String canonicalPath = destFile.getCanonicalPath();
+                    if (!canonicalPath.startsWith(destDir.getCanonicalPath())) {
+                        continue;
+                    }
 
                     if (!destFile.getParentFile().exists()) {
                         if (!destFile.getParentFile().mkdirs()) continue;

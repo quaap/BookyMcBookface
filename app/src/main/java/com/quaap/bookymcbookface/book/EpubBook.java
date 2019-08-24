@@ -358,7 +358,7 @@ public class EpubBook extends Book {
                     }
                     //Log.d("EPB", "metadata: " + key+"="+value);
                     //metadata.put(key,value);
-                    if (key!=null) {
+                    if (key!=null && value!=null) {
                         bookdat.put(META_PREFIX + key, value);
                     }
                 }

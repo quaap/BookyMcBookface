@@ -78,6 +78,10 @@
     <string name="book_bug">Something went wrong. Please report this book as a bug.</string>
     <string name="auto_bright">Auto</string>
 
+    <string name="enable_screen_paging">Enable screen paging</string>
+    <string name="enable_scroll">Enable drag scroll</string>
+    <string name="options">Options</string>
+
 
     <!-- if your language/country has its own sites change or add them here -->
     <string-array name="getbook_names">

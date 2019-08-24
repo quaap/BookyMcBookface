@@ -12,19 +12,19 @@ import java.util.List;
 
 
 public class BookAdapter extends  RecyclerView.Adapter<BookAdapter.BookViewHolder> {
-    private List<Integer> mBookIds;
-    private BookDb mDB;
-    private Context mContext;
+    private final List<Integer> mBookIds;
+    private final BookDb mDB;
+    private final Context mContext;
 
     private View.OnClickListener mOnClickListener;
     private View.OnLongClickListener mOnLongClickListener;
 
     static class BookViewHolder extends RecyclerView.ViewHolder {
 
-        ViewGroup mBookEntry;
-        TextView mTitleView;
-        TextView mAuthorView;
-        TextView mStatusView;
+        final ViewGroup mBookEntry;
+        final TextView mTitleView;
+        final TextView mAuthorView;
+        final TextView mStatusView;
         BookViewHolder(ViewGroup listEntry) {
             super(listEntry);
             mBookEntry = listEntry;

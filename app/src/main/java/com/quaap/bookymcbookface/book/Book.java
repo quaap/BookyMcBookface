@@ -132,6 +132,9 @@ public abstract class Book {
     }
 
     public int getSectionOffset() {
+        if (data==null) {
+            return 0;
+        }
         return data.getInt(SECTION_ID_OFFSET, -1);
     }
 
@@ -190,18 +193,17 @@ public abstract class Book {
         return null;
     }
 
-    private Uri gotoSectionID(String id) {
+    private void gotoSectionID(String id) {
         try {
             int pos = sectionIDs.indexOf(id);
             if (pos > -1 && pos < sectionIDs.size()) {
                 currentSectionIDPos = pos;
                 saveCurrentSectionID();
-                return getUriForSectionID(sectionIDs.get(currentSectionIDPos));
+                getUriForSectionID(sectionIDs.get(currentSectionIDPos));
             }
         } catch (Throwable t) {
             Log.e("Booky", t.getMessage(), t);
         }
-        return null;
     }
 
     public Uri handleClickedLink(String clickedLink) {
@@ -282,19 +284,18 @@ public abstract class Book {
         return context.getSharedPreferences(fname, Context.MODE_PRIVATE);
     }
 
-    public static boolean remove(Context context, File file) {
+    public static void remove(Context context, File file) {
         try {
             FsTools.deleteDir(getBookDir(context, file));
             String fname = getProperFName(context, file);
             if (Build.VERSION.SDK_INT >= 24) {
-                return context.deleteSharedPreferences(fname);
+                context.deleteSharedPreferences(fname);
             } else {
-                return getStorage(context, file).edit().clear().commit();
+                getStorage(context, file).edit().clear().commit();
             }
         } catch (Exception e) {
             Log.e("Book", e.getMessage(),e);
         }
-        return false;
     }
 
     public boolean remove() {

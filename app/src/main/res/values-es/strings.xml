@@ -47,8 +47,6 @@
     <string name="sort_by_added_date">Ordenar por fecha agregado</string>
     <string name="sort_by_title">Ordenar por titulo</string>
     <string name="sort_by_author">Ordenar por autor</string>
-    <string translatable="false" name="prev_text">&lt;&lt;</string>
-    <string translatable="false" name="next_text">&gt;&gt;</string>
     <string name="books_added">%d libros añadidos</string>
     <string name="bright">Claro</string>
     <string name="dim">Oscuro</string>
@@ -63,7 +61,7 @@
     <string name="web_add">Añadir</string>
     <string name="getbooks_desc">Los siguientes enlaces se abreran en tu navegador web. Los libros descargados seran puestos en la carpeta de descarga del navegador.</string>
     <string name="new_websrc">Nuevo</string>
-    <string translatable="false" name="web_url_hint">http://www.</string>
+
     <string name="search_res_title">Busqueda para \'%1$s\' (%2$d)</string>
     <string name="search_for">Busqueda para:</string>
     <string name="hint_search_text">Little Women</string>
@@ -77,6 +75,10 @@
     <string name="shortcut_latest_title">Leer %s</string>
     <string name="book_bug">Algo salió mal. Por favor reporte este libro como un error.</string>
     <string name="auto_bright">Auto</string>
+
+    <string name="enable_screen_paging">Enable screen paging</string>
+    <string name="enable_scroll">Enable drag scroll</string>
+    <string name="options">Options</string>
 
 
     <!-- if your language/country has its own sites change or add them here -->

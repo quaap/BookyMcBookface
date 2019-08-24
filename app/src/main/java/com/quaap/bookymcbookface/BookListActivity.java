@@ -69,6 +69,8 @@ public class BookListActivity extends AppCompatActivity {
     private static final String SORTORDER_KEY = "sortorder";
     private static final String LASTSHOW_STATUS_KEY = "LastshowStatus";
     private static final String STARTWITH_KEY = "startwith";
+    private static final String ENABLE_SCREEN_PAGE_KEY = "screenpaging";
+    private static final String ENABLE_DRAG_SCROLL_KEY = "dragscroll";
 
     private static final int STARTLASTREAD = 1;
     private static final int STARTOPEN = 2;
@@ -262,8 +264,8 @@ public class BookListActivity extends AppCompatActivity {
             case BookDb.STATUS_SEARCH:
                 String lastSearch = data.getString("__LAST_SEARCH_STR__","");
                 if (!lastSearch.trim().isEmpty()) {
-                    Boolean stitle = data.getBoolean("__LAST_TITLE__", true);
-                    Boolean sauthor = data.getBoolean("__LAST_AUTHOR__", true);
+                    boolean stitle = data.getBoolean("__LAST_TITLE__", true);
+                    boolean sauthor = data.getBoolean("__LAST_AUTHOR__", true);
                     searchBooks(lastSearch, stitle, sauthor);
                     return;
                 }
@@ -368,6 +370,8 @@ public class BookListActivity extends AppCompatActivity {
     }
 
 
+    private MenuItem enableScrollMenu;
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         //Log.d("Booky", "onPrepareOptionsMenu called, showingSearch=" + showingSearch);
@@ -378,8 +382,12 @@ public class BookListActivity extends AppCompatActivity {
         menu.findItem(R.id.menu_get_books).setVisible(!showingSearch);
         menu.findItem(R.id.menu_sort).setVisible(!showingSearch);
 
+        MenuItem screenPaging = menu.findItem(R.id.menu_enable_screen_paging);
+        screenPaging.setChecked(data.getBoolean(ENABLE_SCREEN_PAGE_KEY, true));
 
-
+        enableScrollMenu = menu.findItem(R.id.menu_enable_scroll);
+        enableScrollMenu.setChecked(data.getBoolean(ENABLE_DRAG_SCROLL_KEY, true));
+        enableScrollMenu.setEnabled(screenPaging.isChecked());
 
         switch (showStatus) {
             case BookDb.STATUS_ANY:
@@ -398,9 +406,6 @@ public class BookListActivity extends AppCompatActivity {
                 menu.findItem(R.id.menu_open_books).setChecked(true);
                 break;
         }
-
-
-
 
         return true;
     }
@@ -476,6 +481,14 @@ public class BookListActivity extends AppCompatActivity {
                 data.edit().putInt(STARTWITH_KEY, STARTOPEN).apply(); break;
             case R.id.menu_start_last_read:
                 data.edit().putInt(STARTWITH_KEY, STARTLASTREAD).apply(); break;
+            case R.id.menu_enable_screen_paging:
+                item.setChecked(!item.isChecked());
+                data.edit().putBoolean(ENABLE_SCREEN_PAGE_KEY, item.isChecked()).apply();
+                if (enableScrollMenu!=null) enableScrollMenu.setEnabled(item.isChecked());
+                break;
+            case R.id.menu_enable_scroll:
+                item.setChecked(!item.isChecked());
+                data.edit().putBoolean(ENABLE_DRAG_SCROLL_KEY, item.isChecked()).apply(); break;
             default:
 
                 return super.onOptionsItemSelected(item);
@@ -559,6 +572,8 @@ public class BookListActivity extends AppCompatActivity {
     private Intent getReader(BookDb.BookRecord book, boolean start) {
         Intent readBook = new Intent(BookListActivity.this, ReaderActivity.class);
         readBook.putExtra(ReaderActivity.FILENAME, book.filename);
+        readBook.putExtra(ReaderActivity.SCREEN_PAGING, data.getBoolean(ENABLE_SCREEN_PAGE_KEY, true));
+        readBook.putExtra(ReaderActivity.DRAG_SCROLL, data.getBoolean(ENABLE_DRAG_SCROLL_KEY, true));
         readBook.setAction(Intent.ACTION_VIEW);
         if (start) {
             bookAdapter.notifyItemIdChanged(book.id);
