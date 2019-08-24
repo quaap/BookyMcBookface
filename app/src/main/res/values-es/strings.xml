@@ -61,7 +61,6 @@
     <string name="source_name">Nombre de fuente</string>
     <string name="web_url">URL</string>
     <string name="web_add">Añadir</string>
-    <string name="getbooks_desc">The links below will open in your web browser. Downloaded books will be placed in the web browser\'s default download location.</string>
     <string name="getbooks_desc">Los siguientes enlaces se abreran en tu navegador web. Los libros descargados seran puestos en la carpeta de descarga del navegador.</string>
     <string name="new_websrc">Nuevo</string>
     <string translatable="false" name="web_url_hint">http://www.</string>
